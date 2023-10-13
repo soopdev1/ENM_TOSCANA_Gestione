@@ -146,6 +146,8 @@ public class Allievi implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_statopartecipazione")
     StatoPartecipazione statopartecipazione;
+    
+    
     @ManyToOne
     @JoinColumn(name = "idcondizione_lavorativa")
     Condizione_Lavorativa condizione_lavorativa;
@@ -194,8 +196,13 @@ public class Allievi implements Serializable {
     @Column(name = "tos_dirittoindennita") 
     private String tos_dirittoindennita; 
 
-    @Column(name = "tos_gruppovulnerabile") 
-    private String tos_gruppovulnerabile;
+    @ManyToOne
+    @JoinColumn(name = "tos_gruppovulnerabile")
+    GruppoVulnerabile tos_gruppovulnerabile;
+    
+    @Column(name = "tos_request", columnDefinition = "LONGTEXT") 
+    private String tos_request;
+    
     
     //MODELLO 0
     @Temporal(TemporalType.DATE)
@@ -238,6 +245,14 @@ public class Allievi implements Serializable {
         this.pregresso = false;
     }
 
+    public String getTos_request() {
+        return tos_request;
+    }
+
+    public void setTos_request(String tos_request) {
+        this.tos_request = tos_request;
+    }
+
     public String getTos_tipofinanziamento() {
         return tos_tipofinanziamento;
     }
@@ -254,11 +269,11 @@ public class Allievi implements Serializable {
         this.tos_dirittoindennita = tos_dirittoindennita;
     }
 
-    public String getTos_gruppovulnerabile() {
+    public GruppoVulnerabile getTos_gruppovulnerabile() {
         return tos_gruppovulnerabile;
     }
 
-    public void setTos_gruppovulnerabile(String tos_gruppovulnerabile) {
+    public void setTos_gruppovulnerabile(GruppoVulnerabile tos_gruppovulnerabile) {
         this.tos_gruppovulnerabile = tos_gruppovulnerabile;
     }
 
