@@ -114,6 +114,22 @@ public class QueryMicro extends HttpServlet {
         }
     }
 
+    protected void searchdaAssegnare(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        try {
+            List<Allievi> list = e.getAllievidaAssegnare();
+            list.stream().forEach((l) -> {
+                Utility.setOreLezioni(l);
+            });
+            writeJsonResponse(response, list);
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+
+    }
+
     protected void searchAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
@@ -762,6 +778,9 @@ public class QueryMicro extends HttpServlet {
                     break;
                 case "searchAllievo":
                     searchAllievo(request, response);
+                    break;
+                case "searchdaAssegnare":
+                    searchdaAssegnare(request, response);
                     break;
                 case "searchDocenti":
                     searchDocenti(request, response);

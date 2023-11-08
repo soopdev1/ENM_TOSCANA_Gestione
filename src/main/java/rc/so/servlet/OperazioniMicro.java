@@ -1822,6 +1822,25 @@ public class OperazioniMicro extends HttpServlet {
         response.getWriter().close();
     }
 
+    protected void assegnaenm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+
+        try {
+            e.begin();
+            String idallievo = getRequestValue(request, "idallievo");
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(idallievo));
+            a.setTos_operatore(request.getParameter("tos_operatore"));
+            e.merge(a);
+            e.commit();
+            Utility.redirect(request, response, request.getContextPath() + "/page/mc/assegnaENM.jsp?id=" + idallievo);
+        } catch (Exception ex) {
+            e.rollBack();
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+    }
+    
     protected void saveanpal(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
 
@@ -2453,6 +2472,9 @@ public class OperazioniMicro extends HttpServlet {
             String type = request.getParameter("type");
 
             switch (type) {
+                case "assegnaenm":
+                    assegnaenm(request, response);
+                    break;
                 case "saveanpal":
                     saveanpal(request, response);
                     break;

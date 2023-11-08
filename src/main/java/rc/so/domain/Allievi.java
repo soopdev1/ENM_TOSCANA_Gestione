@@ -38,7 +38,10 @@ import javax.persistence.Transient;
     @NamedQuery(name = "a.bySoggettoAttuatoreNoProgettoAttivi", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto and a.progetto=null AND a.statopartecipazione.id='01' AND a.stato='A'"),
     @NamedQuery(name = "a.byProgetto", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto AND a.statopartecipazione.id='01'"),
     @NamedQuery(name = "a.byProgettoAll", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto"),
-    @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01'")
+    @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01'"),
+    @NamedQuery(name = "allievi.daassegnare", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='10'")
+    
+    
 })
 @JsonIgnoreProperties(value = {"documenti"})
 public class Allievi implements Serializable {
@@ -189,7 +192,7 @@ public class Allievi implements Serializable {
     @Column(name = "surveyout", columnDefinition = "TINYINT", length = 1)
     private boolean surveyout;
     
-    //NEW
+    
     @Column(name = "tos_tipofinanziamento") 
     private String tos_tipofinanziamento; //GOL - PATTO PER IL LAVORO
         
@@ -239,10 +242,21 @@ public class Allievi implements Serializable {
     @Column(name = "tos_mailoriginale") 
     private int tos_mailoriginale;
     
-    
+    //  NEW
+    @Column(name = "tos_operatore") 
+    private String tos_operatore;
+
     
     public Allievi() {
         this.pregresso = false;
+    }
+
+    public String getTos_operatore() {
+        return tos_operatore;
+    }
+
+    public void setTos_operatore(String tos_operatore) {
+        this.tos_operatore = tos_operatore;
     }
 
     public String getTos_request() {

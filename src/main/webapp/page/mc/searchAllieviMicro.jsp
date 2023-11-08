@@ -356,6 +356,22 @@
                         ],
                         drawCallback: function () {
                             $('[data-toggle="kt-tooltip"]').tooltip();
+                            $("a.fancyBoxFullReload").fancybox({
+                                prevEffect: 'none',
+                                nextEffect: 'none',
+                                closeBtn: true,
+                                type: 'iframe',
+                                autoSize: false,
+                                fitToView: false,
+                                width: '80%',
+                                height: '100%',
+                                centerOnScroll: true,
+                                overlayOpacity: 0,
+                                overlayShow: true,
+                                afterClose: function () {
+                                    reload();
+                                }
+                            });
                         }
                         ,
                         rowCallback: function (row, data) {

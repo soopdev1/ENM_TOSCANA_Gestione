@@ -73,6 +73,27 @@ jQuery(document).ready(function ($) {
         }
     });
     $().fancybox({
+        selector: '.fancyBoxFullReload',
+        arrows: false,
+        infobar: false,
+        slideShow: false,
+        touch: false,        
+        prevEffect: 'none',
+        nextEffect: 'none',
+        closeBtn: true,
+        type: 'iframe',
+        autoSize: false,
+        fitToView: false,
+        width: '80%',
+        height: '100%',
+        centerOnScroll: true,
+        overlayOpacity: 0,
+        overlayShow: true,
+        afterClose: function () {
+            reload();
+        }
+    });
+    $().fancybox({
         selector: '.fancyProfile',
         arrows: false,
         infobar: false,

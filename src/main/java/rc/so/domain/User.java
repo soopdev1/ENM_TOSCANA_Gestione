@@ -53,6 +53,8 @@ public class User implements Serializable {
     private int tipo;
     @Column(name = "token")
     private String token;
+    @Column(name = "siglaenm")
+    private String siglaenm;
     @Column(name = "token_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date token_timestamp;
@@ -71,6 +73,14 @@ public class User implements Serializable {
         this.tipo = tipo;
     }
 
+    public String getSiglaenm() {
+        return siglaenm;
+    }
+
+    public void setSiglaenm(String siglaenm) {
+        this.siglaenm = siglaenm;
+    }
+    
     public Long getId() {
         return id;
     }
