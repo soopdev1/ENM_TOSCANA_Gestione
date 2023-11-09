@@ -221,11 +221,13 @@ public class Allievi implements Serializable {
     @Column(name = "tos_m0_gradoconoscenza") 
     private int tos_m0_gradoconoscenza;
     
-    @Column(name = "tos_m0_canaleconoscenza") 
-    private int tos_m0_canaleconoscenza;
+    @ManyToOne
+    @JoinColumn(name = "tos_m0_canaleconoscenza")
+    private Canale tos_m0_canaleconoscenza;
     
-    @Column(name = "tos_m0_motivazione") 
-    private int tos_m0_motivazione;
+    @ManyToOne
+    @JoinColumn(name = "tos_m0_motivazione")
+    private Motivazione tos_m0_motivazione;
     
     @Column(name = "tos_m0_utilita") 
     private int tos_m0_utilita;
@@ -233,11 +235,26 @@ public class Allievi implements Serializable {
     @Column(name = "tos_m0_aspettative") 
     private int tos_m0_aspettative;
     
+    @ManyToOne
+    @JoinColumn(name = "tos_m0_maturazione") 
+    private MaturazioneIdea tos_m0_maturazione;
+    
     @Column(name = "tos_m0_volonta") 
     private int tos_m0_volonta;
     
-    @Column(name = "tos_m0_noperche") 
-    private int tos_m0_noperche;
+    @ManyToOne
+    @JoinColumn(name = "tos_m0_noperche") 
+    private MotivazioneNO tos_m0_noperche;
+    
+    @Column(name = "tos_m0_noperchealtro") 
+    private String tos_m0_noperchealtro;
+    
+    @Column(name = "tos_m0_consapevole") 
+    private int tos_m0_consapevole;
+    
+    
+    
+    
     
     @Column(name = "tos_mailoriginale") 
     private int tos_mailoriginale;
@@ -249,6 +266,22 @@ public class Allievi implements Serializable {
     
     public Allievi() {
         this.pregresso = false;
+    }
+
+    public int getTos_m0_consapevole() {
+        return tos_m0_consapevole;
+    }
+
+    public void setTos_m0_consapevole(int tos_m0_consapevole) {
+        this.tos_m0_consapevole = tos_m0_consapevole;
+    }
+
+    public MaturazioneIdea getTos_m0_maturazione() {
+        return tos_m0_maturazione;
+    }
+
+    public void setTos_m0_maturazione(MaturazioneIdea tos_m0_maturazione) {
+        this.tos_m0_maturazione = tos_m0_maturazione;
     }
 
     public String getTos_operatore() {
@@ -323,19 +356,19 @@ public class Allievi implements Serializable {
         this.tos_m0_gradoconoscenza = tos_m0_gradoconoscenza;
     }
 
-    public int getTos_m0_canaleconoscenza() {
+    public Canale getTos_m0_canaleconoscenza() {
         return tos_m0_canaleconoscenza;
     }
 
-    public void setTos_m0_canaleconoscenza(int tos_m0_canaleconoscenza) {
+    public void setTos_m0_canaleconoscenza(Canale tos_m0_canaleconoscenza) {
         this.tos_m0_canaleconoscenza = tos_m0_canaleconoscenza;
     }
 
-    public int getTos_m0_motivazione() {
+    public Motivazione getTos_m0_motivazione() {
         return tos_m0_motivazione;
     }
 
-    public void setTos_m0_motivazione(int tos_m0_motivazione) {
+    public void setTos_m0_motivazione(Motivazione tos_m0_motivazione) {
         this.tos_m0_motivazione = tos_m0_motivazione;
     }
 
@@ -363,12 +396,20 @@ public class Allievi implements Serializable {
         this.tos_m0_volonta = tos_m0_volonta;
     }
 
-    public int getTos_m0_noperche() {
+    public MotivazioneNO getTos_m0_noperche() {
         return tos_m0_noperche;
     }
 
-    public void setTos_m0_noperche(int tos_m0_noperche) {
+    public void setTos_m0_noperche(MotivazioneNO tos_m0_noperche) {
         this.tos_m0_noperche = tos_m0_noperche;
+    }
+
+    public String getTos_m0_noperchealtro() {
+        return tos_m0_noperchealtro;
+    }
+
+    public void setTos_m0_noperchealtro(String tos_m0_noperchealtro) {
+        this.tos_m0_noperchealtro = tos_m0_noperchealtro;
     }
 
     public int getTos_mailoriginale() {

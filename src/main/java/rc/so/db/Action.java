@@ -173,7 +173,7 @@ public class Action {
             "0", "0", "0"
         };
 
-        Long hh36 = new Long(129600000);
+        Long hh36 = Long.valueOf(129600000);
 
         Entity e = new Entity();
         e.begin();

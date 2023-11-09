@@ -399,7 +399,7 @@ public class QuerySA extends HttpServlet {
         Entity e = new Entity();
         e.begin();
         try {
-            Long hh36 = new Long(129600000);
+            Long hh36 = Long.valueOf(129600000);
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("id")));
             Map<Long, Long> oreRendicontateFaseA = Action.OreRendicontabiliAlunni_faseA(p.getId().intValue());
             List<Allievi> a = e.getAllieviProgettiFormativi(p);

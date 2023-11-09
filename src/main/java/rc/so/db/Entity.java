@@ -520,8 +520,8 @@ public class Entity {
         TypedQuery<Allievi> q = this.em.createNamedQuery("allievi.daassegnare", Allievi.class);
         return q.getResultList();
     }
-    
-    public List<String> elencoOperatori(){
+
+    public List<String> elencoOperatori() {
         return Splitter.on(",").splitToList(getPath("elenco.operatori"));
     }
 
@@ -804,6 +804,13 @@ public class Entity {
         TypedQuery q = this.em.createNamedQuery("da.byAllievo", Documenti_Allievi.class)
                 .setParameter("allievo", a);
         return q.getResultList().size() > 0 ? (List<Documenti_Allievi>) q.getResultList() : new ArrayList();
+    }
+
+    public Documenti_Allievi getModello0Allievo(Allievi a) {
+        TypedQuery<Documenti_Allievi> q = this.em.createNamedQuery("da.modello0", Documenti_Allievi.class)
+                .setParameter("allievo", a);
+
+        return q.getResultList().isEmpty() ? null : q.getSingleResult();
     }
 
     public List<TipoDoc_Allievi> getTipoDocAllieviObbl(StatiPrg stato) {

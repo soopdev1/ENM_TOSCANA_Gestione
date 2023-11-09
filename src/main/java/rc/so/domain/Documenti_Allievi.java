@@ -28,6 +28,7 @@ import javax.persistence.TemporalType;
 @Table(name = "documenti_allievi")
 @NamedQueries(value = {
     @NamedQuery(name = "da.byAllievo", query = "SELECT da FROM Documenti_Allievi da WHERE da.allievo=:allievo AND da.deleted=0"),
+    @NamedQuery(name = "da.modello0", query = "SELECT da FROM Documenti_Allievi da WHERE da.allievo=:allievo AND da.deleted=0 AND da.tipo.id=0"),
     @NamedQuery(name = "da.registriByAllievi", query = "SELECT da FROM Documenti_Allievi da WHERE da.deleted=0 AND da.allievo IN :allievi AND da.giorno IS NOT NULL"),
     @NamedQuery(name = "da.registriByAllievoAndDay", query = "SELECT da FROM Documenti_Allievi da WHERE da.deleted=0 AND da.allievo=:allievo and da.giorno=:giorno"),
 })

@@ -700,7 +700,7 @@ public class Utility {
     }
 
     public static Map<Long, Boolean> allieviM5_premialita(List<MascheraM5> m5, int idpf) {
-        Long hh64 = new Long(230400000);
+        Long hh64 = Long.valueOf(230400000);
         Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni(idpf);
         Map<Long, Boolean> ids = new HashMap();
         int i = 1;
@@ -870,7 +870,7 @@ public class Utility {
     }
 
     public static int allieviOK(long idp, List<Allievi> l) {
-        Long hh36 = new Long(129600000);
+        Long hh36 = Long.valueOf(129600000);
 //        Long hh64 = new Long(230400000);
 //        Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) idp);
         Map<Long, Long> oreRendicontabili_faseA = Action.OreRendicontabiliAlunni_faseA((int) (long) idp);
@@ -884,7 +884,7 @@ public class Utility {
     }
 
     public static List<Allievi> allievi_fa(long idp, List<Allievi> l) {
-        Long hh36 = new Long(129600000);
+        Long hh36 = Long.valueOf(129600000);
         Map<Long, Long> oreRendicontabili_faseA = Action.OreRendicontabiliAlunni_faseA((int) (long) idp);
         return l.stream().filter(a -> oreRendicontabili_faseA.get(a.getId()) != null && oreRendicontabili_faseA.get(a.getId()).compareTo(hh36) >= 0).collect(Collectors.toList());
     }

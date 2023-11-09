@@ -4234,10 +4234,10 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             e.begin();
-            Long hh36 = new Long(129600000);
+            Long hh36 = Long.valueOf(129600000);
 //            Long hh64 = new Long(230400000);
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(idpr));
+                    Long.valueOf(idpr));
             List<Allievi> al = e.getAllieviProgettiFormativi(p);
             List<MascheraM5> rendicontati = e.getM5Loaded_byPF(p);
             Map<Long, Long> allievi_m5 = Utility.allieviM5_loaded(rendicontati);

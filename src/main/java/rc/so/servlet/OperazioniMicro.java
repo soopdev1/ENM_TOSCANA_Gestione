@@ -260,13 +260,13 @@ public class OperazioniMicro extends HttpServlet {
             String stato_prec, stato_succ;
             e.begin();
             min_allievi = Integer.parseInt(e.getPath("min_allievi"));
-            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(getRequestValue(request, "id")));
+            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.valueOf(getRequestValue(request, "id")));
             stato_prec = p.getStato().getId();
             if (p.getStato().getId().equals("DC")) {
                 p.setCip(getRequestValue(request, "cip"));
                 //start fase a - 
                 //14 05 21 Escludere dalla FASE B gli alunni con ore rendicontate <= 36 durante la FASE A
-                Long hh36 = new Long(129600000);
+                Long hh36 = Long.valueOf(129600000);
                 Map<Long, Long> oreRendicontateFaseA = Action.OreRendicontabiliAlunni_faseA(p.getId().intValue());
                 for (Allievi a : p.getAllievi()) {
                     if (oreRendicontateFaseA.get(a.getId()) != null && oreRendicontateFaseA.get(a.getId()).compareTo(hh36) < 0) {
