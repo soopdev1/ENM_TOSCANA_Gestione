@@ -257,7 +257,7 @@ public class Allievi implements Serializable {
     
     
     @Column(name = "tos_mailoriginale") 
-    private int tos_mailoriginale;
+    private String tos_mailoriginale;
     
     //  NEW
     @Column(name = "tos_operatore") 
@@ -412,14 +412,14 @@ public class Allievi implements Serializable {
         this.tos_m0_noperchealtro = tos_m0_noperchealtro;
     }
 
-    public int getTos_mailoriginale() {
+    public String getTos_mailoriginale() {
         return tos_mailoriginale;
     }
 
-    public void setTos_mailoriginale(int tos_mailoriginale) {
+    public void setTos_mailoriginale(String tos_mailoriginale) {
         this.tos_mailoriginale = tos_mailoriginale;
     }
-    
+
     public boolean isSurveyin() {
         return surveyin;
     }

@@ -1223,6 +1223,11 @@ public class Entity {
         q.setParameter("codicefiscale", cf);
         return q.getResultList().isEmpty() ? null : (Nazioni_rc) q.getSingleResult();
     }
+    public Nazioni_rc nazionenascita(String statonascita) {
+        TypedQuery q = this.em.createNamedQuery("nazioni_rc.byIstat", Nazioni_rc.class);
+        q.setParameter("istat", statonascita);
+        return q.getResultList().isEmpty() ? null : (Nazioni_rc) q.getSingleResult();
+    }
 
     public Comuni byIstatEstero(String istat) {
         TypedQuery q = this.em.createNamedQuery("comuni.byIstatEstero", Comuni.class);

@@ -90,6 +90,7 @@ import java.util.stream.Collectors;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.apache.commons.io.FileUtils.readFileToByteArray;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.replace;
 import org.apache.pdfbox.Loader;
@@ -125,6 +126,17 @@ import org.joda.time.DateTime;
 public class Pdf_new {
 
     //RICHIAMI
+    public static File MODELLO0(Entity e, String idmodello, Allievi al) {
+        File out1 = MODELLO0_BASE(e, idmodello, al);
+        if (out1 != null) {
+            File out2 = convertPDFA(out1, "MODELLO0", e);
+            if (out2 != null) {
+                return out2;
+            }
+        }
+        return null;
+    }
+
     public static File MODELLO1(Entity e, String idmodello, String username,
             SoggettiAttuatori sa, Allievi al, DateTime dataconsegna, boolean domiciliouguale, boolean flatten) {
         File out1 = MODELLO1_BASE(e, idmodello, username, sa, al, dataconsegna, domiciliouguale, flatten);
@@ -1979,6 +1991,104 @@ public class Pdf_new {
                 return pdfOut;
             }
         } catch (Exception ex) {
+            e.insertTracking("ERROR SYSTEM ", estraiEccezione(ex));
+        }
+        return null;
+    }
+
+    private static File MODELLO0_BASE(Entity e, String idmodello, Allievi al) {
+
+        try {
+
+            TipoDoc_Allievi p = e.getEm().find(TipoDoc_Allievi.class, Long.valueOf(idmodello));
+            String contentb64 = p.getModello();
+            String pathtemp = e.getPath("pathtemp");
+            createDir(pathtemp);
+
+            File pdfOut = new File(pathtemp + RandomStringUtils.randomAlphabetic(5)
+                    + "_" + StringUtils.deleteWhitespace(al.getCognome() + "_" + al.getNome()) + "_" + new DateTime().toString("ddMMyyyyHHmmSSS") + ".M0.pdf");
+
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+                PdfAcroForm form = getAcroForm(pdfDoc, true);
+                form.setGenerateAppearance(true);
+                Map<String, PdfFormField> fields = form.getAllFormFields();
+
+                setFieldsValue(form, fields, "cognome", al.getCognome().toUpperCase());
+                setFieldsValue(form, fields, "nome", al.getNome().toUpperCase());
+                setFieldsValue(form, fields, "datanascita", sdfITA.format(al.getDatanascita()));
+                setFieldsValue(form, fields, "eta", String.valueOf(get_eta(al.getDatanascita())));
+                setFieldsValue(form, fields, "codicefiscale", al.getCodicefiscale().toUpperCase());
+                setFieldsValue(form, fields, "cellulare", al.getTelefono());
+                setFieldsValue(form, fields, "email", al.getEmail().toLowerCase());
+
+                setFieldsValue(form, fields, "res_regione", al.getComune_residenza().getRegione().toUpperCase());
+                setFieldsValue(form, fields, "res_indirizzo", al.getIndirizzoresidenza().toUpperCase());
+                setFieldsValue(form, fields, "res_comune", al.getComune_residenza().getNome().toUpperCase());
+                setFieldsValue(form, fields, "res_cap", al.getCapresidenza().toUpperCase());
+                setFieldsValue(form, fields, "res_prov", al.getComune_residenza().getProvincia().toUpperCase());
+
+                if (false) {
+                    setFieldsValue(form, fields, "dom_regione", al.getComune_domicilio().getRegione().toUpperCase());
+                    setFieldsValue(form, fields, "dom_indirizzo", al.getIndirizzodomicilio().toUpperCase());
+                    setFieldsValue(form, fields, "dom_comune", al.getComune_domicilio().getNome().toUpperCase());
+                    setFieldsValue(form, fields, "dom_cap", al.getCapdomicilio().toUpperCase());
+                    setFieldsValue(form, fields, "dom_prov", al.getComune_domicilio().getProvincia().toUpperCase());
+                }
+
+                setFieldsValue(form, fields, "cpi", al.getCpi().getDescrizione());
+                setFieldsValue(form, fields, "datacpi", sdfITA.format(al.getDatacpi()));
+                setFieldsValue(form, fields, "golpatto", al.getTos_tipofinanziamento());
+                setFieldsValue(form, fields, "titolostudio", al.getTitoloStudio().getDescrizione());
+                setFieldsValue(form, fields, "vulnerab", al.getTos_gruppovulnerabile().getDescrizione());
+                setFieldsValue(form, fields, "condizioneprof", al.getCondizione_mercato().getDescrizione());
+                setFieldsValue(form, fields, "indennita", al.getTos_dirittoindennita());
+                setFieldsValue(form, fields, "dataiscrizione", sdfITA.format(al.getData_up()));
+
+                setFieldsValue(form, fields, "datacolloquio", sdfITA.format(al.getTos_m0_datacolloquio()));
+                setFieldsValue(form, fields, "siglaenm", al.getTos_m0_siglaoperatore());
+
+                setFieldsValue(form, fields, "svolgimento" + al.getTos_m0_modalitacolloquio(), "Sì");
+                setFieldsValue(form, fields, "grado" + al.getTos_m0_gradoconoscenza(), "Sì");
+                setFieldsValue(form, fields, "canale" + al.getTos_m0_canaleconoscenza().getId(), "Sì");
+                setFieldsValue(form, fields, "motivazione" + al.getTos_m0_motivazione().getId(), "Sì");
+                setFieldsValue(form, fields, "utilita" + al.getTos_m0_utilita(), "Sì");
+                setFieldsValue(form, fields, "aspettative" + al.getTos_m0_aspettative(), "Sì");
+                setFieldsValue(form, fields, "maturazione" + al.getTos_m0_maturazione().getId(), "Sì");
+                setFieldsValue(form, fields, "volonta" + al.getTos_m0_volonta(), "Sì");
+
+                if (al.getTos_m0_volonta() == 1) {
+                    setFieldsValue(form, fields, "soggetto", al.getSoggetto().getRagionesociale());
+                    setFieldsValue(form, fields, "consapevole"+ al.getTos_m0_consapevole(), "Sì");
+                } else {
+                    setFieldsValue(form, fields, "noperche" + al.getTos_m0_noperche().getId(), "Sì");
+                    if(al.getTos_m0_noperche().getId() == 7){ //ALTRO
+                        setFieldsValue(form, fields, "altro", al.getTos_m0_noperchealtro().toUpperCase());
+                    }
+                }
+                
+                
+                if(al.getEmail().equalsIgnoreCase(al.getTos_mailoriginale())){
+                    setFieldsValue(form, fields, "confermamail1", "Sì");
+                }else{
+                    setFieldsValue(form, fields, "confermamail0", "Sì");
+                    setFieldsValue(form, fields, "mailadd", al.getEmail().toLowerCase());
+                }
+
+                form.flattenFields();
+                form.flush();
+
+                BarcodeQRCode barcode = new BarcodeQRCode("MODELLO0 / "
+                        + StringUtils.deleteWhitespace(al.getCognome() + "_" + al.getNome())
+                        + " / " + new DateTime().toString("ddMMyyyyHHmmSSS"));
+                printbarcode(barcode, pdfDoc);
+
+            }
+            if (checkPDF(pdfOut)) {
+                return pdfOut;
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
             e.insertTracking("ERROR SYSTEM ", estraiEccezione(ex));
         }
         return null;

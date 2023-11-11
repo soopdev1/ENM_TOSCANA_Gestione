@@ -9,6 +9,7 @@ import rc.so.util.Utility;
 import java.io.File;
 import java.util.Map;
 import org.joda.time.DateTime;
+import rc.so.domain.Allievi;
 
 
 /*
@@ -24,21 +25,21 @@ public class GeneraDoc {
 
     public static void main(String[] args) {
 
-        String idpr = "614";
-        String idall = "1768";
-        String usernameSA = "FLCOMMERCIALISTI";
+//        String idpr = "614";
+        String idall = "2469";
+//        String usernameSA = "FLCOMMERCIALISTI";
 
         Entity e = new Entity();
         e.begin();
-        ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
-                Long.valueOf(idpr));
-//        Allievi al = e.getEm().find(Allievi.class,
-//                Long.valueOf(idall));
+//        ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
+//                Long.valueOf(idpr));
+        Allievi al = e.getEm().find(Allievi.class, 
+                Long.valueOf(idall));
 
 //        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
 //        ModelliPrg m4 = Utility.filterModello4(prg.getModelli());
-//        File f1 = Pdf_new.MODELLO1(e, "3", usernameSA, prg.getSoggetto(), al, new DateTime(), true, true);
-//        System.out.println(f1.getPath());
+        File f1 = Pdf_new.MODELLO0(e, "30", al);
+        System.out.println(f1.getPath());
 //        File f2 = Pdf_new.MODELLO2(e,
 //                            "1",
 //                            usernameSA, prg.getSoggetto(),
@@ -56,7 +57,6 @@ public class GeneraDoc {
 //                            new DateTime(), true);        
 //        System.out.println(f3.getPath());
 //        Collections.sort(m4.getLezioni(), (emp1, emp2) -> emp1.getGiorno().compareTo(emp2.getGiorno()));
-
 //        File f4 = Pdf_new.MODELLO4(e, usernameSA, prg.getSoggetto(), prg, prg.getAllievi().stream().filter(p1
 //                -> p1.getStatopartecipazione().getId().equals("01")).collect(Collectors.toList()),
 //                prg.getDocenti(),
@@ -65,38 +65,37 @@ public class GeneraDoc {
 //                -> m.getAttivo() == 1).collect(Collectors.toList()), new DateTime(), true);
 //
 //        System.out.println(f4.getPath());
-
-        Map<Long, Long> allievi_m5 = Utility.allieviM5_loaded(e.getM5Loaded_byPF(prg));
-        prg.getAllievi().stream().filter(al1 -> al1.getStatopartecipazione().getId().equals("01")).forEach(al -> {
-
-            MascheraM5 m5 = e.getEm().find(MascheraM5.class, allievi_m5.get(al.getId()));
-
-            if (m5 != null) {
-                TipoDoc_Allievi tipodoc_m5;
-                if (m5.isTabella_premialita()) {
-                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class, 21L);
-                } else {
-                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class, 20L);
-                }
-
-                String[] datifrequenza = Action.dati_modello5_neet(
-                        String.valueOf(al.getId()),
-                        String.valueOf(prg.getSoggetto().getId()),
-                        String.valueOf(m5.getProgetto_formativo().getId()));
-
-                File f5 = Pdf_new.MODELLO5(e,
-                        tipodoc_m5.getModello(),
-                        usernameSA,
-                        prg.getSoggetto(),
-                        al,
-                        datifrequenza,
-                        m5,
-                        new DateTime(), true);
-                System.out.println(f5.getPath());
-                
-            }
-
-        });
+//        Map<Long, Long> allievi_m5 = Utility.allieviM5_loaded(e.getM5Loaded_byPF(prg));
+//        prg.getAllievi().stream().filter(al1 -> al1.getStatopartecipazione().getId().equals("01")).forEach(al -> {
+//
+//            MascheraM5 m5 = e.getEm().find(MascheraM5.class, allievi_m5.get(al.getId()));
+//
+//            if (m5 != null) {
+//                TipoDoc_Allievi tipodoc_m5;
+//                if (m5.isTabella_premialita()) {
+//                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class, 21L);
+//                } else {
+//                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class, 20L);
+//                }
+//
+//                String[] datifrequenza = Action.dati_modello5_neet(
+//                        String.valueOf(al.getId()),
+//                        String.valueOf(prg.getSoggetto().getId()),
+//                        String.valueOf(m5.getProgetto_formativo().getId()));
+//
+//                File f5 = Pdf_new.MODELLO5(e,
+//                        tipodoc_m5.getModello(),
+//                        usernameSA,
+//                        prg.getSoggetto(),
+//                        al,
+//                        datifrequenza,
+//                        m5,
+//                        new DateTime(), true);
+//                System.out.println(f5.getPath());
+//
+//            }
+//
+//        });
 //        ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
 //        if (m6 != null) {
 //            File f6 = Pdf_new.MODELLO6(e,

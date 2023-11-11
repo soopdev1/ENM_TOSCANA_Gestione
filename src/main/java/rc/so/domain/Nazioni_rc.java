@@ -25,7 +25,8 @@ import javax.persistence.Table;
 @NamedQueries(value = {
     @NamedQuery(name = "nazioni_rc.cf", query = "select n from Nazioni_rc n where n.codicefiscale <> '-' ORDER BY n.nome"),
     @NamedQuery(name = "nazioni_rc.NazioniTotale", query = "select n.nome from Nazioni_rc n where n.codicefiscale <> '-' ORDER BY n.nome"),
-    @NamedQuery(name = "nazioni_rc.byCodiceFiscale", query = "select n from Nazioni_rc n where n.codicefiscale=:codicefiscale")
+    @NamedQuery(name = "nazioni_rc.byCodiceFiscale", query = "select n from Nazioni_rc n where n.codicefiscale=:codicefiscale"),
+    @NamedQuery(name = "nazioni_rc.byIstat", query = "select n from Nazioni_rc n where n.istat=:istat")
 })
 public class Nazioni_rc implements Serializable {
 

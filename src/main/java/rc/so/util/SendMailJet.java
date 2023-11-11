@@ -10,11 +10,11 @@ package rc.so.util;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import static com.mailjet.client.Base64.encode;
 import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
-import com.mailjet.client.errors.MailjetException;
 import static com.mailjet.client.resource.Emailv31.MESSAGES;
 import static com.mailjet.client.resource.Emailv31.Message.ATTACHMENTS;
 import static com.mailjet.client.resource.Emailv31.Message.BCC;
@@ -32,9 +32,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import static java.nio.file.Files.probeContentType;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
+import org.apache.commons.io.FileUtils;
 import static org.apache.commons.io.IOUtils.toByteArray;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -46,7 +45,7 @@ import org.json.JSONObject;
  */
 public class SendMailJet {
 
-    public static boolean sendMail(String name, String[] to, String[] cc, String txt, String subject){
+    public static boolean sendMail(String name, String[] to, String[] cc, String txt, String subject) {
         return sendMail(name, to, cc, txt, subject, null);
     }
 
@@ -54,48 +53,47 @@ public class SendMailJet {
         return sendMail(name, to, new String[]{}, txt, subject, null);
     }
 
-    public static boolean sendMail(String name, String[] to, String[] cc, String txt, String subject, File file){
+    public static boolean sendMail(String name, String[] to, String[] cc, String txt, String subject, File file) {
         try {
             MailjetClient client;
             MailjetRequest request;
             MailjetResponse response;
-            
+
             String filename = "";
             String content_type = "";
             String b64 = "";
-            
+
             Entity e = new Entity();
             String mailjet_api = e.getPath("mailjet_api");
             String mailjet_secret = e.getPath("mailjet_secret");
             String mailjet_name = e.getPath("mailjet_name");
-            
+
             e.close();
-            
-            
+
             ClientOptions options = ClientOptions.builder()
                     .apiKey(mailjet_api)
                     .apiSecretKey(mailjet_secret)
                     .build();
-            
+
             client = new MailjetClient(options);
             JSONArray dest = new JSONArray();
             JSONArray ccn = new JSONArray();
             JSONArray ccj = new JSONArray();
-            
+
             if (to != null) {
                 for (String s : to) {
                     dest.put(new JSONObject().put("Email", s)
                             .put("Name", ""));
                 }
             }
-            
+
             if (cc != null) {
                 for (String s : cc) {
                     ccj.put(new JSONObject().put("Email", s)
                             .put("Name", ""));
                 }
             }
-            
+
             JSONObject mail = new JSONObject().put(FROM, new JSONObject()
                     .put("Email", mailjet_name)
                     .put("Name", name))
@@ -104,36 +102,31 @@ public class SendMailJet {
                     .put(BCC, ccn)
                     .put(SUBJECT, subject)
                     .put(HTMLPART, txt);
-            
+
             if (file != null) {
                 try {
-                    filename = file.getName();
-                    content_type = probeContentType(file.toPath());
-                    try (InputStream i = new FileInputStream(file)) {
-                        b64 = new String(encodeBase64(toByteArray(i)));
-                    }
+                    mail.put(ATTACHMENTS, new JSONArray()
+                            .put(new JSONObject()
+                                    .put("ContentType", probeContentType(file.toPath()))
+                                    .put("Filename", file.getName())
+                                    .put("Base64Content", encode(FileUtils.readFileToByteArray(file)))));
                 } catch (Exception ex) {
                     insertTR("E", "SERVICE", estraiEccezione(ex));
                 }
-                mail.put(ATTACHMENTS, new JSONArray()
-                        .put(new JSONObject()
-                                .put("ContentType", content_type)
-                                .put("Filename", filename)
-                                .put("Base64Content", b64)));
             }
-            
+
             request = new MailjetRequest(resource)
                     .property(MESSAGES, new JSONArray()
                             .put(mail));
-            
+
             response = client.post(request);
-            
+
             boolean ok = response.getStatus() == 200;
-            
+
             if (!ok) {
                 System.err.println("ERRORE: sendMail - " + response.getStatus() + " -- " + response.getRawResponseContent() + " --- " + response.getData().toList());
             }
-            
+
             return ok;
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
@@ -179,6 +172,5 @@ public class SendMailJet {
         }
         return sending;
     }
-    
-   
+
 }

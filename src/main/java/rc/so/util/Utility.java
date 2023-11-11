@@ -988,6 +988,14 @@ public class Utility {
         return 0.0;
 
     }
+    public static int parseInt(String f) {
+        try {
+            return Integer.parseInt(f);
+        } catch (Exception e) {
+        }
+        return 0;
+
+    }
 
     public static boolean copyR(File source, File dest) {
         boolean es;

@@ -54,7 +54,6 @@ import rc.so.util.SendMailJet;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -95,12 +94,91 @@ import static java.lang.String.format;
 import java.nio.file.Files;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
+import rc.so.domain.Canale;
+import rc.so.domain.MaturazioneIdea;
+import rc.so.domain.Motivazione;
+import rc.so.domain.MotivazioneNO;
+import rc.so.domain.TipoDoc_Allievi;
+import static rc.so.util.Utility.parseInt;
 
 /**
  *
  * @author agodino
  */
 public class OperazioniMicro extends HttpServlet {
+
+    protected void salvamodello0(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        Entity e = new Entity();
+        Allievi a = e.getEm().find(Allievi.class, Long.valueOf(getRequestValue(request, "idallievo")));
+
+        try {
+            User us = (User) request.getSession().getAttribute("user");
+
+            int tos_m0_modalitacolloquio = parseInt(getRequestValue(request, "tos_m0_modalitacolloquio"));
+            int tos_m0_gradoconoscenza = parseInt(getRequestValue(request, "tos_m0_gradoconoscenza"));
+            int tos_m0_canaleconoscenza = parseInt(getRequestValue(request, "tos_m0_canaleconoscenza"));
+            int tos_m0_motivazione = parseInt(getRequestValue(request, "tos_m0_motivazione"));
+            int tos_m0_utilita = parseInt(getRequestValue(request, "tos_m0_utilita"));
+            int tos_m0_aspettative = parseInt(getRequestValue(request, "tos_m0_aspettative"));
+            int tos_m0_maturazione = parseInt(getRequestValue(request, "tos_m0_maturazione"));
+            int tos_m0_volonta = parseInt(getRequestValue(request, "tos_m0_volonta"));
+            int tos_m0_consapevole = parseInt(getRequestValue(request, "tos_m0_consapevole"));
+            int tos_m0_noperche = parseInt(getRequestValue(request, "tos_m0_noperche"));
+            String tos_m0_noperchealtro = getRequestValue(request, "tos_m0_noperchealtro");
+
+            String tos_mail = getRequestValue(request, "tos_mail");
+
+            SoggettiAttuatori sa = e.getEm().find(SoggettiAttuatori.class, Long.valueOf(getRequestValue(request, "soggetto")));
+
+            a.setTos_m0_datacolloquio(new Date());
+            a.setTos_m0_siglaoperatore(us.getSiglaenm());
+            a.setTos_m0_modalitacolloquio(tos_m0_modalitacolloquio);
+            a.setTos_m0_gradoconoscenza(tos_m0_gradoconoscenza);
+            a.setTos_m0_canaleconoscenza(e.getEm().find(Canale.class, tos_m0_canaleconoscenza));
+            a.setTos_m0_motivazione(e.getEm().find(Motivazione.class, tos_m0_motivazione));
+            a.setTos_m0_utilita(tos_m0_utilita);
+            a.setTos_m0_aspettative(tos_m0_aspettative);
+            a.setTos_m0_maturazione(e.getEm().find(MaturazioneIdea.class, tos_m0_maturazione));
+            a.setTos_m0_volonta(tos_m0_volonta);
+            a.setTos_m0_consapevole(tos_m0_consapevole);
+            a.setTos_m0_noperche(e.getEm().find(MotivazioneNO.class, tos_m0_noperche));
+            a.setTos_m0_noperchealtro(tos_m0_noperchealtro);
+
+            a.setTos_mailoriginale(a.getEmail());
+            a.setEmail(tos_mail);
+            a.setSoggetto(sa);
+
+            if (tos_m0_volonta == 1) {
+                a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class, "12"));
+            } else {
+                a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class, "11"));
+            }
+
+            File f1 = Pdf_new.MODELLO0(e, "30", a);
+            if (f1 != null) {
+                e.begin();
+                e.merge(a);
+                TipoDoc_Allievi modello0 = e.getEm().find(TipoDoc_Allievi.class, Long.valueOf("30")); //MODELLO 0 BASE
+                Documenti_Allievi dam0 = new Documenti_Allievi();
+                dam0.setTipo(modello0);
+                dam0.setAllievo(a);
+                dam0.setPath(f1.getPath());
+                e.persist(dam0);
+                e.commit();
+                e.close();
+            }
+
+            redirect(request, response, "page/mc/modello0.jsp?esito=OK&id=" + a.getId());
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniMicro salvamodello0: " + ex.getMessage());
+            redirect(request, response, "page/mc/modello0.jsp?esito=KO&id=" + a.getId());
+
+        }
+
+    }
 
     protected void addDocente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
@@ -1512,7 +1590,7 @@ public class OperazioniMicro extends HttpServlet {
     }
 
     protected void addlez(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         String idpr1 = request.getParameter("idpr1");
         String corso = request.getParameter("corso");
         String orainizio = request.getParameter("orainizio");
@@ -1840,7 +1918,7 @@ public class OperazioniMicro extends HttpServlet {
             e.close();
         }
     }
-    
+
     protected void saveanpal(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
 
@@ -2035,6 +2113,7 @@ public class OperazioniMicro extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
+
     protected void caricanuovodocumento(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -2433,7 +2512,7 @@ public class OperazioniMicro extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void setSIGMA(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -2645,7 +2724,10 @@ public class OperazioniMicro extends HttpServlet {
                     break;
                 case "setSIGMA":
                     setSIGMA(request, response);
-                    break;    
+                    break;
+                case "salvamodello0":
+                    salvamodello0(request, response);
+                    break;
                 default:
                     break;
             }

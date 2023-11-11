@@ -12,7 +12,6 @@ import rc.so.db.Database;
 import rc.so.db.Entity;
 import rc.so.domain.Allievi;
 import rc.so.domain.Attivita;
-import rc.so.domain.ProgettiFormativi;
 import rc.so.domain.User;
 import rc.so.util.Utility;
 import static rc.so.util.Utility.getRequestValue;
@@ -32,12 +31,43 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.validator.routines.EmailValidator;
+import static rc.so.db.Action.insertTR;
+import rc.so.domain.Email;
+import rc.so.util.SendMailJet;
+import static rc.so.util.Utility.estraiEccezione;
+import static rc.so.util.Utility.redirect;
 
 /**
  *
  * @author dolivo
  */
 public class OperazioniGeneral extends HttpServlet {
+
+    protected void sendmailModello0(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String maildest = getRequestValue(request, "maildest");
+        String path = getRequestValue(request, "path");
+        try {
+            File f1 = new File(path);
+            if (EmailValidator.getInstance().isValid(maildest)) {
+                Entity e = new Entity();
+
+                Email email_txt = (Email) e.getEmail("invio_modello0");
+                SendMailJet.sendMail(e.getPath("mailsender"), new String[]{maildest}, null,
+                        email_txt.getTesto()
+                                .replace("@email_tec", e.getPath("emailtecnico"))
+                                .replace("@email_am", e.getPath("emailamministrativo")),
+                        email_txt.getOggetto(), f1);
+                redirect(request, response, "page/mc/modello0.jsp?id=" + getRequestValue(request, "idallievo"));
+            } else {
+                redirect(request, response, "page/mc/modello0.jsp?esito=KO&id=" + getRequestValue(request, "idallievo"));
+            }
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+            redirect(request, response, "page/mc/modello0.jsp?esito=KO&id=" + getRequestValue(request, "idallievo"));
+        }
+
+    }
 
     protected void onlyDownloadnew(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getParameter("path");
@@ -60,7 +90,7 @@ public class OperazioniGeneral extends HttpServlet {
                     String headerValue = format("attach; filename=\"%s\"", downloadFile.getName());
                     response.setHeader(headerKey, headerValue);
                     response.setContentLength(-1);
-                    try ( OutputStream outStream = response.getOutputStream()) {
+                    try (OutputStream outStream = response.getOutputStream()) {
                         outStream.write(FileUtils.readFileToByteArray(downloadFile));
                     }
                 } else {
@@ -86,7 +116,7 @@ public class OperazioniGeneral extends HttpServlet {
             String headerValue = format("attach; filename=\"%s\"", downloadFile.getName());
             response.setHeader(headerKey, headerValue);
             response.setContentLength(-1);
-            try ( OutputStream outStream = response.getOutputStream()) {
+            try (OutputStream outStream = response.getOutputStream()) {
                 outStream.write(FileUtils.readFileToByteArray(downloadFile));
             }
         } else {
@@ -99,7 +129,7 @@ public class OperazioniGeneral extends HttpServlet {
         String path = request.getParameter("path");
         File downloadFile = createFile_R(path);
         if (downloadFile != null && downloadFile.exists()) {
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = Files.probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/pdf";
@@ -108,7 +138,7 @@ public class OperazioniGeneral extends HttpServlet {
                 String headerKey = "Content-Disposition";
                 String headerValue = String.format("inline; filename=\"%s\"", downloadFile.getName());
                 response.setHeader(headerKey, headerValue);
-                try ( OutputStream outStream = response.getOutputStream()) {
+                try (OutputStream outStream = response.getOutputStream()) {
                     byte[] buffer = new byte[4096 * 4096];
                     int bytesRead;
                     while ((bytesRead = inStream.read(buffer)) != -1) {
@@ -140,7 +170,7 @@ public class OperazioniGeneral extends HttpServlet {
         File downloadFile = createFile_R(path);
 
         if (downloadFile.exists()) {
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = Files.probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/pdf";
@@ -149,7 +179,7 @@ public class OperazioniGeneral extends HttpServlet {
                 String headerKey = "Content-Disposition";
                 String headerValue = String.format("attach; filename=\"%s\"", downloadFile.getName());
                 response.setHeader(headerKey, headerValue);
-                try ( OutputStream outStream = response.getOutputStream()) {
+                try (OutputStream outStream = response.getOutputStream()) {
                     byte[] buffer = new byte[4096 * 4096];
                     int bytesRead;
                     while ((bytesRead = inStream.read(buffer)) != -1) {
@@ -161,12 +191,16 @@ public class OperazioniGeneral extends HttpServlet {
         } else {
             User us = (User) request.getSession().getAttribute("user");
             String page = "page/";
-            if (us.getTipo() == 1) {
-                page += "sa/indexSoggettoAttuatore.jsp";
-            } else if (us.getTipo() == 4) {
-                page += "ci/indexCi.jsp";
-            } else {
-                page += "sa/indexMicrocredito.jsp";
+            switch (us.getTipo()) {
+                case 1:
+                    page += "sa/indexSoggettoAttuatore.jsp";
+                    break;
+                case 4:
+                    page += "ci/indexCi.jsp";
+                    break;
+                default:
+                    page += "sa/indexMicrocredito.jsp";
+                    break;
             }
             response.sendRedirect("redirect.jsp?page=" + page + "&fileNotFound=true");
         }
@@ -184,18 +218,22 @@ public class OperazioniGeneral extends HttpServlet {
             String headerKey = "Content-Disposition";
             String headerValue = String.format("attachment; filename=\"%s\"", new Object[]{"Progetto_" + idpr + "_report_FAD.xlsx"});
             response.setHeader(headerKey, headerValue);
-            OutputStream outStream = response.getOutputStream();
-            outStream.write(Base64.getDecoder().decode(base64.getBytes()));
-            outStream.close();
+            try (OutputStream outStream = response.getOutputStream()) {
+                outStream.write(Base64.getDecoder().decode(base64.getBytes()));
+            }
         } else {
             User us = (User) request.getSession().getAttribute("user");
             String page = "page/";
-            if (us.getTipo() == 1) {
-                page += "sa/indexSoggettoAttuatore.jsp";
-            } else if (us.getTipo() == 4) {
-                page += "ci/indexCi.jsp";
-            } else {
-                page += "sa/indexMicrocredito.jsp";
+            switch (us.getTipo()) {
+                case 1:
+                    page += "sa/indexSoggettoAttuatore.jsp";
+                    break;
+                case 4:
+                    page += "ci/indexCi.jsp";
+                    break;
+                default:
+                    page += "sa/indexMicrocredito.jsp";
+                    break;
             }
             response.sendRedirect("redirect.jsp?page=" + page + "&noFileFound=true");
         }
@@ -245,7 +283,7 @@ public class OperazioniGeneral extends HttpServlet {
             String idallievo = getRequestValue(request, "idallievo");
             String new_mail = getRequestValue(request, "new_mail");
             e.begin();
-            Allievi a = e.getEm().find(Allievi.class, Long.parseLong(idallievo));
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(idallievo));
             a.setEmail(new_mail);
             e.merge(a);
             e.flush();
@@ -263,7 +301,7 @@ public class OperazioniGeneral extends HttpServlet {
 
     }
 
-    private void getAttivita(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void getAttivita(HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         List<Attivita> list = e.getAttivitaValide();
         e.close();
@@ -320,10 +358,13 @@ public class OperazioniGeneral extends HttpServlet {
                     ctrlSession(request, response);
                     break;
                 case "getAttivita":
-                    getAttivita(request, response);
+                    getAttivita(response);
                     break;
                 case "editMailNeet":
                     editMailNeet(request, response);
+                    break;
+                case "sendmailModello0":
+                    sendmailModello0(request, response);
                     break;
                 default:
                     break;
