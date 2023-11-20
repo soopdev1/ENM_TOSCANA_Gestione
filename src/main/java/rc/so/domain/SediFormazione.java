@@ -25,12 +25,13 @@ import javax.persistence.Transient;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "sedi_formazione")
 @NamedQueries(value = {
     @NamedQuery(name = "s.Active", query = "SELECT s FROM SediFormazione s WHERE s.stato='A' OR s.stato='A1'"),
+    @NamedQuery(name = "s.active.soggetto", query = "SELECT s FROM SediFormazione s WHERE (s.stato='A' OR s.stato='A1') AND s.soggetto=:soggetto"),
     @NamedQuery(name = "s.byProgetto", query = "SELECT s FROM SediFormazione s WHERE s.progetti=:progetto")
 })
 @JsonIgnoreProperties(value = {"progetti"})

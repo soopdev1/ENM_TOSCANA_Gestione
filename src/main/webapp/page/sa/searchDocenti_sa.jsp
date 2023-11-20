@@ -15,8 +15,6 @@
         if (!Action.isVisibile(String.valueOf(us.getTipo()), pageName_)) {
             response.sendRedirect(request.getContextPath() + "/page_403.jsp");
         } else {
-            Entity e = new Entity();
-            e.close();
             String src = session.getAttribute("src").toString();%>
 <html>
     <head>
@@ -443,7 +441,7 @@
                             + '<th class="text-uppercase text-center">Nome</th>'
                             + '<th class="text-uppercase text-center">Data Inizio</th>'
                             + '<th class="text-uppercase text-center">Data Fine</th>'
-                            + '<th class="text-uppercase text-center">Soggetto Attuatore</th>'
+                            + '<th class="text-uppercase text-center">Soggetto Esecutore</th>'
                             + '</tr>'
                             + '</thead>'
                             + '</table>',

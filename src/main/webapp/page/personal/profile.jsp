@@ -122,9 +122,9 @@
                                                     <h3 class="kt-portlet__head-title kt-font-io">
                                                         <i class="flaticon2-user"></i><label data-toggle="popover-hover" data-content="<h5>Username: <%=us.getUsername()%></h5>">  Profilo | <b><%=us.getSoggettoAttuatore().getRagionesociale()%></b></label>&nbsp;&nbsp;&nbsp;
                                                         <% if (us.getSoggettoAttuatore().getProtocollo() == null) {%>
-                                                        <a data-toggle="popover-hover" data-content="<h5>Soggetto Attuatore in attesa di accreditamento</h5>" ><i class="flaticon2-correct kt-font-io-n"></i></a>
+                                                        <a data-toggle="popover-hover" data-content="<h5>Soggetto Esecutore in attesa di accreditamento</h5>" ><i class="flaticon2-correct kt-font-io-n"></i></a>
                                                         <%} else {%>
-                                                        <a data-toggle="popover-hover" data-content="<h5>Soggetto Attuatore accreditato</h5>" ><i class="flaticon2-correct kt-font-success"></i></a>
+                                                        <a data-toggle="popover-hover" data-content="<h5>Soggetto Esecutore accreditato</h5>" ><i class="flaticon2-correct kt-font-success"></i></a>
                                                         <%}%>
                                                     </h3>
                                                 </div>
@@ -133,7 +133,7 @@
                                                 <ul class="nav nav-pills nav-pills-sm nav-pills-label nav-pills-bold" role="tablist">
                                                     <li class="nav-item">
                                                         <a class="nav-link" id="tab1" data-toggle="tab" href="#kt_widget5_tab1_content" role="tab">
-                                                            Soggetto Attuatore
+                                                            Soggetto Esecutore
                                                         </a>
                                                     </li>
                                                     <li class="nav-item">
@@ -156,7 +156,7 @@
                                                         <div class="kt-section kt-section--space-md">
                                                             <div class="form-group form-group-sm row">
                                                                 <div class="col-md-5">
-                                                                    <h5>Soggetto Attuatore</h5><h6><%if (us.getSoggettoAttuatore().getProtocollo() != null) {%>
+                                                                    <h5>Soggetto Esecutore</h5><h6><%if (us.getSoggettoAttuatore().getProtocollo() != null) {%>
                                                                         Numero Protocollo:<i> <%=us.getSoggettoAttuatore().getProtocollo()%></i>
                                                                         <%}%></h6>
                                                                     <br>

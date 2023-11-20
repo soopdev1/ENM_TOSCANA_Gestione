@@ -27,7 +27,7 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>YES I Start Up - Toscana - Soggetti Attuatori Cerca</title>
+        <title>YES I Start Up - Toscana - Soggetti Esecutori</title>
         <meta name="description" content="Updates and statistics">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -85,7 +85,7 @@
                         <div class="kt-subheader   kt-grid__item" id="kt_subheader">
                             <div class="kt-subheader   kt-grid__item" id="kt_subheader">
                                 <div class="kt-subheader__main">
-                                    <h3 class="kt-subheader__title">Soggetti Attuatori</h3>
+                                    <h3 class="kt-subheader__title">Soggetti Esecutori</h3>
                                     <span class="kt-subheader__separator kt-subheader__separator--v"></span>
                                     <a class="kt-subheader__breadcrumbs-link">Gestisci Nuovi</a>
                                 </div>
@@ -98,7 +98,7 @@
                                         <div class="kt-portlet__head">
                                             <div class="kt-portlet__head-label col-lg-8">
                                                     <h3 class="kt-portlet__head-title text" >
-                                                        Soggetti Attuatore Accreditati, da confermare:</h3>
+                                                        Soggetti Esecutori Accreditati, da confermare:</h3>
                                             </div>
                                             <div class="kt-portlet__head-toolbar">
                                                 <div class="kt-portlet__head-group">
@@ -280,7 +280,7 @@
                     success: function (data) {
                         var json = JSON.parse(data);
                         if (json.result) {
-                            swalSuccessReload("Operazione Completata", "Soggetto Attuatore caricato correttamente a sistema.");
+                            swalSuccessReload("Operazione Completata", "Soggetto Esecutore caricato correttamente a sistema.");
                         } else {
                             swalError("Errore", json.message);
                         }

@@ -132,7 +132,7 @@
                                                                 <label>Soggetto Attuatore</label>
                                                                 <div class="dropdown bootstrap-select form-control kt-" id="soggettoattuatore_div" style="padding: 0;height: 35px;">
                                                                     <select class="form-control kt-select2-general" id="soggettoattuatore" name="soggettoattuatore"  style="width: 100%">
-                                                                        <option value="-">Seleziona Soggetto Attuatore</option>
+                                                                        <option value="-">Seleziona Soggetto Esecutore</option>
                                                                         <%for (SoggettiAttuatori i : sa_list) {%>
                                                                         <%if (i.getId() == idsa) {%>
                                                                         <option selected value="<%=i.getId()%>"><%=i.getRagionesociale()%></option>
@@ -216,7 +216,7 @@
                                                     <tr>
                                                         <th class="text-uppercase text-center">Azioni</th>
                                                         <th class="text-uppercase text-center">ID</th>
-                                                        <th class="text-uppercase text-center">Soggetto Attuatore</th>
+                                                        <th class="text-uppercase text-center">Soggetto Esecutore</th>
                                                         <th class="text-uppercase text-center">Svolgimento</th>
                                                         <th class="text-uppercase text-center">Data Inizio</th>
                                                         <th class="text-uppercase text-center">Data Fine</th>

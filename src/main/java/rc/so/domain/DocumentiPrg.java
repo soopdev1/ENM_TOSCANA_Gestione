@@ -30,7 +30,7 @@ import javax.persistence.Transient;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "documenti_progetti")

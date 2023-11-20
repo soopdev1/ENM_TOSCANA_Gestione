@@ -632,7 +632,7 @@ function uploadDoc(idallievo, id_tipoDoc, estensione, mime_type) {
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();

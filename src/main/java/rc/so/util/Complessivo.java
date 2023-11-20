@@ -151,7 +151,7 @@ public class Complessivo {
                     cell.setBorder(Border.NO_BORDER);
                     table.addCell(cell);
                     cell = new Cell();
-                    cell.add(new Paragraph("SOGGETTO ATTUATORE").addStyle(bold));
+                    cell.add(new Paragraph("SOGGETTO ESECUTORE").addStyle(bold));
                     table.addCell(cell);
                     cell = new Cell();
                     cell.add(new Paragraph(datisa[0]).addStyle(normal));
@@ -372,7 +372,7 @@ public class Complessivo {
                     cell.setBorder(Border.NO_BORDER);
                     table.addCell(cell);
                     cell = new Cell();
-                    cell.add(new Paragraph("SOGGETTO ATTUATORE").addStyle(bold));
+                    cell.add(new Paragraph("SOGGETTO ESECUTORE").addStyle(bold));
                     table.addCell(cell);
                     cell = new Cell();
                     cell.add(new Paragraph(datisa[0]).addStyle(normal));

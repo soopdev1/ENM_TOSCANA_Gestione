@@ -28,7 +28,7 @@ import javax.persistence.Transient;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "fad_micro")

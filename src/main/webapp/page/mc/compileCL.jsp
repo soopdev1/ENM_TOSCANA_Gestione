@@ -278,7 +278,7 @@
                                                                 <div class="kt-wizard-v1__form kt-font-io" style="min-height: 40vh">
                                                                     <div class="row">
                                                                         <div class="form-group col-md-4 col-lg-4 col-sm-12">
-                                                                            <label>Soggetto Attuatore sottoposto a controllo</label>
+                                                                            <label>Soggetto Esecutore sottoposto a controllo</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
                                                                                     <span class="input-group-text">
@@ -289,7 +289,7 @@
                                                                             </div>
                                                                         </div>
                                                                         <div class="form-group col-md-4 col-lg-4 col-sm-12">
-                                                                            <label>Protocollo Soggetto Attuatore</label>
+                                                                            <label>Protocollo Soggetto Esecutore</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
                                                                                     <span class="input-group-text">
@@ -313,7 +313,7 @@
                                                                     </div>
                                                                     <div class="row">        
                                                                         <div class="form-group col-md-12 col-lg-12 col-sm-12">
-                                                                            <label>Codice Fiscale / Partita IVA Soggetto Attuatore</label>
+                                                                            <label>Codice Fiscale / Partita IVA Soggetto Esecutore</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
                                                                                     <span class="input-group-text">
@@ -326,7 +326,7 @@
                                                                     </div>
                                                                     <div class="row">        
                                                                         <div class="form-group col-md-6 col-lg-6 col-sm-12">
-                                                                            <label>Email Soggetto Attuatore</label>
+                                                                            <label>Email Soggetto Esecutore</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
                                                                                     <span class="input-group-text">
@@ -337,7 +337,7 @@
                                                                             </div>
                                                                         </div>
                                                                         <div class="form-group col-md-6 col-lg-6 col-sm-12">
-                                                                            <label>PEC Soggetto Attuatore</label>
+                                                                            <label>PEC Soggetto Esecutore</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
                                                                                     <span class="input-group-text">
@@ -704,12 +704,12 @@
                                                                 <div class="kt-wizard-v1__form" style="color: #6c7293;">
                                                                     <div class="row">
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
-                                                                            <label>Soggetto Attuatore sottoposto a controllo</label>
+                                                                            <label>Soggetto Esecutore sottoposto a controllo</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500; color: #e8f0ff00" 
                                                                                    value="<%=p.getSoggetto().getRagionesociale()%>">
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
-                                                                            <label>Protocollo Soggetto Attuatore</label>
+                                                                            <label>Protocollo Soggetto Esecutore</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=p.getSoggetto().getProtocollo()%>">
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
@@ -719,15 +719,15 @@
                                                                     </div>
                                                                     <div class="row">        
                                                                         <div class="form-group col-lg-6 col-sm-12 col-md-6">
-                                                                            <label>Codice Fiscale / Partita IVA Soggetto Attuatore</label>
+                                                                            <label>Codice Fiscale / Partita IVA Soggetto Esecutore</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=p.getSoggetto().getPiva()%>">
                                                                         </div>
                                                                         <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>Email Soggetto Attuatore</label>
+                                                                            <label>Email Soggetto Esecutore</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=p.getSoggetto().getEmail()%>">
                                                                         </div>
                                                                         <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>PEC Soggetto Attuatore</label>
+                                                                            <label>PEC Soggetto Esecutore</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=p.getSoggetto().getPec()%>">
                                                                         </div>
                                                                     </div>

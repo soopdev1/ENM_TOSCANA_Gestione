@@ -28,7 +28,7 @@ import javax.persistence.Transient;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "allievi")
@@ -207,6 +207,7 @@ public class Allievi implements Serializable {
     private String tos_request;
     
     
+    
     //MODELLO 0
     @Temporal(TemporalType.DATE)
     @Column(name = "tos_m0_datacolloquio")
@@ -263,11 +264,22 @@ public class Allievi implements Serializable {
     @Column(name = "tos_operatore") 
     private String tos_operatore;
 
+    @Column(name = "tos_noteenm", columnDefinition = "LONGTEXT") 
+    private String tos_noteenm;
+    
     
     public Allievi() {
         this.pregresso = false;
     }
 
+    public String getTos_noteenm() {
+        return tos_noteenm;
+    }
+
+    public void setTos_noteenm(String tos_noteenm) {
+        this.tos_noteenm = tos_noteenm;
+    }
+    
     public int getTos_m0_consapevole() {
         return tos_m0_consapevole;
     }

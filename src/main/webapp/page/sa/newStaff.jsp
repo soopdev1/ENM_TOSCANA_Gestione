@@ -92,7 +92,7 @@
                             <div class="col-lg-12">
                                 <div class="kt-portlet" id="kt_portlet" data-ktportlet="true">
                                     <div class="kt-portlet__body">
-                                        <h5>Inserimento membri dello Staff Soggetto Attuatore per accesso alla FAD (Fase A - Fase B)</h5>
+                                        <h5>Inserimento membri dello Staff Soggetto Esecutore per accesso alla FAD (Fase A - Fase B)</h5>
                                     </div>
                                     <div class="kt-portlet__foot">
                                         <div class="kt-form__actions">

@@ -32,7 +32,7 @@ import javax.persistence.Transient;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "docenti")
@@ -173,14 +173,19 @@ public class Docenti implements Serializable {
     }
     
     public String getDescrizionestato() {
-        if(this.stato == null){
+        if(null == this.stato){
             return "";
-        }else if(this.stato.equals("A")){
-            return "ACCREDITATO";
-        }else if(this.stato.equals("DV")){
-            return "DA VALIDARE";
-        }else if(this.stato.equals("R")){
-            return "RIGETTATO";
+        }else switch (this.stato) {
+            case "A":
+                return "ACCREDITATO";
+            case "DV":
+                return "DA VALIDARE";
+            case "W":
+                return "IN ATTESA WEBINAIR";
+            case "R":
+                return "RIGETTATO";
+            default:
+                break;
         }
         return "";
     }

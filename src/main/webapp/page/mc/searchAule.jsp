@@ -185,7 +185,7 @@
                                                     <tr>
                                                         <th class="text-uppercase text-center">Azioni</th>
                                                         <th class="text-uppercase text-center">Denominazione</th>
-                                                        <th class="text-uppercase text-center">Soggetto Attuatore</th>
+                                                        <th class="text-uppercase text-center">Soggetto Esecutore</th>
                                                         <th class="text-uppercase text-center">Stato</th>
                                                         <th class="text-uppercase text-center">regione</th>
                                                         <th class="text-uppercase text-center">provincia</th>

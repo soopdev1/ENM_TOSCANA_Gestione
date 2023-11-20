@@ -245,7 +245,7 @@
                                             <br>
                                             <div class="alert alert-warning" role="alert">
                                                 <div class="alert-text">
-                                                    <h5 class="alert-heading">Membri Staff - Soggetto Attuatore per accesso alla FAD (Fase A - Fase B)</h5>
+                                                    <h5 class="alert-heading">Membri Staff - Soggetto Esecutore per accesso alla FAD (Fase A - Fase B)</h5>
                                                     <p>Attenzione, si ricorda che l'inserimento dei membri può essere effettuato solamente prima del caricamento del modello 3.<br>
                                                         Per procedere con l'inserimento di eventuali membri: <br>
                                                         <i class="fa fa-file-alt"></i>&nbsp;<b>Progetti Formativi</b>&emsp;<i class="flaticon2-fast-next"></i>&emsp;<i class="fa fa-search"></i>&nbsp;<b>Cerca</b>&emsp;<i class="flaticon2-fast-next"></i>&emsp;<i class="flaticon-more-1"></i>&nbsp;<b>Azioni (Progetto Formativo)</b>&emsp;<i class="flaticon2-fast-next"></i>&emsp;<i class="flaticon-users-1"></i>&nbsp;<b>Inserisci membri Staff</b>

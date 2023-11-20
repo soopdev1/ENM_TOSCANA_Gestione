@@ -242,14 +242,11 @@
 
                                     option += '<a class="fancyBoxFullReload dropdown-item" href="modello0.jsp?id=' +
                                             row.id + '"><i class="fa fa-file"></i> Modello 0</a>';
-                                    
+
                                     option += '<a class="fancyBoxFullReload dropdown-item" href="modello0anagr.jsp?id=' +
                                             row.id + '"><i class="fa fa-user"></i> Anagrafica Allievo</a>';
-                                    
-                                    option += '<a class="fancyBoxFullReload dropdown-item" href="modello0.jsp?id=' +
-                                            row.id + '"><i class="fa fa-upload"></i> Documentazione Integrativa</a>';
-
-
+                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAgg(' + row.id + ')"><i class="fa fa-file-alt"></i> Visualizza Documentazione Integrativa</a>';
+                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadDoc('+ row.id + ')"><i class="fa fa-upload"></i> Carica Documentazione Integrativa</a>';
 
                                     option += '</div></div>';
                                     return option;
@@ -296,6 +293,110 @@
                 $('html, body').animate({scrollTop: $('#offsetresult').offset().top}, 500);
                 reload_table($('#kt_table_1'));
             }
+            var context = "<%=request.getContextPath()%>";
+
+
+            function swalDocumentAgg(idallievo) {
+                $("#prg_docs").empty();
+                //var doc_registro_aula = getHtml("documento_registro", context);
+                var doc_prg = getHtml("documento_prg", context);
+                $.get(context + "/QueryMicro?type=getDocAllievoAgg&idallievo=" + idallievo, function (resp) {
+                    var json = JSON.parse(resp);
+                    for (var i = 0; i < json.length; i++) {
+                        var ext = json[i].tipo.estensione;
+                        if (ext === null || ext === undefined || typeof ext === 'undefined' || ext === "p7m" || ext.includes("pdf")) {
+                            ext = "pdf";
+                        }
+                        $("#prg_docs").append(
+                                doc_prg.replace("@href",
+                                        context + "/OperazioniGeneral?type=showDoc&path=" + json[i].path)
+                                .replace("#ex", ext)
+                                .replace("@nome", json[i].tipo.descrizione)
+                                );
+                    }
+                    $('#doc_modal').modal('show');
+                    $('.kt-scroll').each(function () {
+                        const ps = new PerfectScrollbar($(this)[0]);
+                    });
+                });
+            }
+
+
+            function uploadDoc(idallievo) {
+                var htmldoc = getHtml("uploadDoc", context).replace("@func", "checkFileExtAndDim('pdf');").replace("@mime", "application/pdf");
+                swal.fire({
+                    title: 'Carica Documento',
+                    html: htmldoc,
+                    animation: false,
+                    showCancelButton: true,
+                    confirmButtonText: '&nbsp;<i class="la la-check"></i>',
+                    cancelButtonText: '&nbsp;<i class="la la-close"></i>',
+                    cancelButtonClass: "btn btn-io-n",
+                    confirmButtonClass: "btn btn-io",
+                    customClass: {
+                        popup: 'animated bounceInUp'
+                    },
+                    onOpen: function () {
+                        $('#file').change(function (e) {
+                            if (e.target.files.length !== 0)
+                                //$('#label_doc').html(e.target.files[0].name);
+                                if (e.target.files[0].name.length > 30)
+                                    $('#label_doc').html(e.target.files[0].name.substring(0, 30) + "...");
+                                else
+                                    $('#label_doc').html(e.target.files[0].name);
+                            else
+                                $('#label_doc').html("Seleziona File");
+                        });
+                    },
+                    preConfirm: function () {
+                        var err = false;
+                        err = !checkRequiredFileContent($('#uploadDoc')) ? true : err;
+                        if (!err) {
+                            return new Promise(function (resolve) {
+                                resolve({
+                                    "file": $('#file')[0].files[0]
+                                });
+                            });
+                        } else {
+                            return false;
+                        }
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        showLoad();
+                        var fdata = new FormData();
+                        fdata.append("file", result.value.file);
+                        upDoc(idallievo, "32", fdata);
+                    } else {
+                        swal.close();
+                    }
+                });
+            }
+
+            function upDoc(id, id_tipoDoc, fdata) {
+                $.ajax({
+                    type: "POST",
+                    url: context + '/OperazioniMicro?type=uploadDocAllievo&idallievo=' + id + "&id_tipo=" + id_tipoDoc,
+                    data: fdata,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        var json = JSON.parse(data);
+                        if (json.result) {
+                            swalSuccessReload("Documento Caricato", (json.message = !"" ? json.message : ""));
+                        } else {
+                            swalError("Errore", json.message);
+                        }
+                    },
+                    error: function () {
+                        swalError("Errore", "Non è stato possibile caricare il documento");
+                    }
+                });
+            }
+
+
+
+
         </script>
     </body>
 </html>

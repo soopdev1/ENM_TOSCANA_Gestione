@@ -165,11 +165,11 @@
 
 
                                         <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12" style="padding-bottom: 1.5rem;">
-                                            <a href="searchSA.jsp"><div class="one-half custom-redbox soggetti">SA da validare<br>
+                                            <a href="searchSA.jsp"><div class="one-half custom-redbox soggetti">SE da validare<br>
                                                     <label style="font-size: 3rem; font-weight: 800;"><%=contatori[3]%></label></div></a>
                                         </div>
                                         <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12" style="padding-bottom: 1.5rem;">
-                                            <a href="searchSA.jsp"><div class="one-half custom-greenbox soggetti">SA attivi<br>
+                                            <a href="searchSA.jsp"><div class="one-half custom-greenbox soggetti">SE attivi<br>
                                                     <label style="font-size: 3rem; font-weight: 800;"><%=contatori[4]%></label></div></a>
                                         </div>
 
@@ -262,7 +262,7 @@
                                                 <ul class="nav nav-pills nav-pills-sm nav-pills-label nav-pills-bold" role="tablist">
                                                     <li class="nav-item">
                                                         <a class="nav-link active" data-toggle="tab" href="#sat" role="tab">
-                                                            Soggetti Attuatori
+                                                            Soggetti Esecutori
                                                         </a>
                                                     </li>
                                                     <li class="nav-item">

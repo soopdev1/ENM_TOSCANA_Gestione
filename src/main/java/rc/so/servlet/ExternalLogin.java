@@ -34,7 +34,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class ExternalLogin extends HttpServlet {
 

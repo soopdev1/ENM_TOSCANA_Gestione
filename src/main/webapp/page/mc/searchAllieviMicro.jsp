@@ -106,10 +106,10 @@
                                                     <div class="kt-section__body"><br>
                                                         <div class="form-group row">
                                                             <div class="col-lg-3">
-                                                                <label>Soggetto Attuatore</label>
+                                                                <label>Soggetto Esecutore</label>
                                                                 <div class="dropdown bootstrap-select form-control kt-" id="soggettoattuatore_div" style="padding: 0;height: 35px;">
                                                                     <select class="form-control kt-select2-general" id="soggettoattuatore" name="soggettoattuatore"  style="width: 100%">
-                                                                        <option value="-">Seleziona Soggetto Attuatore</option>
+                                                                        <option value="-">Seleziona Soggetto Esecutore</option>
                                                                         <%for (SoggettiAttuatori i : sa_list) {%>
                                                                         <%if (i.getId() == idsa) {%>
                                                                         <option selected value="<%=i.getId()%>"><%=i.getRagionesociale()%></option>
@@ -133,19 +133,8 @@
                                                                 <input class="form-control" name="cf" id="cf" autocomplete="off">
                                                             </div>
                                                         </div>
-                                                        <div class="form-group row">
-                                                            <div class="col-lg-3">
-                                                                <label>Centro per l'impiego di iscrizione </label>
-                                                                <div class="dropdown bootstrap-select form-control kt-" id="cpi_div" style="padding: 0;height: 35px;">
-                                                                    <select class="form-control kt-select2-general" id="cpi" name="cpi"  style="width: 100%">
-                                                                        <option value="-">Seleziona CPI</option>
-                                                                        <%for (CPI c : cpi) {%>
-                                                                        <option value="<%=c.getId()%>"><%=c.getDescrizione()%></option>
-                                                                        <%}%>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                                    <input type="hidden" name="cpi" value="-" />
+                                                        
                                                     </div>
                                                     <div class="kt-portlet__foot">
                                                         <div class="kt-form__actions">
@@ -188,17 +177,11 @@
                                                         <th class="text-uppercase text-center">Nome</th>
                                                         <th class="text-uppercase text-center">Cognome</th>
                                                         <th class="text-uppercase text-center">Codice Fiscale</th>
-                                                        <th class="text-uppercase text-center">Titolo Di Studio</th>
                                                         <th class="text-uppercase text-center">Data Nascita</th>
                                                         <th class="text-uppercase text-center">Residenza</th>
-                                                        <th class="text-uppercase text-center">Domicilio</th>
-                                                        <th class="text-uppercase text-center">Data Iscrizione G.G.</th>
-                                                        <th class="text-uppercase text-center">C.P.I.</th>
-                                                        <th class="text-uppercase text-center">Data inserimento ANPAL</th>
+                                                        <th class="text-uppercase text-center">Soggetto Esecutore</th>
+                                                        <th class="text-uppercase text-center">Assegnato a Operatore ENM</th>
                                                         <th class="text-uppercase text-center">Stato di partecipazione</th>
-                                                        <th class="text-uppercase text-center">Stato NEET</th>
-                                                        <th class="text-uppercase text-center">Questionari</th>
-                                                        <th class="text-uppercase text-center">Documento Id.</th>
                                                     </tr>
                                                 </thead>
                                             </table>  
@@ -307,71 +290,14 @@
                             {data: 'nome', className: 'text-center text-uppercase'},
                             {data: 'cognome', className: 'text-center text-uppercase'},
                             {data: 'codicefiscale', className: 'text-center text-uppercase'},
-                            {data: 'titoloStudio.descrizione', className: 'text-center'},
                             {data: 'datanascita'},
                             {data: 'indirizzoresidenza'},
-                            {data: 'indirizzodomicilio'},
-                            {data: 'iscrizionegg'},
-                            {data: 'cpi.descrizione', className: 'text-center'},
-                            {data: 'data_anpal', className: 'text-center'},
-                            {data: 'statopartecipazione.descrizione', className: 'text-center'},
-                            {data: '',
-                                className: 'text-center',
-                                render: function (data, type, row) {
-                                    switch (row.stato) {
-                                        case "A":
-                                            stato = "Attivo";
-                                            break;
-                                        case "I":
-                                            stato = "In Attesa";
-                                            break;
-                                        case "D":
-                                            stato = "Disattivo";
-                                            break;
-                                        default:
-                                            stato = "Non Definito";
-                                            break;
-                                    }
-                                    return stato;
-                                }
-                            },
-                            {data: '', className: 'text-center',
-                                render: function (data, type, row) {
-                                    var quest = "";
-                                    if (row.surveyin === null || !row.surveyin) {
-                                        quest += "ING. KO";
-                                    } else {
-                                        quest += "ING. OK";
-                                    }
-                                    quest += " - ";
-                                    if (row.surveyout === null || !row.surveyout) {
-                                        quest += "USC. KO";
-                                    } else {
-                                        quest += "USC. OK";
-                                    }
-                                    return quest;
-                                }},
-                            {defaultContent: ''
-                            }
+                            {defaultContent: ''},
+                            {data: 'tos_operatore', className: 'text-center'},
+                            {data: 'statopartecipazione.descrizione', className: 'text-center'}
                         ],
                         drawCallback: function () {
                             $('[data-toggle="kt-tooltip"]').tooltip();
-                            $("a.fancyBoxFullReload").fancybox({
-                                prevEffect: 'none',
-                                nextEffect: 'none',
-                                closeBtn: true,
-                                type: 'iframe',
-                                autoSize: false,
-                                fitToView: false,
-                                width: '80%',
-                                height: '100%',
-                                centerOnScroll: true,
-                                overlayOpacity: 0,
-                                overlayShow: true,
-                                afterClose: function () {
-                                    reload();
-                                }
-                            });
                         }
                         ,
                         rowCallback: function (row, data) {
@@ -397,66 +323,56 @@
                                     option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ')"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
 //                                    option += '<a class="dropdown-item" href="#"><i class="fa fa-list"></i> Visualizza Registro</a>';
 
-                                    if (row.data_anpal === '' || row.data_anpal === '-') {
-                                        option += '<a class="dropdown-item fancyBoxFullReload" href="editANPAL.jsp?id=' +
-                                                row.id + '"><i class="fa fa-calendar"></i> Inserisci Data ANPAL</a>';
+                                    if (row.tos_operatore === null || row.tos_operatore === 'null') {
+                                        option += '<a class="fancyBoxFullReload dropdown-item" href="assegnaENM.jsp?id=' +
+                                                row.id + '"><i class="fa fa-user"></i> Assegna ad Operatore</a>';
+                                    } else {
+                                        option += '<a class="fancyBoxFullReload dropdown-item" href="assegnaENM.jsp?id=' +
+                                                row.id + '"><i class="fa fa-edit"></i> Modifica assegnazione Operatore</a>';
+
                                     }
-                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMail(' + row.id + ',\'' + row.email + '\')"><i class="fa fa-envelope"></i> Modifica Email</a>'
+
+                                    //if (row.data_anpal === '' || row.data_anpal === '-') {
+                                    //     option += '<a class="dropdown-item fancyBoxFullReload" href="editANPAL.jsp?id=' +
+                                    //            row.id + '"><i class="fa fa-calendar"></i> Inserisci Data ANPAL</a>';
+                                    // }
+                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMail(' + row.id + ',\'' + row.email + '\')"><i class="fa fa-envelope"></i> Modifica Email</a>';
+                                    option += '<a class="fancyBoxFullReload dropdown-item" href="modello0.jsp?id=' +
+                                            row.id + '"><i class="fa fa-file"></i> Modello 0</a>';
+
+                                    option += '<a class="fancyBoxFullReload dropdown-item" href="modello0anagr.jsp?id=' +
+                                            row.id + '"><i class="fa fa-user"></i> Anagrafica Allievo</a>';
+
+                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadDoc(' + row.id + ')"><i class="fa fa-upload"></i> Carica Documentazione Integrativa</a>';
 
                                     option += '</div></div>';
                                     return option;
                                 }
 
                             }, {
-                                targets: 5,
+                                targets: 4,
                                 className: 'text-center',
                                 type: 'date-it',
                                 render: function (data, type, row, meta) {
                                     return formattedDate(new Date(row.datanascita));
                                 }
                             }, {
-                                targets: 6,
+                                targets: 5,
                                 className: 'text-center',
                                 render: function (data, type, row, meta) {
                                     var comune = (row.comune_residenza.nome === null ? "N.I." : row.comune_residenza.nome)
                                             + " (" + (row.comune_residenza.provincia === null ? "N.I." : row.comune_residenza.provincia) + ")";
-                                    return comune + ",<br> " + row.indirizzoresidenza + " " + row.civicoresidenza;
+                                    return comune + ",<br> " + row.indirizzoresidenza;
                                 }
-                            }, {
-                                targets: 7,
+                            },{
+                                targets: 6,
                                 className: 'text-center',
                                 render: function (data, type, row, meta) {
-                                    if (row.comune_domicilio === null) {
+                                    if(row.soggetto === null) {
                                         return "";
                                     } else {
-                                        var comune = (row.comune_domicilio.nome === null ? "N.I." : row.comune_domicilio.nome)
-                                                + " (" + (row.comune_domicilio.provincia === null ? "N.I." : row.comune_domicilio.provincia) + ")";
-                                        return comune + ",<br> " + row.indirizzodomicilio + " " + row.civicodomicilio;
+                                        return row.soggetto.ragionesociale;
                                     }
-
-                                }
-                            }, {
-                                targets: 8,
-                                className: 'text-center',
-                                type: 'date-it',
-                                render: function (data, type, row, meta) {
-                                    return formattedDate(new Date(row.iscrizionegg));
-                                }
-                            }, {
-                                targets: 14,
-                                className: 'text-center',
-                                orderable: false,
-                                render: function (data, type, row, meta) {
-                                    var option = '<a href="' + context + '/OperazioniGeneral?type=showDoc&path=' + row.docid + '" class="btn btn-io fa fa-address-card fancyDocument" style="font-size: 20px;"'
-                                            + 'data-container="body" data-html="true" data-toggle="kt-tooltip"'
-                                            + 'data-placement="top" title="<h6>Scadenza:</h6><h5>' + formattedDate(new Date(row.scadenzadocid)) + '</h5>"></a>';
-                                    if (new Date(row.scadenzadocid) <= new Date()) {
-                                        option = '<a href="' + context + '/OperazioniGeneral?type=showDoc&path=' + row.docid + '" class="btn btn-io-n fancyDocument" style="font-size: 20px"'
-                                                + 'data-container="body" data-html="true" data-toggle="kt-tooltip"'
-                                                + 'data-placement="top" title="<h6>Scadenza:</h6><h5>'
-                                                + formattedDate(new Date(row.scadenzadocid)) + '</h5>">&nbsp;<i class="fa fa-exclamation-triangle"></i></a>';
-                                    }
-                                    return option;
                                 }
                             }
                         ]
@@ -487,6 +403,78 @@
                 reload_table($('#kt_table_1'));
             }
 
+            function uploadDoc(idallievo) {
+                var htmldoc = getHtml("uploadDoc", context).replace("@func", "checkFileExtAndDim('pdf');").replace("@mime", "application/pdf");
+                swal.fire({
+                    title: 'Carica Documento',
+                    html: htmldoc,
+                    animation: false,
+                    showCancelButton: true,
+                    confirmButtonText: '&nbsp;<i class="la la-check"></i>',
+                    cancelButtonText: '&nbsp;<i class="la la-close"></i>',
+                    cancelButtonClass: "btn btn-io-n",
+                    confirmButtonClass: "btn btn-io",
+                    customClass: {
+                        popup: 'animated bounceInUp'
+                    },
+                    onOpen: function () {
+                        $('#file').change(function (e) {
+                            if (e.target.files.length !== 0)
+                                //$('#label_doc').html(e.target.files[0].name);
+                                if (e.target.files[0].name.length > 30)
+                                    $('#label_doc').html(e.target.files[0].name.substring(0, 30) + "...");
+                                else
+                                    $('#label_doc').html(e.target.files[0].name);
+                            else
+                                $('#label_doc').html("Seleziona File");
+                        });
+                    },
+                    preConfirm: function () {
+                        var err = false;
+                        err = !checkRequiredFileContent($('#uploadDoc')) ? true : err;
+                        if (!err) {
+                            return new Promise(function (resolve) {
+                                resolve({
+                                    "file": $('#file')[0].files[0]
+                                });
+                            });
+                        } else {
+                            return false;
+                        }
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        showLoad();
+                        var fdata = new FormData();
+                        fdata.append("file", result.value.file);
+                        upDoc(idallievo, "32", fdata);
+                    } else {
+                        swal.close();
+                    }
+                });
+            }
+            
+            function upDoc(id, id_tipoDoc, fdata) {
+                $.ajax({
+                    type: "POST",
+                    url: context + '/OperazioniMicro?type=uploadDocAllievo&idallievo=' + id + "&id_tipo=" + id_tipoDoc,
+                    data: fdata,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        var json = JSON.parse(data);
+                        if (json.result) {
+                            swalSuccessReload("Documento Caricato", (json.message = !"" ? json.message : ""));
+                        } else {
+                            swalError("Errore", json.message);
+                        }
+                    },
+                    error: function () {
+                        swalError("Errore", "Non è stato possibile caricare il documento");
+                    }
+                });
+            }
+
             function showPrg(id) {
                 var progetto = prg.get(id);
 
@@ -497,7 +485,7 @@
                         + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Ore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.ore + "</h4></dd>"
                         + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Inizio:</label></h4></dt><dd class='col-sm-6'><h4>" + formattedDate(new Date(progetto.start)) + "</h4></dd>"
                         + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Fine:</label></h4></dt><dd class='col-sm-6'><h4>" + formattedDate(new Date(progetto.end)) + "</h4></dd>"
-                        + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Sog. Attuatore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.soggetto.ragionesociale + "</h4></dd>"
+                        + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Sog. Esecutore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.soggetto.ragionesociale + "</h4></dd>"
                         + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Stato:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.stato.descrizione + "</h4></dd>"
                         + "</dl>";
                 +"</div>";

@@ -193,7 +193,7 @@
                                            data-html="true"
                                            data-placement="bottom"
                                            data-original-title="Calendario"
-                                           data-content="Il Soggetto Attuatore si assume la responsabilità di quanto inserito in questo registro, a fine progetto verrà richiesto
+                                           data-content="Il Soggetto Esecutore si assume la responsabilità di quanto inserito in questo registro, a fine progetto verrà richiesto
                                            di caricare il registro cartaceo ORIGINALE per effettuare le verifiche incrociate."></i>
                                     </th>
                                     </thead>

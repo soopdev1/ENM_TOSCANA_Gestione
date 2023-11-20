@@ -56,6 +56,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -528,7 +529,7 @@ public class Entity {
     public List<Allievi> getAllievi(SoggettiAttuatori sa, CPI cpi, String nome, String cognome, String cf) {
         HashMap<String, Object> param = new HashMap<>();
 
-        String sql = "SELECT a FROM Allievi a ";
+        String sql = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id<>'10' AND a.statopartecipazione.id<>'00' ";
 
         if (sa != null) {
             sql += !sql.toUpperCase().contains("WHERE") ? "WHERE " : " AND ";
@@ -652,6 +653,33 @@ public class Entity {
                 .getResultList();
     }
 
+    public String getProvinceSediFormazione(SoggettiAttuatori soggetto) {
+
+        
+        
+        HashMap<String, Object> param = new HashMap<>();
+        String sql = "SELECT a FROM SediFormazione a WHERE a.soggetto=:soggetto AND (a.stato='A' OR a.stato = 'A1')";
+        param.put("soggetto", soggetto);
+        TypedQuery<SediFormazione> q = this.em.createQuery(sql, SediFormazione.class);
+        if (param.isEmpty()) {
+            q.setMaxResults(maxQueryResult);
+        }
+        for (HashMap.Entry<String, Object> m : param.entrySet()) {
+            q.setParameter(m.getKey(), m.getValue());
+        }
+        
+        List<String> province = new ArrayList<>();
+        for(SediFormazione sf : q.getResultList()){
+            province.add(sf.getComune().getNome_provincia().trim());
+        }
+//        StringBuilder out = new StringBuilder("");
+//        for(String sf : province.stream().distinct().toList()){
+//            out.app
+//        }
+        
+        return province.stream().distinct().collect(Collectors.toList()).toString();
+    }
+    
     public List<SediFormazione> getSediFormazione(HttpSession session) {
 
         User us = (User) session.getAttribute("user");
@@ -804,6 +832,12 @@ public class Entity {
         TypedQuery q = this.em.createNamedQuery("da.byAllievo", Documenti_Allievi.class)
                 .setParameter("allievo", a);
         return q.getResultList().size() > 0 ? (List<Documenti_Allievi>) q.getResultList() : new ArrayList();
+    }
+    public List<Documenti_Allievi> getDocAllievoAgg(Allievi a) {
+        TypedQuery<Documenti_Allievi>  q = this.em.createNamedQuery("da.byAllievo", Documenti_Allievi.class)
+                .setParameter("allievo", a);
+        
+        return q.getResultList();
     }
 
     public Documenti_Allievi getModello0Allievo(Allievi a) {
@@ -1201,6 +1235,7 @@ public class Entity {
         TypedQuery q = this.em.createNamedQuery("m5.byAllievo", MascheraM5.class).setParameter("allievo", a1);
         return q.getResultList().isEmpty() ? null : (MascheraM5) q.getSingleResult();
     }
+    
 
     public List<Ateco> list_CodiciAteco() {
         TypedQuery<Ateco> q = this.em.createNamedQuery("ate.Elenco", Ateco.class);

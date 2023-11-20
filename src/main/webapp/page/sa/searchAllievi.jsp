@@ -17,9 +17,7 @@
             response.sendRedirect(request.getContextPath() + "/page_403.jsp");
         } else {
             String src = session.getAttribute("src").toString();
-            Entity e = new Entity();
-            List<CPI> cpi = e.listaCPI();
-            e.close();
+            
 %>
 <html>
     <head>
@@ -115,40 +113,8 @@
                                                                 <input class="form-control" name="cf" id="cf" autocomplete="off">
                                                             </div>
                                                         </div>
-                                                        <div class="form-group row">
-                                                            <div class="col-xl-3 col-lg-6">
-                                                                <label>Centro per l'impiego di iscrizione </label>
-                                                                <div class="dropdown bootstrap-select form-control kt-" id="cpi_div" style="padding: 0;height: 35px;">
-                                                                    <select class="form-control kt-select2-general" id="cpi" name="cpi"  style="width: 100%">
-                                                                        <option value="-">Seleziona CPI</option>
-                                                                        <%for (CPI c : cpi) {%>
-                                                                        <option value="<%=c.getId()%>"><%=c.getDescrizione()%></option>
-                                                                        <%}%>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-xl-6 col-lg-6">
-                                                                <label class="form-label">Stato NEET:</label>
-                                                                <div class="kt-radio-inline">
-                                                                    <label class="kt-radio">
-                                                                        <input type="radio" value="" checked name="stato">. .
-                                                                        <span></span>
-                                                                    </label>
-                                                                    <label class="kt-radio kt-radio--io">
-                                                                        <input type="radio" value="A" name="stato">Attivo
-                                                                        <span></span>
-                                                                    </label>
-                                                                    <label class="kt-radio kt-radio--io-n">
-                                                                        <input type="radio" value="D" name="stato">Disattivo
-                                                                        <span></span>
-                                                                    </label>
-                                                                    <label class="kt-radio kt-radio--io-r">
-                                                                        <input type="radio" value="I" name="stato">In attesa del caricamento del Modello 1 
-                                                                        <span></span>
-                                                                    </label>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        <input type="hidden" name="cpi" value="-" />
+                                                        <input type="hidden" name="stato" value="" />
                                                     </div>
                                                     <div class="kt-portlet__foot">
                                                         <div class="kt-form__actions">
@@ -193,12 +159,8 @@
                                                         <th class="text-uppercase text-center">Codice Fiscale</th>
                                                         <th class="text-uppercase text-center">Data Nascita</th>
                                                         <th class="text-uppercase text-center">Residenza</th>
-                                                        <th class="text-uppercase text-center">Titolo Studio</th>
-                                                        <th class="text-uppercase text-center">Iscrizione a GG</th>
                                                         <th class="text-uppercase text-center">CPI</th>
                                                         <th class="text-uppercase text-center">Stato di partecipazione</th>
-                                                        <th class="text-uppercase text-center">Stato NEET</th>
-                                                        <th class="text-uppercase text-center">Questionari</th>
                                                         <th class="text-uppercase text-center">Documento d'Identità</th>
                                                     </tr>
                                                 </thead>

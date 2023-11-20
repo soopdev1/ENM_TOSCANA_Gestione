@@ -18,7 +18,7 @@ import java.util.Date;
 
 /**i
  *
- * @author agodino
+ * @author smo
  */
 public class CompilePdfTest {
 

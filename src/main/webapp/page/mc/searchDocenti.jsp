@@ -156,7 +156,7 @@
                                                         <th class="text-uppercase text-center">Cognome</th>
                                                         <th class="text-uppercase text-center">Codice Fiscale</th>
                                                         <th class="text-uppercase text-center">Data Nascita</th>
-                                                        <th class="text-uppercase text-center">Soggetto Attuatore</th>
+                                                        <th class="text-uppercase text-center">Soggetto Esecutore</th>
                                                         <th class="text-uppercase text-center">Fascia</th>
                                                         <th class="text-uppercase text-center">Stato</th>
                                                         <th class="text-uppercase text-center">Provenienza Domanda</th>
@@ -282,7 +282,7 @@
                                         if (row.stato === "A") {
                                             option += '<a class="fancyBoxReload dropdown-item" href="modifyDocente.jsp?id=' + row.id + '"><i class="fa fa-edit"></i>Modifica</a>';
                                             option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTablePrg(' + row.id + ')"><i class="fa fa-list"></i>Progetti Formativi</a>';
-                                        } else if (row.stato === "DV") {
+                                        } else if (row.stato === "DV"||row.stato === "W") {
                                             option += '<a class="fancyBoxReload dropdown-item kt-font-success" href="modifyDocente.jsp?id=' + row.id + '"><i class="fa fa-check kt-font-success" style="margin-top:-2px"></i>Accredita</a>';
                                             option += '<a class="dropdown-item kt-font-danger" href="javascript:void(0);" onclick="rejectDocente(' + row.id + ')"><i class="flaticon2-delete kt-font-danger" style="margin-top:-2px"></i>Rigetta</a>';
                                         }
@@ -373,7 +373,7 @@
                             + '<th class="text-uppercase text-center">Data Inizio</th>'
                             + '<th class="text-uppercase text-center">Data Fine</th>'
                             + '<th class="text-uppercase text-center">CIP</th>'
-                            + '<th class="text-uppercase text-center">Soggetto Attuatore</th>'
+                            + '<th class="text-uppercase text-center">Soggetto Esecutore</th>'
                             + '<th class="text-uppercase text-center">Stato</th>'
                             + '<th class="text-uppercase text-center">Errore O Verificare</th>'
                             + '</tr>'

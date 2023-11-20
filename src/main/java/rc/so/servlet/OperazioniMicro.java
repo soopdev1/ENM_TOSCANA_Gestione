@@ -103,7 +103,7 @@ import static rc.so.util.Utility.parseInt;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class OperazioniMicro extends HttpServlet {
 
@@ -126,6 +126,7 @@ public class OperazioniMicro extends HttpServlet {
             int tos_m0_consapevole = parseInt(getRequestValue(request, "tos_m0_consapevole"));
             int tos_m0_noperche = parseInt(getRequestValue(request, "tos_m0_noperche"));
             String tos_m0_noperchealtro = getRequestValue(request, "tos_m0_noperchealtro");
+            String tos_m0_note = getRequestValue(request, "tos_m0_note");
 
             String tos_mail = getRequestValue(request, "tos_mail");
 
@@ -144,7 +145,7 @@ public class OperazioniMicro extends HttpServlet {
             a.setTos_m0_consapevole(tos_m0_consapevole);
             a.setTos_m0_noperche(e.getEm().find(MotivazioneNO.class, tos_m0_noperche));
             a.setTos_m0_noperchealtro(tos_m0_noperchealtro);
-
+            a.setTos_noteenm(tos_m0_note);
             a.setTos_mailoriginale(a.getEmail());
             a.setEmail(tos_mail);
             a.setSoggetto(sa);
@@ -667,6 +668,56 @@ public class OperazioniMicro extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
 
+    }
+
+    protected void uploadDocAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        JsonObject resp = new JsonObject();
+
+        Part p = request.getPart("file");
+        Entity e = new Entity();
+        try {
+            Allievi a = e.getEm().find(Allievi.class,
+                    Long.valueOf(request.getParameter("idallievo")));
+            //ProgettiFormativi prg = a.getProgetto();
+            TipoDoc_Allievi tipo = e.getEm().find(TipoDoc_Allievi.class,
+                    Long.valueOf(request.getParameter("id_tipo")));
+            User us = (User) request.getSession().getAttribute("user");
+
+            e.begin();
+            //creao il path
+            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", "DAG").replace("@folder", Utility.correctName(a.getCodicefiscale()));
+            File dir = new File(path);
+            createDir(path);
+            String file_path;
+            String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
+
+            //scrivo il file su disco
+            if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
+                file_path = dir.getAbsolutePath() + File.separator + tipo.getDescrizione() + "_" + today + p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
+                p.write(file_path);
+                Documenti_Allievi doc = new Documenti_Allievi();
+                doc.setPath(file_path);
+                doc.setTipo(tipo);
+                doc.setAllievo(a);
+                e.persist(doc);
+            }
+
+            e.commit();
+            resp.addProperty("message", "");
+            resp.addProperty("result", true);
+
+        } catch (Exception ex) {
+            e.rollBack();
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+            resp.addProperty("result", false);
+            resp.addProperty("message", "Errore: non &egrave; stato possibile caricare il documento.");
+        } finally {
+            e.close();
+        }
+
+        response.getWriter().write(resp.toString());
+        response.getWriter().flush();
+        response.getWriter().close();
     }
 
     protected void uploadDocPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -1433,9 +1484,16 @@ public class OperazioniMicro extends HttpServlet {
             d.setCodicefiscale(request.getParameter("cf"));
             d.setEmail(request.getParameter("email"));
             d.setDatanascita(new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("data")));
-            d.setDatawebinair(new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("dataweb")));
             d.setFascia(e.getEm().find(FasceDocenti.class, request.getParameter("fascia")));
-            d.setStato("A");
+
+            if (request.getParameter("dataweb").equals("")) {
+                d.setStato("W");
+            } else {
+                d.setDatawebinair(new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("dataweb")));
+                d.setStato("A");
+
+            }
+
             e.getEm().merge(d);
             e.commit();
             resp.addProperty("result", true);
@@ -1631,7 +1689,7 @@ public class OperazioniMicro extends HttpServlet {
         try {
             String idsa = getRequestValue(request, "idsa");
 
-            //caricare tutti i dati SA
+            //caricare tutti i dati SE
             Entity en = new Entity();
             en.begin();
             String mailsender = en.getPath("mailsender");
@@ -2598,6 +2656,9 @@ public class OperazioniMicro extends HttpServlet {
                     break;
                 case "uploadDocPrg":
                     uploadDocPrg(request, response);
+                    break;
+                case "uploadDocAllievo":
+                    uploadDocAllievo(request, response);
                     break;
                 case "compileCL2":
                     compileCL2(request, response);

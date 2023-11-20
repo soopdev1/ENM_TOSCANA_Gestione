@@ -18,7 +18,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "attivita")

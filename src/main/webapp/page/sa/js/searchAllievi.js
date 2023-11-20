@@ -31,7 +31,8 @@ var KTDatatablesDataSourceAjaxServer = function () {
             processing: true,
             pageLength: 10,
             ajax: context + '/QuerySA?type=searchAllievi&nome=' + $('#nome').val()
-                    + '&cognome=' + $('#cognome').val() + '&cf=' + $('#cf').val() + '&stato=' + $('input[name=stato]:checked').val() + '&cpi=' + $('#cpi').val(),
+                    + '&cognome=' + $('#cognome').val() + '&cf=' + $('#cf').val() 
+                    + '&stato=&cpi=',
             order: [],
             columns: [
                 {defaultContent: ''},
@@ -52,51 +53,8 @@ var KTDatatablesDataSourceAjaxServer = function () {
                     render: function (data, type, row) {
                         return row.comune_residenza.nome + ' (' + row.comune_residenza.provincia + '),<br>' + row.indirizzoresidenza + ' ' + row.civicoresidenza;
                     }},
-                {data: 'titoloStudio.descrizione', className: 'text-center'},
-                {data: 'iscrizionegg',
-                    className: 'text-center',
-                    type: 'date-it',
-                    render: function (data, type, row) {
-                        return moment(row.iscrizionegg).format("DD/MM/YYYY");
-                    }},
                 {data: 'cpi.descrizione', className: 'text-center'},
                 {data: 'statopartecipazione.descrizione', className: 'text-center'},
-                {data: '',
-                    className: 'text-center',
-                    render: function (data, type, row) {
-                        switch (row.stato) {
-                            case "A":
-                                stato = "Attivo";
-                                break;
-                            case "I":
-                                stato = "In Attesa";
-                                break;
-                            case "D":
-                                stato = "Disattivo";
-                                break;
-                            default:
-                                stato = "Non Definito";
-                                break;
-                        }
-                        return stato;
-                    }
-                },
-                {data: '', className: 'text-center',
-                    render: function (data, type, row) {
-                        var quest = "";
-                        if (row.surveyin === null || !row.surveyin) {
-                            quest += "ING. KO";
-                        } else {
-                            quest += "ING. OK";
-                        }
-                        quest += " - ";
-                        if (row.surveyout === null || !row.surveyout) {
-                            quest += "USC. KO";
-                        } else {
-                            quest += "USC. OK";
-                        }
-                        return quest;
-                    }},
                 {defaultContent: ''}
             ],
             drawCallback: function () {
@@ -140,7 +98,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
                     }
                 },
                 {
-                    targets: 11,
+                    targets: 7,
                     className: 'text-center',
                     orderable: false,
                     render: function (data, type, row, meta) {
@@ -383,7 +341,7 @@ function swalTableProgFormativo(id) {
             + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Ore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.ore + "</h4></dd>"
             + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Inizio:</label></h4></dt><dd class='col-sm-6'><h4>" + formattedDate(new Date(progetto.start)) + "</h4></dd>"
             + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Fine:</label></h4></dt><dd class='col-sm-6'><h4>" + formattedDate(new Date(progetto.end)) + "</h4></dd>"
-            + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Sog. Attuatore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.soggetto.ragionesociale + "</h4></dd>"
+            + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Sog. Esecutore:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.soggetto.ragionesociale + "</h4></dd>"
             + "<dt class='col-sm-6'><h4><label class='font-weight-bold'>Stato:</label></h4></dt><dd class='col-sm-6'><h4>" + progetto.stato.descrizione + "</h4></dd>"
             + "</dl>";
     +"</div>";

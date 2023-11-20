@@ -26,7 +26,7 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>YES I Start Up - Toscana - Soggetti Attuatori Cerca</title>
+        <title>YES I Start Up - Toscana - Soggetti Esecutori</title>
         <meta name="description" content="Updates and statistics">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -84,7 +84,7 @@
                         <div class="kt-subheader   kt-grid__item" id="kt_subheader">
                             <div class="kt-subheader   kt-grid__item" id="kt_subheader">
                                 <div class="kt-subheader__main">
-                                    <h3 class="kt-subheader__title">Soggetti Attuatori</h3>
+                                    <h3 class="kt-subheader__title">Soggetti Esecutori</h3>
                                     <span class="kt-subheader__separator kt-subheader__separator--v"></span>
                                     <a class="kt-subheader__breadcrumbs-link">Cerca</a>
                                 </div>
@@ -110,7 +110,7 @@
                                             <div class="kt-portlet__body paddig_0_t paddig_0_b">
                                                 <div class="kt-section kt-section--first">
                                                     <div class="kt-section__body"><br>
-                                                        <label class="kt-section__title" style="color: #646c9a;">Soggetto Attuatore:</label>
+                                                        <label class="kt-section__title" style="color: #646c9a;">Soggetto Esecutore:</label>
                                                         <div class="kt-separator kt-separator--border kt-separator--space-xs col-lg-9"></div>
                                                         <div class="form-group row">
                                                             <div class="col-lg-3">
@@ -347,7 +347,7 @@
                                 render: function (data, type, row, meta) {
                                     return '<a href="schedaSA.jsp?id=' + row.id + '" class="btn btn-io fa fa-address-card fancyProfileNoRef" style="font-size: 20px" '
                                             + 'data-container="body" data-html="true" data-toggle="kt-tooltip" '
-                                            + 'data-placement="top" title="<h5>Visualizza scheda<br>Soggetto Attuatore</h5>"></a>';
+                                            + 'data-placement="top" title="<h5>Visualizza scheda<br>Soggetto Esecutore</h5>"></a>';
                                 }
                             }
                         ]

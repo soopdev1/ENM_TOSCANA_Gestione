@@ -62,7 +62,7 @@ import org.json.JSONObject;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class QueryMicro extends HttpServlet {
 
@@ -369,6 +369,20 @@ public class QueryMicro extends HttpServlet {
         }
     }
 
+    protected void getDocAllievoAgg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        try {
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(request.getParameter("idallievo")));
+            List<Documenti_Allievi> docs = e.getDocAllievo(a);
+            ObjectMapper mapper = new ObjectMapper();
+            response.getWriter().write(mapper.writeValueAsString(docs.stream().filter(d1 -> d1.getTipo().getId()==32L).collect(Collectors.toList())));
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+    }
+    
     protected void getDocAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
@@ -799,7 +813,7 @@ public class QueryMicro extends HttpServlet {
                     break;
                 case "searchSedi":
                     searchSedi(request, response);
-                    break;
+                        break;
                 case "getDocPrg":
                     getDocPrg(request, response);
                     break;
@@ -808,6 +822,9 @@ public class QueryMicro extends HttpServlet {
                     break;
                 case "getDocAllievo":
                     getDocAllievo(request, response);
+                    break;
+                case "getDocAllievoAgg":
+                    getDocAllievoAgg(request, response);
                     break;
                 case "searchDocentiProgetti":
                     searchDocentiProgetti(request, response);

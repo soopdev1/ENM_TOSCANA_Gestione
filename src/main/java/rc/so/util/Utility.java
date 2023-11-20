@@ -123,7 +123,7 @@ import org.json.JSONObject;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class Utility {
 

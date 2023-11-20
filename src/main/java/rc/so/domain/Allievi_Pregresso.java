@@ -24,7 +24,7 @@ import javax.persistence.TemporalType;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "allievi_pregresso")

@@ -21,7 +21,7 @@ import javax.persistence.Table;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 @Entity
 @Table(name = "comuni")

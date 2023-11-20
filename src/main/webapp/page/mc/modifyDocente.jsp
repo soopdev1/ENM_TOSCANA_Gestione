@@ -135,7 +135,7 @@
                                                         %>
                                                         <div class="col-lg-3">
                                                             <label>Data Webinair</label>
-                                                            <input class="form-control dp obbligatory" 
+                                                            <input class="form-control dp" 
                                                                    name="dataweb" id="dataweb" 
                                                                    autocomplete="off" 
                                                                    value="<%=dweb%>"

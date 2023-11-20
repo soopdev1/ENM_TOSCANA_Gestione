@@ -8,7 +8,7 @@ import org.apache.commons.io.FileUtils;
 //import rc.so.db.Entity;
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class Example {
 

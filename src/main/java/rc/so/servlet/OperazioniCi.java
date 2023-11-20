@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class OperazioniCi extends HttpServlet {
 

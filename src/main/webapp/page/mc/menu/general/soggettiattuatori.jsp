@@ -6,7 +6,7 @@
 <li class="kt-menu__item <%=sa%>" aria-haspopup="true" data-ktmenu-submenu-toggle="hover">
     <a href="javascript:;" class="kt-menu__link kt-menu__toggle">
         <span class="kt-menu__link-icon"><i class="fa fa-chalkboard-teacher"></i></span>
-        <span class="kt-menu__link-text">Soggetti Attuatori</span>
+        <span class="kt-menu__link-text">Soggetti Esecutori</span>
         <i class="kt-menu__ver-arrow la la-angle-right"></i>
     </a>
     <div class="kt-menu__submenu">

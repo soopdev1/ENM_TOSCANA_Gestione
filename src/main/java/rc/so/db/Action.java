@@ -25,7 +25,7 @@ import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 
 /**
  *
- * @author agodino
+ * @author smo
  */
 public class Action {
 

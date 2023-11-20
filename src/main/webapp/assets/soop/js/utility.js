@@ -1201,7 +1201,7 @@ function submitForm(form, success_title_msg, success_msg, ctrl, reload) {
                 var json = JSON.parse(resp);
                 closeSwal();
                 if (json.result) {
-                    var message = json.message != null ? ".<br>" + json.message : "";
+                    var message = json.message !== null ? ".<br>" + json.message : "";
                     if (reload) {
                         swalSuccessReload(success_title_msg, success_msg + message);
                     } else {
