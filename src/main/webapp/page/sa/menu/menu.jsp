@@ -15,6 +15,7 @@
             break;
         case "searchAllievi.jsp":
         case "newAllievo.jsp":
+        case "modello1.jsp":
             allievi = "kt-menu__item--open kt-menu__item--here";
             break;
         case "searchProgettiFormativi.jsp":

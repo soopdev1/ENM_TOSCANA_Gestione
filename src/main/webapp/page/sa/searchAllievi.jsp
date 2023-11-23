@@ -161,7 +161,6 @@
                                                         <th class="text-uppercase text-center">Residenza</th>
                                                         <th class="text-uppercase text-center">CPI</th>
                                                         <th class="text-uppercase text-center">Stato di partecipazione</th>
-                                                        <th class="text-uppercase text-center">Documento d'Identità</th>
                                                     </tr>
                                                 </thead>
                                             </table>  

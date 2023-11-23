@@ -395,9 +395,9 @@ public class Entity {
     }
 
     public List<Allievi> getAllieviSoggettoNoPrgAttivi(SoggettiAttuatori sa) {
-        TypedQuery<Allievi> q = em.createNamedQuery("a.bySoggettoAttuatoreNoProgettoAttivi", Allievi.class)
+        TypedQuery<Allievi> q = em.createNamedQuery("allievi.assegnatisoggetto", Allievi.class)
                 .setParameter("soggetto", sa);
-        return q.getResultList().isEmpty() ? new ArrayList() : (List<Allievi>) q.getResultList();
+        return q.getResultList();
     }
 
     public List<Allievi> getAllieviSA(String nome, String cognome, String cf, String stato, CPI cpi, SoggettiAttuatori sa) {

@@ -138,8 +138,8 @@ public class Pdf_new {
     }
 
     public static File MODELLO1(Entity e, String idmodello, String username,
-            SoggettiAttuatori sa, Allievi al, DateTime dataconsegna, boolean domiciliouguale, boolean flatten) {
-        File out1 = MODELLO1_BASE(e, idmodello, username, sa, al, dataconsegna, domiciliouguale, flatten);
+            SoggettiAttuatori sa, Allievi al, DateTime dataconsegna, boolean flatten) {
+        File out1 = MODELLO1_BASE(e, idmodello, username, sa, al, dataconsegna, flatten);
         if (out1 != null) {
             File out2 = convertPDFA(out1, "MODELLO1", e);
             if (out2 != null) {
@@ -2058,18 +2058,17 @@ public class Pdf_new {
 
                 if (al.getTos_m0_volonta() == 1) {
                     setFieldsValue(form, fields, "soggetto", al.getSoggetto().getRagionesociale());
-                    setFieldsValue(form, fields, "consapevole"+ al.getTos_m0_consapevole(), "Sì");
+                    setFieldsValue(form, fields, "consapevole" + al.getTos_m0_consapevole(), "Sì");
                 } else {
                     setFieldsValue(form, fields, "noperche" + al.getTos_m0_noperche().getId(), "Sì");
-                    if(al.getTos_m0_noperche().getId() == 7){ //ALTRO
+                    if (al.getTos_m0_noperche().getId() == 7) { //ALTRO
                         setFieldsValue(form, fields, "altro", al.getTos_m0_noperchealtro().toUpperCase());
                     }
                 }
-                
-                
-                if(al.getEmail().equalsIgnoreCase(al.getTos_mailoriginale())){
+
+                if (al.getEmail().equalsIgnoreCase(al.getTos_mailoriginale())) {
                     setFieldsValue(form, fields, "confermamail1", "Sì");
-                }else{
+                } else {
                     setFieldsValue(form, fields, "confermamail0", "Sì");
                     setFieldsValue(form, fields, "mailadd", al.getEmail().toLowerCase());
                 }
@@ -2095,13 +2094,11 @@ public class Pdf_new {
     }
 
     private static File MODELLO1_BASE(Entity e, String idmodello, String username,
-            SoggettiAttuatori sa, Allievi al, DateTime dataconsegna, boolean domiciliouguale, boolean flatten) {
+            SoggettiAttuatori sa, Allievi al, DateTime dataconsegna, boolean flatten) {
 
         try {
 
-            List<Nazioni_rc> nascitaconCF = e.listaNazioni_rc();
-
-            TipoDoc_Allievi p = e.getEm().find(TipoDoc_Allievi.class, Long.parseLong(idmodello));
+            TipoDoc_Allievi p = e.getEm().find(TipoDoc_Allievi.class, Long.valueOf(idmodello));
             String contentb64 = p.getModello();
             String pathtemp = e.getPath("pathtemp");
             createDir(pathtemp);
@@ -2118,66 +2115,32 @@ public class Pdf_new {
 
                 setFieldsValue(form, fields, "NOMESA", NOMESA);
                 setFieldsValue(form, fields, "DD", DD);
-                setFieldsValue(form, fields, "REGIONESEDE", "");
-                setFieldsValue(form, fields, "COMUNESEDE", "");
-                setFieldsValue(form, fields, "PROVINCIASEDE", "");
-                setFieldsValue(form, fields, "INDIRIZZOSEDE", "");
 
                 setFieldsValue(form, fields, "cognome", al.getCognome().toUpperCase());
                 setFieldsValue(form, fields, "nome", al.getNome().toUpperCase());
                 setFieldsValue(form, fields, "datanascita", sdfITA.format(al.getDatanascita()));
                 setFieldsValue(form, fields, "eta", String.valueOf(get_eta(al.getDatanascita())));
-
-                setFieldsValue(form, fields, "stato_nascita", formatStatoNascita(al.getStato_nascita(), nascitaconCF));
-                setFieldsValue(form, fields, "comune_nascita", al.getComune_nascita().getNome().toUpperCase());
-                setFieldsValue(form, fields, "provincia_nascita", al.getComune_nascita().getProvincia().toUpperCase());
                 setFieldsValue(form, fields, "codicefiscale", al.getCodicefiscale().toUpperCase());
                 setFieldsValue(form, fields, "telefono", al.getTelefono());
                 setFieldsValue(form, fields, "email", al.getEmail().toLowerCase());
+                setFieldsValue(form, fields, "res_regione", al.getComune_residenza().getNome_provincia().toUpperCase());
+                setFieldsValue(form, fields, "res_indirizzo", al.getIndirizzoresidenza().toUpperCase());
+                setFieldsValue(form, fields, "res_comune", al.getComune_residenza().getNome().toUpperCase());
+                setFieldsValue(form, fields, "res_cap", al.getCapresidenza());
+                setFieldsValue(form, fields, "res_prov", al.getComune_residenza().getCod_provincia().toUpperCase());
+//                setFieldsValue(form, fields, "dom_regione", al.getComune_domicilio().getNome_provincia().toUpperCase());
+//                setFieldsValue(form, fields, "dom_indirizzo", al.getIndirizzodomicilio().toUpperCase());
+//                setFieldsValue(form, fields, "dom_comune", al.getComune_domicilio().getNome().toUpperCase());
+//                setFieldsValue(form, fields, "dom_cap", al.getCapdomicilio());
+//                setFieldsValue(form, fields, "dom_prov", al.getComune_domicilio().getCod_provincia().toUpperCase());
 
-                setFieldsValue(form, fields, "indirizzoresidenza", al.getIndirizzoresidenza().toUpperCase());
-                setFieldsValue(form, fields, "civicoresidenza", al.getCivicoresidenza().toUpperCase());
-                setFieldsValue(form, fields, "comune_residenza", al.getComune_residenza().getNome().toUpperCase());
-                setFieldsValue(form, fields, "cap_residenza", al.getCapresidenza());
-                setFieldsValue(form, fields, "provincia_residenza", al.getComune_residenza().getCod_provincia().toUpperCase());
-                if (!domiciliouguale) {
-                    setFieldsValue(form, fields, "indirizzodomicilio", al.getIndirizzodomicilio().toUpperCase());
-                    setFieldsValue(form, fields, "civicodomicilio", al.getCivicodomicilio().toUpperCase());
-                    setFieldsValue(form, fields, "comune_domicilio", al.getComune_domicilio().getNome().toUpperCase());
-                    setFieldsValue(form, fields, "cap_domicilio", al.getCapdomicilio());
-                    setFieldsValue(form, fields, "provincia_domicilio", al.getComune_domicilio().getCod_provincia().toUpperCase());
-                } else {
-                    setFieldsValue(form, fields, "indirizzodomicilio", "");
-                    setFieldsValue(form, fields, "civicodomicilio", "");
-                    setFieldsValue(form, fields, "comune_domicilio", "");
-                    setFieldsValue(form, fields, "cap_domicilio", "");
-                    setFieldsValue(form, fields, "provincia_domicilio", "");
-                }
+                
+                
 
-                setFieldsValue(form, fields, "cittadinanza", al.getCittadinanza().getNome().toUpperCase());
-                setFieldsValue(form, fields, "iscrizionegg", sdfITA.format(al.getIscrizionegg()));
-                setFieldsValue(form, fields, "datacpi", sdfITA.format(al.getDatacpi()));
-
-                //MODIFICA APL
-                if (al.getCpi().getId().equals("A0000000000")) {
-                    setFieldsValue(form, fields, "APLSI", "On");
-                    setFieldsValue(form, fields, "CPI", "");
-                    setFieldsValue(form, fields, "provincia_cpi", "");
-                } else {
-                    setFieldsValue(form, fields, "APLNO", "On");
-                    setFieldsValue(form, fields, "CPI", al.getCpi().getDescrizione());
-                    setFieldsValue(form, fields, "provincia_cpi", al.getCpi().getProvincia());
-                }
-
-                setFieldsValue(form, fields, "SESSO" + al.getSesso(), "On");
-                setFieldsValue(form, fields, "titolo_studio" + al.getTitoloStudio().getCodice(), "On");
-                setFieldsValue(form, fields, "condizione_lavorativa" + al.getCondizione_lavorativa().getId(), "On");
-                setFieldsValue(form, fields, "idcanale" + al.getCanale().getId(), "On");
-                setFieldsValue(form, fields, "motivazione" + al.getMotivazione().getId(), "On");
-
-                setFieldsValue(form, fields, "privacy1SI", "On");
-                setFieldsValue(form, fields, "privacy2" + al.getPrivacy2(), "On");
-                setFieldsValue(form, fields, "privacy3" + al.getPrivacy3(), "On");
+                setFieldsValue(form, fields, "SESSO" + al.getSesso(), "Sì");
+                setFieldsValue(form, fields, "privacy1SI", "Sì");
+                setFieldsValue(form, fields, "privacy2" + al.getPrivacy2(), "Sì");
+                setFieldsValue(form, fields, "privacy3" + al.getPrivacy3(), "Sì");
                 setFieldsValue(form, fields, "data", dataconsegna.toString(patternITA));
 
                 if (flatten) {

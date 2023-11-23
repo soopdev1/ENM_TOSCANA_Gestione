@@ -988,6 +988,14 @@ public class Utility {
         return 0.0;
 
     }
+    public static long parseLong(String f) {
+        try {
+            
+            return Long.valueOf(f);
+        } catch (Exception e) {
+        }
+        return 0L;
+    }
     public static int parseInt(String f) {
         try {
             return Integer.parseInt(f);

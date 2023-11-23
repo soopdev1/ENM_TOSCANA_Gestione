@@ -13,8 +13,8 @@
     <div class="kt-menu__submenu">
         <span class="kt-menu__arrow"></span>
         <ul class="kt-menu__subnav">
-            <li class="kt-menu__item <%=pageName.equals("newAllievo.jsp") ? "kt-menu__item--active" : ""%>" aria-haspopup="true">
-                <a href="newAllievo.jsp" class="kt-menu__link ">
+            <li class="kt-menu__item <%=pageName.equals("modello1.jsp") ? "kt-menu__item--active" : ""%>" aria-haspopup="true">
+                <a href="modello1.jsp" class="kt-menu__link ">
                     <i class="kt-menu__link-bullet fa fa-user-plus">
                         <span></span>
                     </i>

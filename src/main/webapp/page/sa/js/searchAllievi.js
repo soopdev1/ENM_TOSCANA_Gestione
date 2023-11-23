@@ -31,7 +31,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
             processing: true,
             pageLength: 10,
             ajax: context + '/QuerySA?type=searchAllievi&nome=' + $('#nome').val()
-                    + '&cognome=' + $('#cognome').val() + '&cf=' + $('#cf').val() 
+                    + '&cognome=' + $('#cognome').val() + '&cf=' + $('#cf').val()
                     + '&stato=&cpi=',
             order: [],
             columns: [
@@ -54,8 +54,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         return row.comune_residenza.nome + ' (' + row.comune_residenza.provincia + '),<br>' + row.indirizzoresidenza + ' ' + row.civicoresidenza;
                     }},
                 {data: 'cpi.descrizione', className: 'text-center'},
-                {data: 'statopartecipazione.descrizione', className: 'text-center'},
-                {defaultContent: ''}
+                {data: 'statopartecipazione.descrizione', className: 'text-center'}
             ],
             drawCallback: function () {
                 $('[data-toggle="kt-tooltip"]').tooltip();
@@ -75,42 +74,18 @@ var KTDatatablesDataSourceAjaxServer = function () {
                                 + '   <i class="flaticon-more-1"></i>'
                                 + '</button>'
                                 + '<div class="dropdown-menu dropdown-menu-left">';
-                        if (row.stato === "I") {
-                            option += '<a class="dropdown-item fancyBoxAntoRef" href="' + context + '/redirect.jsp?page=page/sa/updtNEET.jsp?id=' + row.id + '" style="color:#363a90"><i class="fa fa-user-edit" style="color:#363a90"></i> Scheda Allievo</a>'
-                            option += '<a class="dropdown-item" target="_blank" href="' + context + '/OperazioniSA?type=scaricaModello1&id=' + row.id + '" style="color:#363a90"><i class="fa fa-cloud-download-alt" style="color:#363a90"></i> Scarica Modello 1</a>'
-                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadM1(' + row.id + ',\'[&quot;pdf&quot;]\', \'application/pdf\');" style="color:#b30000"><i class="fa fa-cloud-upload-alt" style="color:#b30000"></i> Carica Modello 1</a>';
-                        }
+                        option += '<a class="fancyBoxFullReload dropdown-item" href="modello0anagr.jsp?id=' +
+                                            row.id + '"><i class="fa fa-user"></i> Anagrafica Allievo</a>';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ')"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
-                        if (new Date(row.scadenzadocid) <= new Date()) {
-                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="rinnovoCartaID(' + row.id + ');">' +
-                                    '<i class="fa fa-exclamation" style="color:#b30000"></i><i class="fa fa-id-card" style="color:#b30000"></i> Carica nuovo documento d\'identità</a>';
-                        }
 //                        option += '<a class="dropdown-item fancyBoxAntoRef" href="' + context + '/redirect.jsp?page=page/sa/updtAllievo.jsp?id=' + row.id + '"><i class="fa fa-user-edit"></i> Scheda Allievo</a>'
                         if (row.progetto !== null) {
                             prg1.set(row.progetto.id, row.progetto);
-                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTableProgFormativo(' 
+                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTableProgFormativo('
                                     + row.progetto.id + ')"><i class="fa fa-file-alt"></i> Visualizza Progetto Formativo</a>';
                         }
 //                        option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMail(' 
 //                                + row.id + ',\'' + row.email + '\')"><i class="fa fa-envelope"></i> Modifica Email</a>';
                         option += '</div></div>';
-                        return option;
-                    }
-                },
-                {
-                    targets: 7,
-                    className: 'text-center',
-                    orderable: false,
-                    render: function (data, type, row, meta) {
-                        var option = '<a href="' + context + '/OperazioniGeneral?type=showDoc&path=' + row.docid + '" class="btn btn-io fa fa-address-card fancyDocument" style="font-size: 20px;"'
-                                + 'data-container="body" data-html="true" data-toggle="kt-tooltip"'
-                                + 'data-placement="top" title="<h6>Scadenza:</h6><h5>' + formattedDate(new Date(row.scadenzadocid)) + '</h5>"></a>';
-                        if (new Date(row.scadenzadocid) <= new Date()) {
-                            option = '<a href="' + context + '/OperazioniGeneral?type=showDoc&path=' + row.docid + '" class="btn btn-io-n fancyDocument" style="font-size: 20px"'
-                                    + 'data-container="body" data-html="true" data-toggle="kt-tooltip"'
-                                    + 'data-placement="top" title="<h6>Scadenza:</h6><h5>' 
-                                    + formattedDate(new Date(row.scadenzadocid)) + '</h5>">&nbsp;<i class="fa fa-exclamation-triangle"></i></a>';
-                        }
                         return option;
                     }
                 }

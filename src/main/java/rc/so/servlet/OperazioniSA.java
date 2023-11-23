@@ -418,6 +418,7 @@ public class OperazioniSA extends HttpServlet {
         } else if (save.equals("0")) {
             salvataggio = true;
         }
+
         File downloadFile = null;
 
         Entity e = new Entity();
@@ -435,122 +436,31 @@ public class OperazioniSA extends HttpServlet {
             List<TipoDoc_Allievi> tipo_doc = e.getTipoDocAllievi_ALL(e.getEm().find(StatiPrg.class,
                     "DV"));
 
-            String codicefiscale = request.getParameter("codicefiscale");
-            if (e.getAllievoCF(codicefiscale) == null) {
+            Allievi a1 = e.getEm().find(Allievi.class, Utility.parseLong(getRequestValue(request, "allievo")));
+
+            if (a1 != null) {
                 String path = e.getPath("pathDocSA_Allievi")
                         .replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
-                        .replace("@folder", Utility.correctName(request.getParameter("codicefiscale")));
+                        .replace("@folder", Utility.correctName(a1.getCodicefiscale()));
                 File dir = new File(path);
                 createDir(path);
                 Date d_today = new Date();
                 SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd");
                 String today = sdf2.format(d_today);
-                Allievi a = new Allievi();
-
-                if (salvataggio) {
-                    Part p = request.getPart("docid");
-                    String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                    String pathid = dir.getAbsolutePath() + File.separator + "docId_" + today + "_" + request.getParameter("codicefiscale") + ext;
-                    p.write(pathid);
-                    a.setDocid(pathid);
-
-                }
-
-                Nazioni_rc nazionenascita = (Nazioni_rc) e.getEm().find(Nazioni_rc.class,
-                        Long.parseLong(request.getParameter("cittadinanza")));
-
-                a.setCittadinanza(nazionenascita);
-
-                a.setStato_nascita(request.getParameter("stato"));
-                if (a.getStato_nascita().equals("100")) {
-                    a.setComune_nascita(e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comunenascita"))));
-                } else {
-//                    a.setComune_nascita(e.getComunibyIstat(nazionenascita));
-                    Comuni statoEstero = e.byIstatEstero(a.getStato_nascita());
-                    if (statoEstero == null) {
-                        Nazioni_rc n = e.byCodiceFiscale(a.getStato_nascita());
-                        statoEstero = new Comuni();
-                        statoEstero.setCittadinanza(1);
-                        statoEstero.setCod_comune("0");
-                        statoEstero.setCod_provincia("0");
-                        statoEstero.setCod_regione("0");
-                        statoEstero.setCodicicatastali_altri(null);
-                        statoEstero.setIstat(n.getCodicefiscale());
-                        statoEstero.setNome(n.getNome());
-                        statoEstero.setNome_provincia(n.getNome());
-                        statoEstero.setProvincia(n.getUe());
-                        statoEstero.setRegione(n.getNome());
-                    }
-                    a.setComune_nascita(statoEstero);
-                }
 
                 if (request.getParameter("prv2") != null) {
-                    a.setPrivacy2("SI");
+                    a1.setPrivacy2("SI");
                 } else {
-                    a.setPrivacy2("NO");
+                    a1.setPrivacy2("NO");
                 }
                 if (request.getParameter("prv3") != null) {
-                    a.setPrivacy3("SI");
+                    a1.setPrivacy3("SI");
                 } else {
-                    a.setPrivacy3("NO");
+                    a1.setPrivacy3("NO");
                 }
 
-                a.setNome(new String(request.getParameter("nome").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
-                a.setCognome(new String(request.getParameter("cognome").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
-                a.setCodicefiscale(request.getParameter("codicefiscale"));
-                a.setTelefono(request.getParameter("telefono"));
-                a.setDatanascita(sdf.parse(request.getParameter("datanascita")));
-                a.setIndirizzoresidenza(new String(request.getParameter("indirizzores").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
-                a.setCivicoresidenza(request.getParameter("civicores").toUpperCase());
-                a.setCapresidenza(request.getParameter("capres"));
-                a.setComune_residenza((Comuni) e.getEm().find(Comuni.class,
-                        Long.parseLong(request.getParameter("comuneres"))));
-
-                boolean domiciliouguale = request.getParameter("checkind") != null;
-
-                if (domiciliouguale) {
-                    a.setIndirizzodomicilio(new String(request.getParameter("indirizzores").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
-                    a.setCivicodomicilio(request.getParameter("civicores").toUpperCase());
-                    a.setCapdomicilio(request.getParameter("capres"));
-                    a.setComune_domicilio((Comuni) e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comuneres"))));
-                } else {
-                    a.setCapdomicilio(request.getParameter("capdom"));
-                    a.setIndirizzodomicilio(new String(request.getParameter("indirizzodom").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
-                    a.setCivicodomicilio(request.getParameter("civicodom").toUpperCase());
-                    a.setComune_domicilio((Comuni) e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comunedom"))));
-                }
-
-                a.setScadenzadocid(sdf.parse(request.getParameter("scadenzadoc")));
-                a.setIscrizionegg(sdf.parse(request.getParameter("iscrizionegg")));
-                a.setTitoloStudio((TitoliStudio) e.getEm().find(TitoliStudio.class,
-                        request.getParameter("titolo_studio")));
-                a.setSoggetto((SoggettiAttuatori) us.getSoggettoAttuatore());
-
-                a.setCpi((CPI) e.getEm().find(CPI.class,
-                        request.getParameter("cpi")));
-                a.setMotivazione((Motivazione) e.getEm().find(Motivazione.class,
-                        Integer.parseInt(request.getParameter("motivazione"))));
-                a.setCanale((Canale) e.getEm().find(Canale.class,
-                        Integer.parseInt(request.getParameter("canale"))));
-                a.setCondizione_mercato((Condizione_Mercato) e.getEm().find(Condizione_Mercato.class,
-                        request.getParameter("condizione")));
-                a.setDatacpi(sdf.parse(request.getParameter("datacpi")));
-
-                //29-04-2020 MODIFICA - CONDIZIONE LAVORATIVA PRECEDENTE
-                a.setCondizione_lavorativa((Condizione_Lavorativa) e.getEm().find(Condizione_Lavorativa.class,
-                        Integer.parseInt(request.getParameter("condizione_lavorativa"))));
-                a.setNeet(e.getEm().find(Condizione_Lavorativa.class,
-                        Integer.parseInt(request.getParameter("condizione_lavorativa"))).getDescrizione());
-                a.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class,
-                        "01"));
-                a.setEmail(request.getParameter("email"));
-                a.setSesso(Integer.parseInt(request.getParameter("codicefiscale").substring(9, 11)) > 40 ? "F" : "M");
-                a.setData_up(d_today);
-                a.setData_anpal("");
-
+                a1.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class,
+                        "13"));
                 if (salvataggio) {
                     boolean modello1OK = false;
                     String erroremodello1OK = "MODELLO 1 ERRATO. CONTROLLARE.";
@@ -558,14 +468,15 @@ public class OperazioniSA extends HttpServlet {
                     Part p = request.getPart("doc_" + modello1.getId());
 
                     if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
-                        a.setStato("A");
+                        a1.setStato("A");
                         try {
                             String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                            String destpath = dir.getAbsolutePath() + File.separator + modello1.getDescrizione() + today + "_" + request.getParameter("codicefiscale") + ext;
+                            String destpath = dir.getAbsolutePath() + File.separator + modello1.getDescrizione() + today + "_" + a1.getCodicefiscale().toUpperCase() + ext;
                             p.write(destpath);
                             File pdfdest = new File(destpath);
                             String res = checkFirmaQRpdfA("MODELLO1", us.getUsername(), pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
                             if (!res.equals("OK")) {
+                                documenti.add(new Documenti_Allievi(destpath, modello1, null, a1));
                                 modello1OK = false;
                                 erroremodello1OK = res;
                             } else {
@@ -576,49 +487,52 @@ public class OperazioniSA extends HttpServlet {
                             modello1OK = false;
                             erroremodello1OK = "MODELLO 1 ERRATO. " + ex.getMessage() + ". CONTROLLARE.";
                         }
-                    } else {
-                        a.setStato("I");
-                    }
 
-                    if (modello1OK || a.getStato().equalsIgnoreCase("I")) {
-                        e.persist(a);
-                        for (TipoDoc_Allievi t : tipo_doc) {
-                            Part pa = request.getPart("doc_" + t.getId());
-                            if (pa != null && pa.getSubmittedFileName() != null && pa.getSubmittedFileName().length() > 0) {
-                                try {
-                                    String ext = pa.getSubmittedFileName().substring(pa.getSubmittedFileName().lastIndexOf("."));
-                                    String destpath = dir.getAbsolutePath() + File.separator + t.getDescrizione() + today + "_" + request.getParameter("codicefiscale") + ext;
-                                    pa.write(destpath);
-                                    documenti.add(new Documenti_Allievi(destpath, t, null, a));
-                                } catch (Exception ex) {
-                                    insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+                        if (modello1OK) {
+                            
+                            for (TipoDoc_Allievi t : tipo_doc) {
+                                Part pa = request.getPart("doc_" + t.getId());
+                                if (pa != null && pa.getSubmittedFileName() != null && pa.getSubmittedFileName().length() > 0) {
+                                    try {
+                                        String ext = pa.getSubmittedFileName().substring(pa.getSubmittedFileName().lastIndexOf("."));
+                                        String destpath = dir.getAbsolutePath() + File.separator + t.getDescrizione() + today + "_" + request.getParameter("codicefiscale") + ext;
+                                        pa.write(destpath);
+                                        documenti.add(new Documenti_Allievi(destpath, t, null, a1));
+                                    } catch (Exception ex) {
+                                        insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+                                    }
                                 }
                             }
+
+                            a1.setDocumenti(documenti);
+                            e.merge(a1);
+                            e.flush();
+                            e.commit();
+                            resp.addProperty("result", true);
+                        } else {
+                            resp.addProperty("result", false);
+                            resp.addProperty("message", erroremodello1OK);
                         }
 
-                        a.setDocumenti(documenti);
-                        e.merge(a);
-                        e.flush();
-                        e.commit();
-                        resp.addProperty("result", true);
                     } else {
                         resp.addProperty("result", false);
-                        resp.addProperty("message", erroremodello1OK);
+                        resp.addProperty("message", "Errore: non &egrave; stato possibile aggiungere l'allievo.<br>Documentazione errata.");
                     }
+
                 } else {
                     e.rollBack();
                     if (save.equals("1")) { //MODELLO
                         downloadFile
                                 = Pdf_new.MODELLO1(e, "3", us.getUsername(),
-                                        us.getSoggettoAttuatore(), a,
-                                        new DateTime(), domiciliouguale,
+                                        us.getSoggettoAttuatore(), a1,
+                                        new DateTime(), 
                                         true);
                     }
                     resp.addProperty("result", true);
                 }
             } else {
                 resp.addProperty("result", false);
-                resp.addProperty("message", "Errore: non &egrave; stato possibile aggiungere l'allievo.<br>Il seguente codice fiscale gi&agrave; presente");
+                resp.addProperty("message", "Errore: non &egrave; stato possibile aggiungere l'allievo.<br>Allievo non trovato.");
             }
         } catch (Exception ex) {
             e.insertTracking(null, "newAllievo Errore: " + ex.getMessage());
@@ -638,7 +552,7 @@ public class OperazioniSA extends HttpServlet {
         } else {
             if (downloadFile != null && downloadFile.exists()) {
                 OutputStream outStream;
-                try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+                try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                     String mimeType = probeContentType(downloadFile.toPath());
                     if (mimeType == null) {
                         mimeType = "application/octet-stream";
@@ -671,12 +585,12 @@ public class OperazioniSA extends HttpServlet {
                 && a.getComune_domicilio().getId().equals(a.getComune_residenza().getId());
 
         User us = (User) request.getSession().getAttribute("user");
-        File downloadFile = Pdf_new.MODELLO1(e, "3", us.getUsername(), us.getSoggettoAttuatore(), a, new DateTime(), domiciliouguale, true);
+        File downloadFile = Pdf_new.MODELLO1(e, "3", us.getUsername(), us.getSoggettoAttuatore(), a, new DateTime(), true);
 
         e.close();
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -1127,7 +1041,7 @@ public class OperazioniSA extends HttpServlet {
         } else {//MODELLO
             if (downloadFile != null && downloadFile.exists()) {
                 OutputStream outStream;
-                try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+                try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                     String mimeType = probeContentType(downloadFile.toPath());
                     if (mimeType == null) {
                         mimeType = "application/octet-stream";
@@ -1180,7 +1094,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -1235,7 +1149,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -1281,7 +1195,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -1352,7 +1266,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -1414,7 +1328,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -3027,7 +2941,7 @@ public class OperazioniSA extends HttpServlet {
 
             if (downloadFile != null && downloadFile.exists()) {
                 OutputStream outStream;
-                try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+                try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                     String mimeType = probeContentType(downloadFile.toPath());
                     if (mimeType == null) {
                         mimeType = "application/octet-stream";
@@ -3276,7 +3190,7 @@ public class OperazioniSA extends HttpServlet {
         } else {
             if (downloadFile != null && downloadFile.exists()) {
                 OutputStream outStream;
-                try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+                try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                     String mimeType = probeContentType(downloadFile.toPath());
                     if (mimeType == null) {
                         mimeType = "application/octet-stream";
@@ -3869,7 +3783,7 @@ public class OperazioniSA extends HttpServlet {
 
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
-            try ( FileInputStream inStream = new FileInputStream(downloadFile)) {
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
                 String mimeType = probeContentType(downloadFile.toPath());
                 if (mimeType == null) {
                     mimeType = "application/octet-stream";
@@ -4811,7 +4725,7 @@ public class OperazioniSA extends HttpServlet {
 
                 Database db = new Database(false);
 
-                try ( Statement st = db.getC().createStatement()) {
+                try (Statement st = db.getC().createStatement()) {
                     st.execute(upd);
                 }
                 db.closeDB();
