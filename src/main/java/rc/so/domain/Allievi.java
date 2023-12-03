@@ -40,7 +40,8 @@ import javax.persistence.Transient;
     @NamedQuery(name = "a.byProgettoAll", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto"),
     @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01'"),
     @NamedQuery(name = "allievi.daassegnare", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='10'"),
-    @NamedQuery(name = "allievi.assegnatisoggetto", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='12' AND a.soggetto=:soggetto and a.progetto=null")
+    @NamedQuery(name = "allievi.assegnatisoggetto", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='12' AND a.soggetto=:soggetto and a.progetto=null"),
+    @NamedQuery(name = "allievi.modello1", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='13' AND a.soggetto=:soggetto and a.progetto=null")
 })
 @JsonIgnoreProperties(value = {"documenti"})
 public class Allievi implements Serializable {

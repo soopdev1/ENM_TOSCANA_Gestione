@@ -21,7 +21,6 @@ import rc.so.util.Utility;
 import static rc.so.util.Utility.LOGAPP;
 import static rc.so.util.Utility.calcoladurata;
 import static rc.so.util.Utility.createDir;
-import static rc.so.util.Utility.dbsviluppo;
 import static rc.so.util.Utility.estraiEccezione;
 import static rc.so.util.Utility.formatStringtoStringDate;
 import static rc.so.util.Utility.getUtilDate;
@@ -81,9 +80,7 @@ public class Database {
                 host = conf.getString("db.host") + ":3306/enm_toscana_prod";
             }
         } else {
-            if (dbsviluppo) {
-                host = "172.31.224.159:3306/enm_toscana";
-            } else if (test) {
+            if (test) {
                 host = conf.getString("db.host") + ":3306/enm_gestione_toscana_prod";
             } else {
                 host = conf.getString("db.host") + ":3306/enm_gestione_toscana_prod";
@@ -100,13 +97,6 @@ public class Database {
             p.put("useSSL", "false");
             p.put("connectTimeout", "1000");
             p.put("useUnicode", "true");
-
-            if (dbsviluppo) {
-                p.put("useJDBCCompliantTimezoneShift", "true");
-                p.put("useLegacyDatetimeCode", "false");
-                p.put("serverTimezone", "UTC");
-            }
-
             this.c = DriverManager.getConnection("jdbc:mysql://" + host, p);
 //            boolean res1 = this.c != null && !this.c.isClosed();
 //            LOGAPP.log(Level.INFO, "HOST: {0} - CONNESSO {1} - ISDBTEST: {2}", new Object[]{host, res1, test});
@@ -352,7 +342,7 @@ public class Database {
     }
 
     public boolean insertcalendarioFAD(String idpr, String corso, String data, String orainizio, String orafine) {
-        boolean out = false;
+        boolean out;
         try {
             String sql = "SELECT * FROM fad_calendar WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ?";
             try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
@@ -475,7 +465,7 @@ public class Database {
                     sa.setRagionesociale(rs.getString("a.societa"));
                     sa.setPiva(rs.getString("a.pivacf"));
                     sa.setCodicefiscale(rs.getString("a.cf"));
-                    sa.setComune(en.getComune(Long.parseLong(rs.getString("a.sedecomune"))));
+                    sa.setComune(en.getComune(Long.valueOf(rs.getString("a.sedecomune"))));
                     sa.setIndirizzo(rs.getString("a.sedeindirizzo"));
                     sa.setNome(rs.getString("a.nome"));
                     sa.setNome_refente(rs.getString("a.nome"));
@@ -521,7 +511,7 @@ public class Database {
                     sa.setRagionesociale(rs.getString("a.societa"));
                     sa.setPiva(rs.getString("a.pivacf"));
                     sa.setCodicefiscale(rs.getString("a.cf"));
-                    sa.setComune(en.getComune(Long.parseLong(rs.getString("a.sedecomune"))));
+                    sa.setComune(en.getComune(Long.valueOf(rs.getString("a.sedecomune"))));
                     sa.setIndirizzo(rs.getString("a.sedeindirizzo"));
                     sa.setNome(rs.getString("a.nome"));
                     sa.setNome_refente(rs.getString("a.nome"));
@@ -584,7 +574,7 @@ public class Database {
                         String telefono = rs.getString("telresponsabile" + i);
                         String cellulare = rs.getString("telresponsabile" + i);
                         String email = rs.getString("mailresponsabile" + i);
-                        Comuni cm = en.getEm().find(Comuni.class, Long.parseLong(rs.getString("citta" + i)));
+                        Comuni cm = en.getEm().find(Comuni.class, Long.valueOf(rs.getString("citta" + i)));
                         SediFormazione sf = new SediFormazione(denominazione, via, referente, telefono, cellulare, email, cm);
                         sf.setSoggetto(sa);
                         out.add(sf);

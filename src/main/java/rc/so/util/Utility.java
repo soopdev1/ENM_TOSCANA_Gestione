@@ -130,8 +130,7 @@ public class Utility {
     public static boolean demoversion = false;
 
     // TEST //
-    public static boolean test = false;
-    public static boolean dbsviluppo = false;
+    public static boolean test = true;
     //////////
 
     //ADD RAF

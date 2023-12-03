@@ -63,6 +63,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpSession;
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
+import org.apache.commons.lang3.SystemUtils;
 import org.joda.time.DateTime;
 
 /**
@@ -154,7 +155,12 @@ public class Entity {
         Path out = this.em.find(Path.class, id);
         if (out != null) {
             if (out.getUrl() != null) {
-                return separatorsToSystem(out.getUrl());
+                if (SystemUtils.OS_NAME.contains("Windows") && out.getUrl().startsWith("/")) {
+                    return separatorsToSystem("C:"+out.getUrl());
+                } else {
+                    return separatorsToSystem(out.getUrl());
+
+                }
             }
         }
         return "";
@@ -396,6 +402,12 @@ public class Entity {
 
     public List<Allievi> getAllieviSoggettoNoPrgAttivi(SoggettiAttuatori sa) {
         TypedQuery<Allievi> q = em.createNamedQuery("allievi.assegnatisoggetto", Allievi.class)
+                .setParameter("soggetto", sa);
+        return q.getResultList();
+    }
+
+    public List<Allievi> getAllieviSoggettoModello1(SoggettiAttuatori sa) {
+        TypedQuery<Allievi> q = em.createNamedQuery("allievi.modello1", Allievi.class)
                 .setParameter("soggetto", sa);
         return q.getResultList();
     }
@@ -655,8 +667,6 @@ public class Entity {
 
     public String getProvinceSediFormazione(SoggettiAttuatori soggetto) {
 
-        
-        
         HashMap<String, Object> param = new HashMap<>();
         String sql = "SELECT a FROM SediFormazione a WHERE a.soggetto=:soggetto AND (a.stato='A' OR a.stato = 'A1')";
         param.put("soggetto", soggetto);
@@ -667,19 +677,19 @@ public class Entity {
         for (HashMap.Entry<String, Object> m : param.entrySet()) {
             q.setParameter(m.getKey(), m.getValue());
         }
-        
+
         List<String> province = new ArrayList<>();
-        for(SediFormazione sf : q.getResultList()){
+        for (SediFormazione sf : q.getResultList()) {
             province.add(sf.getComune().getNome_provincia().trim());
         }
 //        StringBuilder out = new StringBuilder("");
 //        for(String sf : province.stream().distinct().toList()){
 //            out.app
 //        }
-        
+
         return province.stream().distinct().collect(Collectors.toList()).toString();
     }
-    
+
     public List<SediFormazione> getSediFormazione(HttpSession session) {
 
         User us = (User) session.getAttribute("user");
@@ -833,17 +843,17 @@ public class Entity {
                 .setParameter("allievo", a);
         return q.getResultList().size() > 0 ? (List<Documenti_Allievi>) q.getResultList() : new ArrayList();
     }
+
     public List<Documenti_Allievi> getDocAllievoAgg(Allievi a) {
-        TypedQuery<Documenti_Allievi>  q = this.em.createNamedQuery("da.byAllievo", Documenti_Allievi.class)
+        TypedQuery<Documenti_Allievi> q = this.em.createNamedQuery("da.byAllievo", Documenti_Allievi.class)
                 .setParameter("allievo", a);
-        
+
         return q.getResultList();
     }
 
     public Documenti_Allievi getModello0Allievo(Allievi a) {
         TypedQuery<Documenti_Allievi> q = this.em.createNamedQuery("da.modello0", Documenti_Allievi.class)
                 .setParameter("allievo", a);
-
         return q.getResultList().isEmpty() ? null : q.getSingleResult();
     }
 
@@ -1222,20 +1232,19 @@ public class Entity {
     }
 
     public List<Docenti> getActiveDocenti_bySA(SoggettiAttuatori s) {
-        TypedQuery q = this.em.createNamedQuery("d.bySA_Active", Docenti.class).setParameter("soggetto", s);
-        return q.getResultList().size() > 0 ? (List<Docenti>) q.getResultList() : new ArrayList();
+        TypedQuery<Docenti> q = this.em.createNamedQuery("d.bySA_Active", Docenti.class).setParameter("soggetto", s);
+        return q.getResultList();
     }
 
     public List<MascheraM5> getM5Loaded_byPF(ProgettiFormativi pf) {
-        TypedQuery q = this.em.createNamedQuery("m5.byPF", MascheraM5.class).setParameter("progetto_formativo", pf);
-        return q.getResultList().size() > 0 ? (List<MascheraM5>) q.getResultList() : new ArrayList();
+        TypedQuery<MascheraM5> q = this.em.createNamedQuery("m5.byPF", MascheraM5.class).setParameter("progetto_formativo", pf);
+        return q.getResultList();
     }
 
     public MascheraM5 getM5_byAllievo(Allievi a1) {
         TypedQuery q = this.em.createNamedQuery("m5.byAllievo", MascheraM5.class).setParameter("allievo", a1);
         return q.getResultList().isEmpty() ? null : (MascheraM5) q.getSingleResult();
     }
-    
 
     public List<Ateco> list_CodiciAteco() {
         TypedQuery<Ateco> q = this.em.createNamedQuery("ate.Elenco", Ateco.class);
@@ -1258,6 +1267,7 @@ public class Entity {
         q.setParameter("codicefiscale", cf);
         return q.getResultList().isEmpty() ? null : (Nazioni_rc) q.getSingleResult();
     }
+
     public Nazioni_rc nazionenascita(String statonascita) {
         TypedQuery q = this.em.createNamedQuery("nazioni_rc.byIstat", Nazioni_rc.class);
         q.setParameter("istat", statonascita);

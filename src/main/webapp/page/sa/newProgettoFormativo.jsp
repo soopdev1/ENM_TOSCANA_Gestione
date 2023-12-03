@@ -27,10 +27,9 @@
         } else {
             String src = session.getAttribute("src").toString();
             Entity e = new Entity();
-            List<Allievi> alunni = e.getAllieviSoggettoNoPrgAttivi(us.getSoggettoAttuatore());
+            List<Allievi> alunni = e.getAllieviSoggettoModello1(us.getSoggettoAttuatore());
             List<SediFormazione> sedi = e.getSediFormazione(session);
             List<NomiProgetto> nomi = e.findAll(NomiProgetto.class);
-//            List<Docenti> docente = e.getActiveDocenti(session);
             List<Docenti> docente = e.getActiveDocenti_bySA(us.getSoggettoAttuatore());
             List<TipoDoc> tipo_doc = e.getTipoDoc(e.getEm().find(StatiPrg.class, "DV"));
             sedi = sedi == null ? new ArrayList() : sedi;
@@ -64,8 +63,6 @@
         <link href="<%=src%>/assets/vendors/general/select2/dist/css/select2.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/bootstrap-select/dist/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css" rel="stylesheet" type="text/css" />
-
-        <!-- - -->
         <link href="<%=src%>/assets/vendors/general/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/sweetalert2/dist/sweetalert2.css" rel="stylesheet" type="text/css" />
@@ -232,15 +229,7 @@
                                                                                                                                                         <input type="text" class="form-control obbligatory" name="nome_pf" id="nome_pf" placeholder="Nome Progetto Formativo">-->
                                                                         </div>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Modalità di svolgimento</label><label class="kt-font-danger kt-font-boldest"> *</label>
-                                                                        <div class="dropdown bootstrap-select form-control kt-" id="svolgimento_div" style="padding: 0;">
-                                                                                <select class="form-control kt-select2-general obbligatory" id="svolgimento" name="svolgimento" style="width: 100%">
-                                                                                    <option value="F">In FAD</option>
-                                                                                    <!--<option value="P">In Presenza</option>-->
-                                                                                </select>
-                                                                            </div>
-                                                                    </div>
+                                                                                <input type="hidden" name="svolgimento" value="M" />
                                                                     <div class="form-group">
                                                                         <label>Descrizione</label>
                                                                         <textarea class="form-control" id="descrizione_pf" name="descrizione_pf" placeholder="Descrizione Progetto Formativo" rows="5"></textarea>
@@ -343,7 +332,7 @@
                                                                                 <%if (t.getModello() != null) {%>
 
 
-                                                                                <div class="row">
+                                                                                <div class="row col-xl-8 col-lg-8">
                                                                                     <label>Scaricare il modello con i dati inseriti per poi caricarlo firmato digitalmente (.p7m CAdES, .pdf PAdES) nel campo sottostante.</label>
                                                                                     <button class="btn btn-io btn-md btn-tall btn-wide kt-font-bold kt-font-transform-u" 
                                                                                             type="button" 

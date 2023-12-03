@@ -351,8 +351,7 @@ public class Pdf_new {
             db.closeDB();
             List<Item> um = Utility.unitamisura();
 
-            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut)) {
-                PdfDocument pdfDoc = new PdfDocument(reader, writer);
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
                 PdfAcroForm form = getAcroForm(pdfDoc, true);
                 form.setGenerateAppearance(true);
                 Map<String, PdfFormField> fields = form.getAllFormFields();
@@ -436,7 +435,6 @@ public class Pdf_new {
                         + StringUtils.deleteWhitespace(d.getCognome() + "_" + d.getNome())
                         + " / " + dataconsegna.toString("ddMMyyyyHHmmSSS"));
                 printbarcode(barcode, pdfDoc);
-                pdfDoc.close();
             }
             if (checkPDF(pdfOut)) {
                 return pdfOut;
@@ -472,9 +470,10 @@ public class Pdf_new {
                     + getOnlyStrings(sa.getRagionesociale()) + "_"
                     + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".EV.pdf");
 
-            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is)) {
-                PdfWriter writer = new PdfWriter(pdfOut);
-                PdfDocument pdfDoc = new PdfDocument(reader, writer);
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); 
+                    PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); 
+                    PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+                
                 PdfAcroForm form = getAcroForm(pdfDoc, true);
                 form.setGenerateAppearance(true);
 
@@ -555,8 +554,6 @@ public class Pdf_new {
                         + StringUtils.deleteWhitespace(sa.getRagionesociale())
                         + " / " + dataconsegna.toString("ddMMyyyyHHmmSSS"));
                 printbarcode(barcode, pdfDoc);
-                pdfDoc.close();
-                writer.close();
             }
             if (checkPDF(pdfOut)) {
                 return pdfOut;
@@ -604,8 +601,9 @@ public class Pdf_new {
                     + getOnlyStrings(sa.getRagionesociale()) + "_"
                     + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".CL_FIN.pdf");
 
-            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut)) {
-                PdfDocument pdfDoc = new PdfDocument(reader, writer);
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); 
+                    PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+                
                 PdfAcroForm form = getAcroForm(pdfDoc, true);
                 form.setGenerateAppearance(true);
 
@@ -642,8 +640,7 @@ public class Pdf_new {
                 setFieldsValue(form, fields, "IMPORTONEETA", roundDoubleAndFormat(Double.parseDouble(coeff_fa)) + " €");
                 setFieldsValue(form, fields, "IMPORTO ORARIO RICONOSCIUTOCONTROLL O ORE PRESENZE ALLIEVI  FASE B", roundDoubleAndFormat(Double.parseDouble(coeff_fb)) + " €");
 
-//                AtomicDouble totalefasea = new AtomicDouble(0.0);
-//                AtomicDouble totalefaseb = new AtomicDouble(0.0);
+                
                 allievi_faseA.forEach(al1 -> {
                     setFieldsValue(form, fields, "COGNOMERow" + indice1.get(), al1.getCognome().toUpperCase());
                     setFieldsValue(form, fields, "NOMERow" + indice1.get(), al1.getNome().toUpperCase());
@@ -758,7 +755,6 @@ public class Pdf_new {
                         + StringUtils.deleteWhitespace(sa.getRagionesociale())
                         + " / " + dataconsegna.toString("ddMMyyyyHHmmSSS"));
                 printbarcode(barcode, pdfDoc);
-                pdfDoc.close();
 
             }
 
@@ -981,7 +977,7 @@ public class Pdf_new {
                     AtomicInteger index_allieviA = new AtomicInteger(1);
 
                     neetID.forEach(n1 -> {
-                        Allievi n2 = e.getEm().find(Allievi.class, Long.parseLong(String.valueOf(n1)));
+                        Allievi n2 = e.getEm().find(Allievi.class, Long.valueOf(String.valueOf(n1)));
                         MascheraM5 datiM5 = e.getM5_byAllievo(n2);
 
                         Registro_completo allievo_A = new Registro_completo();
@@ -2187,9 +2183,6 @@ public class Pdf_new {
                 String NOMESA = sa.getRagionesociale();
                 String DD = sa.getDd();
 
-                String PRESENZA = pf.getSvolgimento().equals("P") ? "SI" : "NO";
-                String FAD = pf.getSvolgimento().equals("P") ? "NO" : "SI";
-
                 String COGNOME = sa.getCognome_referente();
                 String NOME = sa.getNome_refente();
                 String CARICA = sa.getCarica();
@@ -2210,46 +2203,11 @@ public class Pdf_new {
                 allievi.forEach(a1 -> {
                     setFieldsValue(form, fields, "CognomeRow" + in.get(), a1.getCognome().toUpperCase());
                     setFieldsValue(form, fields, "NomeRow" + in.get(), a1.getNome().toUpperCase());
-                    setFieldsValue(form, fields, "CodiceFiscaleRow" + in.get(), a1.getCodicefiscale().toUpperCase());
-                    setFieldsValue(form, fields, "DataiscrizionepercorsoRow" + in.get(), dataconsegna.toString(patternITA));
-                    setFieldsValue(form, fields, "DataGGRow" + in.get(), sdfITA.format(a1.getIscrizionegg()));
-                    setFieldsValue(form, fields, "EmailRow" + in.get(), a1.getEmail().toLowerCase());
-                    setFieldsValue(form, fields, "CellRow" + in.get(), a1.getTelefono());
+                    setFieldsValue(form, fields, "Codice FiscaleRow" + in.get(), a1.getCodicefiscale().toUpperCase());
+                    setFieldsValue(form, fields, "Email_" + in.get(), a1.getEmail().toLowerCase());
+                    setFieldsValue(form, fields, "Cell_" + in.get(), a1.getTelefono());
                     in.addAndGet(1);
                 });
-
-                fields.forEach((KEY, VALUE) -> {
-                    boolean checkbox = asList(VALUE.getAppearanceStates()).size() > 0;
-                    if (checkbox) {
-                        if (KEY.equalsIgnoreCase("PRESENZA")) {
-                            if (PRESENZA.equals("SI")) {
-                                setFieldsValue(form, fields, KEY, "On");
-                                Comuni c_s = pf.getSede().getComune();
-                                setFieldsValue(form, fields, "REGIONESEDE", c_s.getRegione());
-                                setFieldsValue(form, fields, "COMUNESEDE", c_s.getNome());
-                                setFieldsValue(form, fields, "PROVINCIASEDE", c_s.getCod_provincia());
-                                setFieldsValue(form, fields, "INDIRIZZOSEDE", pf.getSede().getIndirizzo());
-                            } else {
-                                form.partialFormFlattening(KEY);
-                            }
-                        } else if (KEY.equalsIgnoreCase("FAD")) {
-                            if (FAD.equals("SI")) {
-                                setFieldsValue(form, fields, KEY, "On");
-                                setFieldsValue(form, fields, "REGIONESEDE", "");
-                                setFieldsValue(form, fields, "COMUNESEDE", "");
-                                setFieldsValue(form, fields, "PROVINCIASEDE", "");
-                                setFieldsValue(form, fields, "INDIRIZZOSEDE", "");
-                            } else {
-                                form.partialFormFlattening(KEY);
-                            }
-                        } else {
-                            form.partialFormFlattening(KEY);
-                        }
-                    } else {
-                        form.partialFormFlattening(KEY);
-                    }
-                });
-
                 if (flatten) {
                     form.flattenFields();
                 }

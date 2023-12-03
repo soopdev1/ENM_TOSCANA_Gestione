@@ -868,12 +868,12 @@ public class OperazioniSA extends HttpServlet {
 
             ProgettiFormativi p = new ProgettiFormativi();
             p.setNome(e.getEm().find(NomiProgetto.class,
-                    Long.parseLong(request.getParameter("nome_pf"))));
+                    Long.valueOf(request.getParameter("nome_pf"))));
             p.setDescrizione(conversionText(getRequestValue(request, "descrizione_pf")));
             p.setStart(sdf.parse(date[0].trim()));
             p.setEnd(sdf.parse(date[1].trim()));
             p.setSede(e.getEm().find(SediFormazione.class,
-                    Long.parseLong(request.getParameter("sede"))));
+                    Long.valueOf(request.getParameter("sede"))));
             p.setSoggetto(us.getSoggettoAttuatore());
             p.setStato(e.getEm().find(StatiPrg.class,
                     "DV"));
@@ -894,7 +894,7 @@ public class OperazioniSA extends HttpServlet {
             List<Allievi> list_allievi = new LinkedList<>();
             for (String s : request.getParameterValues("allievi[]")) {
                 Allievi a = e.getEm().find(Allievi.class,
-                        Long.parseLong(s));
+                        Long.valueOf(s));
                 a.setProgetto(p);
 
                 list_allievi.add(a);
@@ -937,7 +937,7 @@ public class OperazioniSA extends HttpServlet {
             Docenti d;
             for (String s : request.getParameterValues("docenti[]")) {
                 d = e.getEm().find(Docenti.class,
-                        Long.parseLong(s));
+                        Long.valueOf(s));
                 docenti_list.add(d);
                 doc = new DocumentiPrg();
                 file_path = dir.getAbsolutePath() + File.separator + "DocId_" + today + "_" + d.getId() + d.getDocId().substring(d.getDocId().lastIndexOf("."));
@@ -1024,7 +1024,7 @@ public class OperazioniSA extends HttpServlet {
                 }
                 resp.addProperty("result", true);
             }
-        } catch (PersistenceException | ParseException ex) {
+        } catch (Exception ex) {
             e.rollBack();
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
             resp.addProperty("result", false);
@@ -1533,11 +1533,11 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             Docenti d = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             d.setScadenza_doc(new SimpleDateFormat("dd/MM/yyyy").parse(scadenza));
 
             String path = e.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
-            new File(path).mkdirs();//create folder
+            createDir(path);
 
             String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
             path += "Doc_id_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + d.getCodicefiscale() + ext;
@@ -1573,7 +1573,7 @@ public class OperazioniSA extends HttpServlet {
                     Long.parseLong(request.getParameter("id")));
 
             String path = e.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
-            new File(path).mkdirs();//create folder
+            createDir(path);
 
             String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
             path += "Curriculum_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + d.getCodicefiscale() + ext;
