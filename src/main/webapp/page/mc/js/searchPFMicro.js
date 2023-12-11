@@ -38,7 +38,6 @@ var KTDatatablesDataSourceAjaxServer = function () {
                 {defaultContent: ''},
                 {data: 'id'},
                 {data: 'soggetto.ragionesociale', className: 'text-center text-uppercase'},
-                {data: 'svolgimento', className: 'text-center text-uppercase'},
                 {data: 'start'},
                 {data: 'end'},
                 {data: 'cip'},
@@ -149,33 +148,23 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         option += '</div></div>';
                         return option;
                     }
-                }, {
+                },
+                {
                     targets: 3,
                     type: 'date-it',
                     render: function (data, type, row, meta) {
-                        if (data === 'P') {
-                            return "In Presenza";
-                        } else {
-                            return "In FAD";
-                        }
+                        return formattedDate(new Date(data));
                     }
-                },
-                {
+                }, {
                     targets: 4,
                     type: 'date-it',
                     render: function (data, type, row, meta) {
                         return formattedDate(new Date(data));
                     }
                 }, {
-                    targets: 5,
-                    type: 'date-it',
+                    targets: 6,
                     render: function (data, type, row, meta) {
-                        return formattedDate(new Date(data));
-                    }
-                }, {
-                    targets: 7,
-                    render: function (data, type, row, meta) {
-                        return row.allievi_ok + ' - ' + row.allievi_total;
+                        return row.allievi_total;
                     }
                 }
             ]
@@ -1029,10 +1018,7 @@ function valitdatePrg(id, stato) {
                 + "</div>";
     } else if (stato === "DV") {
         allieviPrg = getNeetsByPrg(id);
-//13/07/21 Possibilità di escludere anche tutti i NEETS dal PF (in caso di numero minimo non raggiunto lo stesso verrà rigettato)        
-//        if (allieviPrg.length > 4) {
         html = getHtml("swal_escludi_neet", context);
-//        }
     }
 
     swal.fire({
@@ -1534,7 +1520,7 @@ function getNeetsByPrg(id) {
         async: false,
         url: context + "/QueryMicro?type=getAllieviByPrg&id=" + id,
         success: function (resp) {
-            if (resp != null)
+            if (resp !== null)
                 temp = JSON.parse(resp);
         }
     });

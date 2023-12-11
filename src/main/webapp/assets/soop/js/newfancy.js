@@ -57,17 +57,40 @@ jQuery(document).ready(function ($) {
         selector: '.fancyBoxReload',
         arrows: false,
         infobar: false,
+        slideShow: false,
+        touch: false,        
+        prevEffect: 'none',
+        nextEffect: 'none',
         closeBtn: true,
         type: 'iframe',
         autoSize: false,
         fitToView: false,
-        height: "90%",
-        width: "80%",
+        width: '80%',
+        height: '100%',
         centerOnScroll: true,
         overlayOpacity: 0,
         overlayShow: true,
+        afterClose: function () {
+            reload();
+        }
+    });
+    $().fancybox({
+        selector: '.fancyBoxFullReload',
+        arrows: false,
+        infobar: false,
         slideShow: false,
-        touch: false,
+        touch: false,        
+        prevEffect: 'none',
+        nextEffect: 'none',
+        closeBtn: true,
+        type: 'iframe',
+        autoSize: false,
+        fitToView: false,
+        width: '80%',
+        height: '100%',
+        centerOnScroll: true,
+        overlayOpacity: 0,
+        overlayShow: true,
         afterClose: function () {
             reload();
         }
@@ -107,23 +130,6 @@ $("a.fancyBoxRaf").fancybox({
     centerOnScroll: true,
     overlayOpacity: 0,
     overlayShow: true
-});
-
-$("a.fancyBoxReload").fancybox({
-    prevEffect: 'none',
-    nextEffect: 'none',
-    closeBtn: true,
-    type: 'iframe',
-    autoSize: false,
-    fitToView: false,
-    height: '85%',
-    width: 1200,
-    centerOnScroll: true,
-    overlayOpacity: 0,
-    overlayShow: true,
-    afterClose: function () {
-        reload();
-    }
 });
 
 $("a.fancyBoxReload2").fancybox({
@@ -394,6 +400,25 @@ $("a.fancyBoxFullReload").fancybox({
     overlayShow: true,
     afterClose: function () {
         reload();
+    }
+});
+$("a.fancyBoxReload").fancybox({
+    prevEffect: 'none',
+    nextEffect: 'none',
+    closeBtn: true,
+    type: 'iframe',
+    autoSize: false,
+    fitToView: false,
+    width: '80%',
+    height: '100%',
+    centerOnScroll: true,
+    afterClose: function () {
+        reload();
+    },
+    helpers: {
+        overlay: {
+            locked: false
+        }
     }
 });
 

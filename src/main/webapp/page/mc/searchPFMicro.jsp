@@ -217,11 +217,10 @@
                                                         <th class="text-uppercase text-center">Azioni</th>
                                                         <th class="text-uppercase text-center">ID</th>
                                                         <th class="text-uppercase text-center">Soggetto Esecutore</th>
-                                                        <th class="text-uppercase text-center">Svolgimento</th>
                                                         <th class="text-uppercase text-center">Data Inizio</th>
                                                         <th class="text-uppercase text-center">Data Fine</th>
                                                         <th class="text-uppercase text-center">CIP</th>
-                                                        <th class="text-uppercase text-center">Allievi (OK - Totale)</th>
+                                                        <th class="text-uppercase text-center">Allievi</th>
                                                         <th class="text-uppercase text-center">Sede Di Formazione</th>
                                                         <th class="text-uppercase text-center">Stato</th>
                                                         <th class="text-uppercase text-center">Assegnazione</th>

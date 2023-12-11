@@ -682,11 +682,6 @@ public class Entity {
         for (SediFormazione sf : q.getResultList()) {
             province.add(sf.getComune().getNome_provincia().trim());
         }
-//        StringBuilder out = new StringBuilder("");
-//        for(String sf : province.stream().distinct().toList()){
-//            out.app
-//        }
-
         return province.stream().distinct().collect(Collectors.toList()).toString();
     }
 
@@ -700,6 +695,21 @@ public class Entity {
         if (param.isEmpty()) {
             q.setMaxResults(maxQueryResult);
         }
+        for (HashMap.Entry<String, Object> m : param.entrySet()) {
+            q.setParameter(m.getKey(), m.getValue());
+        }
+        return q.getResultList().isEmpty() ? new ArrayList() : (List<SediFormazione>) q.getResultList();
+    }
+    public List<SediFormazione> getSediFormazione(SoggettiAttuatori soggetto) {
+
+        HashMap<String, Object> param = new HashMap<>();
+        String sql = "SELECT a FROM SediFormazione a WHERE a.soggetto=:soggetto AND (a.stato='A' OR a.stato = 'A1')";
+        param.put("soggetto", soggetto);
+        TypedQuery<SediFormazione> q = this.em.createQuery(sql, SediFormazione.class);
+        if (param.isEmpty()) {
+            q.setMaxResults(maxQueryResult);
+        }
+        
         for (HashMap.Entry<String, Object> m : param.entrySet()) {
             q.setParameter(m.getKey(), m.getValue());
         }

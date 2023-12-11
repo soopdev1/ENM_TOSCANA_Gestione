@@ -49,6 +49,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import rc.so.domain.SediFormazione;
 
 /**
  *
@@ -249,6 +250,30 @@ public class QuerySA extends HttpServlet {
         }
     }
 
+    protected void getSedeByPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        try {
+            List<SediFormazione> sediattive = e.getSediFormazione(e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("idprogetto"))).getSoggetto());
+            ObjectMapper mapper = new ObjectMapper();
+            response.getWriter().write(mapper.writeValueAsString(sediattive));
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+    }
+    protected void getSedeById(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        try {
+            SediFormazione sede = e.getEm().find(SediFormazione.class, Long.valueOf(request.getParameter("sedefisica")));
+            ObjectMapper mapper = new ObjectMapper();
+            response.getWriter().write(mapper.writeValueAsString(sede));
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+    }
     protected void getDocentiByPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
@@ -556,6 +581,12 @@ public class QuerySA extends HttpServlet {
                     break;
                 case "getDocentiByPrg":
                     getDocentiByPrg(request, response);
+                    break;
+                case "getSedeByPrg":
+                    getSedeByPrg(request, response);
+                    break;
+                case "getSedeById":
+                    getSedeById(request, response);
                     break;
                 case "getDocAllievoById":
                     getDocAllievoById(request, response);

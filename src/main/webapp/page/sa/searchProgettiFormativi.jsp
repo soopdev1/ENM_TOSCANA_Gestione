@@ -174,11 +174,10 @@
                                                     <tr>
                                                         <th class="text-uppercase text-center">Azioni</th>
                                                         <th class="text-uppercase text-center">ID</th>
-                                                        <th class="text-uppercase text-center">Svolgimento</th>
                                                         <th class="text-uppercase text-center">Data Inizio</th>
                                                         <th class="text-uppercase text-center">Data Fine</th>
                                                         <th class="text-uppercase text-center">CIP</th>
-                                                        <th class="text-uppercase text-center">Allievi (OK - Totale)</th>
+                                                        <th class="text-uppercase text-center">Allievi</th>
                                                         <th class="text-uppercase text-center">Stato</th>
                                                         <th class="text-uppercase text-center">Motivo Errore</th>
                                                         <th class="text-uppercase text-center">Errore O Verificare</th>
@@ -260,7 +259,7 @@
         </div>
         <!--end::Modal-->
         <script src="<%=src%>/assets/vendors/general/perfect-scrollbar/dist/perfect-scrollbar.js" type="text/javascript"></script>
-        <script src="<%=src%>/assets/soop/js/jquery-3.6.1.js" type="text/javascript"></script>
+        <script src="<%=src%>/assets/vendors/general/jquery/dist/jquery.js" type="text/javascript"></script>
         <script src="<%=src%>/assets/vendors/general/popper.js/dist/umd/popper.js" type="text/javascript"></script>
         <script src="<%=src%>/assets/vendors/general/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
         <script src="<%=src%>/assets/vendors/general/js-cookie/src/js.cookie.js" type="text/javascript"></script>
@@ -282,9 +281,9 @@
         <script src="<%=src%>/assets/vendors/general/bootstrap-datepicker/dist/js/bootstrap-datepicker.js" type="text/javascript"></script>
         <script id="ore_max" data-context="<%=max_ore_day%>" type="text/javascript"></script>
         <script id="searchProgettiFormativi" src="<%=src%>/page/sa/js/searchProgettiFormativi.js<%=no_cache%>" 
-        data-context="<%=request.getContextPath()%>" 
-        data-typeuser="<%=us.getTipo()%>"
-        data-demoversion="<%=Utility.demoversion%>"
+                data-context="<%=request.getContextPath()%>" 
+                data-typeuser="<%=us.getTipo()%>"
+                data-demoversion="<%=Utility.demoversion%>"
         type="text/javascript"></script>
         <script type="text/javascript">
                                                                         var KTAppOptions = {

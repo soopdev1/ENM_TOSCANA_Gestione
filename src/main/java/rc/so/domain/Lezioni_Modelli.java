@@ -74,11 +74,23 @@ public class Lezioni_Modelli implements Serializable {
     //Gruppo modello 4
     @Column(name = "gruppo_faseB")
     private int gruppo_faseB;
+    
+    //F FAD - P PRESENZA
+    @Column(name = "tipolez")
+    private String tipolez;
 
     @Transient
     private String orainizio;
     @Transient
     private String orafine;
+
+    public String getTipolez() {
+        return tipolez;
+    }
+
+    public void setTipolez(String tipolez) {
+        this.tipolez = tipolez;
+    }
 
     public String getOrainizio() {
         return Utility.sdfHHMM.format(this.orario_start);
@@ -197,6 +209,17 @@ public class Lezioni_Modelli implements Serializable {
         this.lezione_calendario = lezione_calendario;
         this.docente = docente;
     }
+    public Lezioni_Modelli(Date giorno, Date orario_start, Date orario_end, Date data_modifica, ModelliPrg modello, LezioneCalendario lezione_calendario, Docenti docente, String tipolez) {
+        this.giorno = giorno;
+        this.orario_start = orario_start;
+        this.orario_end = orario_end;
+        this.data_modifica = data_modifica;
+        this.modello = modello;
+        this.lezione_calendario = lezione_calendario;
+        this.docente = docente;
+        this.tipolez = tipolez;
+    }
+    
 
     public Lezioni_Modelli(Date giorno, Date orario_start, Date orario_end, Date data_modifica, ModelliPrg modello, LezioneCalendario lezione_calendario, Docenti docente, int gruppo_faseB) {
         this.giorno = giorno;

@@ -256,7 +256,7 @@
                 $("#provincia").empty();
                 $("#comune").empty();
                 $("#comune").append('<option value="-">. . .</option>');
-                if ($('#regione').val() != '-') {
+                if ($('#regione').val() !== '-') {
                     startBlockUILoad("#provincia_div");
                     $("#provincia").append('<option value="-">Seleziona Provincia</option>');
                     $.get('<%=request.getContextPath()%>/Login?type=getProvincia&regione=' + $('#regione').val(), function (resp) {
@@ -274,7 +274,7 @@
         <script>
             $('#provincia').on('change', function (e) {
                 $("#comune").empty();
-                if ($('#provincia').val() != '-') {
+                if ($('#provincia').val() !== '-') {
                     startBlockUILoad("#comune_div");
                     $("#comune").append('<option value="-">Seleziona Comune</option>');
                     $.get('<%=request.getContextPath()%>/Login?type=getComune&provincia=' + $('#provincia').val(), function (resp) {

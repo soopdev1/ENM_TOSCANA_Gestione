@@ -33,6 +33,8 @@
             List<Lezioni_Modelli> lezioni = m3.getLezioni();
             List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
             boolean isEditable = Utility.isEditableModel(lezioni);
+            String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
+
             e.close();
 %>
 <html>
@@ -119,6 +121,9 @@
                 cursor: default;
                 color: #756c6e !important;
             }
+            .select2-container--open {
+                z-index: 999999999;
+            }
         </style>
     </head>
     <body class="kt-header--fixed kt-header-mobile--fixed kt-subheader--fixed kt-subheader--enabled kt-subheader--solid kt-aside--enabled kt-aside--fixed">
@@ -188,7 +193,10 @@
                                             <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
                                             <%}%>
                                             <div class="form-row">
-                                                <%for (LezioneCalendario lez : grouppedByLezione) {
+                                                <%
+
+                                                    String dataprec = "";
+                                                    for (LezioneCalendario lez : grouppedByLezione) {
                                                         temp = Utility.lezioneFiltered(lezioni, lez.getId());%>
                                                 <div class='col-lg-2 col-md-4 col-sm-6'>
                                                     <div class='row'>
@@ -204,11 +212,10 @@
                                                             </a>
                                                             <%}%>
                                                         </div>
-
                                                         <%} else {%>
                                                         <div class='col-6 paddig_0_r' id="msgItem_<%=lez.getLezione()%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
                                                             <%if (temp == null) {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>)" class='btn-icon kt-font-io document disablelink' >
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>, '<%=lez.getUd1()%>','<%=idsedefisica%>')" class='btn-icon kt-font-io document disablelink' >
                                                                 <i id="mainIcon_<%=lez.getLezione()%>" class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%} else {%>
@@ -336,7 +343,7 @@
 <div id="kt_scrolltop" class="kt-scrolltop">
     <i class="fa fa-arrow-up"></i>
 </div>
-<script src="<%=src%>/assets/soop/js/jquery-3.6.1.js" type="text/javascript"></script>
+<script src="<%=src%>/assets/vendors/general/jquery/dist/jquery.js" type="text/javascript"></script>
 <script src="<%=src%>/assets/vendors/general/popper.js/dist/umd/popper.js" type="text/javascript"></script>
 <script src="<%=src%>/assets/vendors/general/tooltip.js/dist/umd/tooltip.min.js" type="text/javascript"></script>
 <script src="<%=src%>/assets/vendors/general/sticky-js/dist/sticky.min.js" type="text/javascript"></script>

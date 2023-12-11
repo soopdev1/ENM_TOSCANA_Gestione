@@ -166,7 +166,20 @@ public class ProgettiFormativi implements Serializable {
     @Transient
     int allievi_ok;
 
+    @ManyToOne
+    @JoinColumn(name = "sedefisica")
+    private SediFormazione sedefisica;
+    
+    
     public ProgettiFormativi() {
+    }
+
+    public SediFormazione getSedefisica() {
+        return sedefisica;
+    }
+
+    public void setSedefisica(SediFormazione sedefisica) {
+        this.sedefisica = sedefisica;
     }
 
     public String getSvolgimento() {

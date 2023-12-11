@@ -37,11 +37,10 @@ var KTDatatablesDataSourceAjaxServer = function () {
             columns: [
                 {defaultContent: ''},
                 {data: 'id'},
-                {data: 'svolgimento', className: 'text-center text-uppercase'},
                 {data: 'start'},
                 {data: 'end'},
-                {data: 'cip'},
                 {defaultContent: ''},
+                {data: 'cip'},
                 {data: 'stato.descrizione', className: 'text-center text-uppercase'},
                 {data: 'motivo', className: 'text-center text-uppercase'},
                 {data: 'stato.de_tipo', className: 'text-center text-uppercase'}
@@ -80,14 +79,14 @@ var KTDatatablesDataSourceAjaxServer = function () {
                             }
 
                             if (row.stato.modifiche.docenti === 1) {
-                                option += '<a class="dropdown-item fancyBoxAntoRef" href="modifyDocentiProgetto.jsp?id=' + row.id + '"><i class="fas fa-user-edit"></i> Modifica Docenti</a>';
+                                option += '<a class="dropdown-item fancyBoxReload" href="modifyDocentiProgetto.jsp?id=' + row.id + '"><i class="fas fa-user-edit"></i> Modifica Docenti</a>';
                             }
                             if (row.controllable === 1) {
                                 option += '<a class="dropdown-item" href="javascript:void(0);" onclick="confirmNext(' + row.id + ',\'' + row.stato.id + '\')"> Manda avanti la pratica &nbsp;<i class="fa fa-angle-double-right" style="margin-top:-2px"></i></a>';
                             }
 
                             if (row.stato.id === "P" || row.stato.id === "SOA" || row.stato.id === "SOB") {
-                                option += '<a class="dropdown-item fancyBoxFull" href="newStaff.jsp?id=' + row.id + '"><i class="flaticon-users-1"></i> Inserisci membri Staff</a>';
+                                option += '<a class="dropdown-item fancyBoxReload" href="newStaff.jsp?id=' + row.id + '"><i class="flaticon-users-1"></i> Inserisci membri Staff</a>';
                             }
                             if ((row.stato.id === "P" || row.stato.id === "DCE" || row.stato.id === "SOA") && row.modello2_check === 0) {
                                 //modello 3 con invio a MC
@@ -101,36 +100,25 @@ var KTDatatablesDataSourceAjaxServer = function () {
                                 if (demoversion === 'true') {
                                     option += '<a class="dropdown-item kt-font-dark" href="javascript:void(0);" onclick="simulafaseA(' + row.id +
                                             ')"> SIMULA lezioni Fase A &nbsp;<i class="fa fa-angle-double-right kt-font-dark" style="margin-top:-2px"></i></a>';
-                                    option += '<a class="dropdown-item fancyBoxFullReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
+                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
                                 } else if (mapM4_start.has(row.id) && (today >= moment(new Date(mapM4_start.get(row.id))).format('YYYY-MM-DD'))) {
-                                    option += '<a class="dropdown-item fancyBoxFullReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
+                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
                                 } else {
                                     option += '<a class="dropdown-item kt-font-danger" href="#" style="cursor:not-allowed!important" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Il caricamento del Modello 4 sarà disponibile una volta completata la fase A ('
                                             + formattedDate(new Date(mapM4_start.get(row.id)))
                                             + ')"><i class="fa fa-calendar-check kt-font-danger"></i> Carica Modello 4 e Conferma</a>';
                                 }
                             } else if (row.stato.id === "ATB") {
-                                option += '<a class="dropdown-item fancyBoxFullReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 4</a>';
+                                option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 4</a>';
                                 if (demoversion === 'true') {
                                     option += '<a class="dropdown-item kt-font-dark" href="javascript:void(0);" onclick="simulafaseB(' + row.id +
                                             ')"> SIMULA lezioni Fase B &nbsp;<i class="fa fa-angle-double-right kt-font-dark" style="margin-top:-2px"></i></a>';
                                 }
                             
                             } else if (row.stato.id === "F") {
-                                option += '<a class="dropdown-item fancyBoxFullReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza Calendario Modello 4</a>';
+                                option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza Calendario Modello 4</a>';
                                 option += '<a class="dropdown-item" href="concludiPrg.jsp?id=' + row.id + '"><i class="fa fa-angle-double-right"></i> Concludi Progetto</a>';
                             }
-                            
-                            
-                           // if (row.svolgimento === 'P'
-//                                    &&
-//                                    (row.stato.id === "ATA" || row.stato.id === "SOA" 
-//                                    || row.stato.id === "ATB" || row.stato.id === "SOB")
-                                  //  ) {
-                              //  option += '<a class="dropdown-item fancyBoxFullReload" href="registroaula.jsp?id=' 
-                              //          + row.id + '"><i class="flaticon2-calendar-6"></i> Registro Aula</a>';
-                            //}
-
                         }
 
 
@@ -156,34 +144,22 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         option += '</div></div>';
                         return option;
                     }
-                }
-                , {
+                },{
                     targets: 2,
                     type: 'date-it',
                     render: function (data, type, row, meta) {
-                        if(data ==='P'){
-                            return "In Presenza";
-                        }else{
-                            return "In FAD";
-                        }
+                        return formattedDate(new Date(data));
                     }
-                },
-                {
+                }, {
                     targets: 3,
                     type: 'date-it',
                     render: function (data, type, row, meta) {
                         return formattedDate(new Date(data));
                     }
                 }, {
-                    targets: 4,
-                    type: 'date-it',
+                    targets: 5,
                     render: function (data, type, row, meta) {
-                        return formattedDate(new Date(data));
-                    }
-                }, {
-                    targets: 6,
-                    render: function (data, type, row, meta) {
-                        return row.allievi_ok + ' - ' + row.allievi_total;
+                        return row.allievi_total;
                     }
                 }
             ]

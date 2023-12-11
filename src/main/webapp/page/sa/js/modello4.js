@@ -389,7 +389,7 @@ function uploadLezione(idprogetto, idm, idl, grp) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
+            };
 
             $('#giorno').datepicker({
                 orientation: "bottom left",
@@ -412,7 +412,7 @@ function uploadLezione(idprogetto, idm, idl, grp) {
             $("#tot_hh").html('Totale ore di lezione da effettuare per: <b>' + (t.ore1 + t.ore2) + '</b>');
             $('#docente').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $.get(context + "/QuerySA?type=getDocentiByPrg&idprogetto=" + idprogetto, function (resp) {
                 var json = JSON.parse(resp);

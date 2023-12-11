@@ -92,8 +92,14 @@
     </div>
     <!-- end:: Header Topbar -->
 </div>
-<!-- end:: Header -->
+<!-- end:: Header 
 <link href="<%=src%>/assets/soop/css/jquery.fancybox.min.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=src%>/assets/soop/js/jquery-3.6.1.min.js"></script>
 <script type="text/javascript" src="<%=src%>/assets/soop/js/jquery.fancybox.min.js"></script>
+<script type="text/javascript" src="<%=src%>/assets/soop/js/fancy.js"></script>
+-->
+
+<link href="<%=src%>/assets/soop/css/jquery.fancybox.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="<%=src%>/assets/soop/js/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="<%=src%>/assets/soop/js/jquery.fancybox.js?v=2.1.5"></script>
 <script type="text/javascript" src="<%=src%>/assets/soop/js/fancy.js"></script>

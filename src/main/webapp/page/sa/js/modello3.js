@@ -22,43 +22,45 @@ let sunday;
 let firstLesson = false;
 let isEditable = false;
 
-function setRangeDatesDay(giornoLezione, lezione) {
+function setRangeDatesDay(giornoLezione, lezione, daytoadd) {
     let rangeDate_min = dataStart;
     let rangeDate_max = dataEnd;
     let days;
     if (typeof (mapDateLezioni.get(lezione - 1)) !== 'undefined') {
-        days = 1;
-        if (moment(new Date(mapDateLezioni.get(lezione - 1))).format('YYYY-MM-DD') <= moment(new Date()).format('YYYY-MM-DD')) {
-            days++;
+        days = daytoadd;
+        if (days > 0) {
+            if (moment(new Date(mapDateLezioni.get(lezione - 1))).format('YYYY-MM-DD') <= moment(new Date()).format('YYYY-MM-DD')) {
+                days++;
+            }
         }
         rangeDate_min = moment(new Date(mapDateLezioni.get(lezione - 1))).add(days, 'd')._d;
-    } else if (giornoLezione != null && rangeDate_min > giornoLezione) {
+    } else if (giornoLezione !== null && rangeDate_min > giornoLezione) {
         rangeDate_min = giornoLezione;
     }
-    sunday = rangeDate_min.getDay() == 0 ? 1 : 0;//se è domenica vado al giorno successivo;
+    sunday = rangeDate_min.getDay() === 0 ? 1 : 0;//se è domenica vado al giorno successivo;
     rangeDate_min = moment(rangeDate_min).add(sunday, 'd')._d;
 
     if (typeof (mapDateLezioni.get(lezione + 1)) !== 'undefined') {
         rangeDate_max = moment(new Date(mapDateLezioni.get(lezione + 1))).subtract(1, 'd')._d;
     }
-    sunday = rangeDate_max.getDay() == 0 ? 1 : 0;//se è domenica vado al giorno successivo;
+    sunday = rangeDate_max.getDay() === 0 ? 1 : 0;//se è domenica vado al giorno successivo;
     rangeDate_max = moment(rangeDate_max).subtract(sunday, 'd')._d;
 
     /*Controllo dell'orario, per lezioni a distanza di un giorno e superate le 12 aggiungo +2 lavorativi*/
     if (checkDateAndHour(rangeDate_min)) {
         rangeDate_min = moment(rangeDate_min).add(1, 'd')._d;
-        if (rangeDate_min.getDay() == 0) {
+        if (rangeDate_min.getDay() === 0) {
             //se è domenica, aggiungo un ulteriore giorno
             rangeDate_min = moment(rangeDate_min).add(1, 'd')._d;
         }
     }
-    giornoLezione = giornoLezione == null ? rangeDate_min : giornoLezione;
+    giornoLezione = giornoLezione === null ? rangeDate_min : giornoLezione;
     return [rangeDate_min, rangeDate_max, giornoLezione];
 }
 
 function changeLezione(idlezione, l) {
     let lez = mapLezioni.get(idlezione);
-    let days = setRangeDatesDay(new Date(lez.giorno), l);
+    let days = setRangeDatesDay(new Date(lez.giorno), l, 0);
     swal.fire({
         title: 'Visualizza/Modifica Lezione ' + l + '<br>(Unità didattica ' + lez.codice_ud + ')',
         html: getHtml("swalLezioneCalendarioSingle", context),
@@ -87,7 +89,7 @@ function changeLezione(idlezione, l) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
+            };
 
             $('#giorno').datepicker({
                 orientation: "bottom left",
@@ -118,9 +120,21 @@ function changeLezione(idlezione, l) {
                     }
                 }
             });
+
+            if (lez.tipolez === "F") {
+                $("#tipolez").append('<option selected value="F">IN FAD</option>');
+                $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+            } else {
+                $("#tipolez").append('<option  value="F">IN FAD</option>');
+                $("#tipolez").append('<option selected value="P">IN PRESENZA</option>');
+
+            }
+
+
+
             $('#docente').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $('#orario1_start').change(function (e) {
                 $('#orario1_start').val(checktime($('#orario1_start').val(), '8:00', $('#orario1_end').val()));
@@ -145,7 +159,7 @@ function changeLezione(idlezione, l) {
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -186,7 +200,7 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
     let lez = mapLezioni.get(idlezione1);
     let lez2 = mapLezioni.get(idlezione2);
 
-    let days = setRangeDatesDay(new Date(lez.giorno), l);
+    let days = setRangeDatesDay(new Date(lez.giorno), l, 0);
 
     swal.fire({
         title: 'Visualizza/Modifica Lezione ' + l + '<br>(Unità didattiche ' + lez.codice_ud + ' e ' + lez2.codice_ud + ')',
@@ -216,7 +230,7 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
+            };
 
             $('#giorno').datepicker({
                 orientation: "bottom left",
@@ -261,13 +275,21 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
                     }
                 }
             });
+            if (lez.tipolez === "F") {
+                $("#tipolez").append('<option selected value="F">IN FAD</option>');
+                $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+            } else {
+                $("#tipolez").append('<option  value="F">IN FAD</option>');
+                $("#tipolez").append('<option selected value="P">IN PRESENZA</option>');
+
+            }
             $('#docente1').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $('#docente2').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
 
             $('#orario1_start').change(function (e) {
@@ -297,13 +319,13 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
                         "orario2_start": $('#orario2_start').val(),
-                        "orario2_end": $('#orario2_end').val(),
+                        "orario2_end": $('#orario2_end').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -344,9 +366,16 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
     });
 }
 
-function uploadLezione(idprogetto, idm, idl) {
+function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
     let t = mapCalendario.get(idl);
-    let days = setRangeDatesDay(null, idl);
+    let days;
+    if (ud.endsWith('B')) {
+        days = setRangeDatesDay(null, idl, 0);
+    } else {
+        days = setRangeDatesDay(null, idl, 1);
+    }
+//    alert(days);
+    //    
 //    if (firstLesson) {
 //        days[1] = days[0];
 //    }
@@ -381,7 +410,7 @@ function uploadLezione(idprogetto, idm, idl) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
+            };
 
             $('#giorno').datepicker({
                 orientation: "bottom left",
@@ -394,24 +423,148 @@ function uploadLezione(idprogetto, idm, idl) {
                 daysOfWeekHighlighted: "0",
                 daysOfWeekDisabled: [0]
             });
-            $('#orario1_start').val(orario_default_start);
-            $('#orario1_end').val(orario_default_end);
-            $('#orario1_start').timepicker("setTime", orario_default_start);
-            $('#orario1_end').timepicker("setTime", orario_default_end);
+
+
+
+
+
+
+
+            if (ud.endsWith("B")) {
+
+                if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
+                    var lez_prima = mapLezioni.get(idl - 1);
+                    var fineproposta = sumHHMM(lez_prima.orafine, doubletoHHmm(t.ore1 + t.ore2));
+                    $('#orario1_start').val(lez_prima.orafine);
+                    $('#orario1_end').val(fineproposta);
+                    $('#orario1_start').timepicker("setTime", lez_prima.orafine);
+                    $('#orario1_end').timepicker("setTime", fineproposta);
+
+                } else {
+                    $('#orario1_start').val(orario_default_start);
+                    $('#orario1_end').val(orario_default_end);
+                    $('#orario1_start').timepicker("setTime", orario_default_start);
+                    $('#orario1_end').timepicker("setTime", orario_default_end);
+                }
+            } else {
+                $('#orario1_start').val(orario_default_start);
+                $('#orario1_end').val(orario_default_end);
+                $('#orario1_start').timepicker("setTime", orario_default_start);
+                $('#orario1_end').timepicker("setTime", orario_default_end);
+            }
+
+
+
+
+
+
+
+
+
+
 
             $('#giorno').val(formattedDate(days[2]));
             $("#giorno").datepicker("update");
             $("#tot_hh").html('Totale ore di lezione da effettuare per: <b>' + (t.ore1 + t.ore2) + '</b>');
             $('#docente').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
+
+
+
             $.get(context + "/QuerySA?type=getDocentiByPrg&idprogetto=" + idprogetto, function (resp) {
                 var json = JSON.parse(resp);
                 for (var i = 0; i < json.length; i++) {
-                    $("#docente").append('<option value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
+
+                    if (ud.endsWith("B")) {
+
+                        if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
+                            var lez_prima = mapLezioni.get(idl - 1);
+                            if (lez_prima.docente.id === json[i].id) {
+                                $("#docente").append('<option selected value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
+                            } else {
+                                $("#docente").append('<option value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
+                            }
+                        } else {
+                            $("#docente").append('<option value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
+
+                        }
+
+                    } else {
+                        $("#docente").append('<option value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
+
+                    }
+
+
+
                 }
             });
+            $('#tipolez').select2({
+                dropdownCssClass: "select2-on-top",
+                minimumResultsForSearch: -1
+            });
+            $('#tipolez').change(function (e) {
+                if ($('#tipolez').val() === "P") {
+                    $('#sedefisica_label').css("display", "");
+                    $('#sedefisica_div').css("display", "");
+                    $('#sedefisica').addClass('obbligatory');
+                } else {
+                    $('#sedefisica_label').css("display", "none");
+                    $('#sedefisica_div').css("display", "none");
+                    $('#sedefisica').removeClass('obbligatory');
+                }
+            });
+
+            $('#sedefisica').select2({
+                dropdownCssClass: "select2-on-top",
+                minimumResultsForSearch: -1
+            });
+            if (sedefisica === "") {
+                $.get(context + "/QuerySA?type=getSedeByPrg&idprogetto=" + idprogetto, function (resp) {
+                    var json = JSON.parse(resp);
+                    for (var i = 0; i < json.length; i++) {
+                        $("#sedefisica").append('<option value="' + json[i].id + '">' + json[i].denominazione + " : " + json[i].indirizzo + " - " + json[i].comune.nome + '</option>');
+                    }
+                });
+            } else {
+                $.get(context + "/QuerySA?type=getSedeById&sedefisica=" + sedefisica, function (resp) {
+                    var json = JSON.parse(resp);
+                    $("#sedefisica").append('<option selected value="' + json.id + '">' + json.denominazione + " : " + json.indirizzo + " - " + json.comune.nome + '</option>');
+                });
+            }
+            if (ud.endsWith("B")) {
+                if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
+                    var lez_prima = mapLezioni.get(idl - 1);
+                    if (lez_prima.tipolez === "P") {
+                        $("#tipolez").append('<option value="P" selected>IN PRESENZA</option>');
+
+                    } else {
+                        $("#tipolez").append('<option value="F" selected>IN FAD</option>');
+
+                    }
+                } else {
+                    $("#tipolez").append('<option value="F">IN FAD</option>');
+                    $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+
+                }
+            } else {
+                $("#tipolez").append('<option value="F">IN FAD</option>');
+                $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+
+            }
+
+
+            if ($('#tipolez').val() === "P") {
+                $('#sedefisica_label').css("display", "");
+                $('#sedefisica_div').css("display", "");
+                $('#sedefisica').addClass('obbligatory');
+            } else {
+                $('#sedefisica_label').css("display", "none");
+                $('#sedefisica_div').css("display", "none");
+                $('#sedefisica').removeClass('obbligatory');
+            }
+
 
             $('#orario1_start').change(function (e) {
                 $('#orario1_start').val(checktime($('#orario1_start').val(), '8:00', $('#orario1_end').val()));
@@ -424,7 +577,6 @@ function uploadLezione(idprogetto, idm, idl) {
             var err = false;
             err = checkObblFieldsContent($('#swalLezioneCalendarioSingle')) ? true : err;
             err = !check_limit_hh($('#orario1_start').val(), $('#orario1_end').val(), t.ore1 + t.ore2, t.ud1, false) ? true : err;
-
             if (!err) {
                 return new Promise(function (resolve) {
                     resolve({
@@ -432,12 +584,14 @@ function uploadLezione(idprogetto, idm, idl) {
                         "docente": $('#docente').val(),
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
+                        "sedefisica": $('#sedefisica').val(),
+                        "tipolez": $('#tipolez').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -449,6 +603,8 @@ function uploadLezione(idprogetto, idm, idl) {
             fdata.append("orario1_end", result.value.orario1_end);
             fdata.append("id_calendariolezione", t.id);
             fdata.append("id_modello", idm);
+            fdata.append("sedefisica", result.value.sedefisica);
+            fdata.append("tipolez", result.value.tipolez);
             $.ajax({
                 type: "POST",
                 url: context + '/OperazioniSA?type=uploadLezione',
@@ -475,13 +631,13 @@ function uploadLezione(idprogetto, idm, idl) {
 }
 
 function uploadLezioneDouble(idprogetto, idm, idl) {
-    let t = calendarioModello3.find(({lezione}) => lezione == idl);
+    let t = calendarioModello3.find(({lezione}) => lezione === idl);
     let ora_def_1_s = "9:00";
     let ora_def_1_f = sumHHMM(ora_def_1_s, doubletoHHmm(t.ore1));
     let ora_def_2_s = sumHHMM(ora_def_1_f, "1:00");
     let ora_def_2_f = sumHHMM(ora_def_2_s, doubletoHHmm(t.ore2));
 
-    let days = setRangeDatesDay(null, idl);
+    let days = setRangeDatesDay(null, idl, 1);
 
 //    if (firstLesson) {
 //        days[1] = days[0];
@@ -514,8 +670,7 @@ function uploadLezioneDouble(idprogetto, idm, idl) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
-
+            };
             $('#giorno').datepicker({
                 orientation: "bottom left",
                 todayHighlight: false,
@@ -547,11 +702,11 @@ function uploadLezioneDouble(idprogetto, idm, idl) {
 
             $('#docente1').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $('#docente2').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $.get(context + "/QuerySA?type=getDocentiByPrg&idprogetto=" + idprogetto, function (resp) {
                 var json = JSON.parse(resp);
@@ -591,13 +746,13 @@ function uploadLezioneDouble(idprogetto, idm, idl) {
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
                         "orario2_start": $('#orario2_start').val(),
-                        "orario2_end": $('#orario2_end').val(),
+                        "orario2_end": $('#orario2_end').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -667,7 +822,7 @@ function loadLezioni() {
         async: false,
         url: context + "/QuerySA?type=getLezioniByProgetto&idmodello=" + $('#m3Id').val(),
         success: function (resp) {
-            if (resp != null)
+            if (resp !== null)
                 temp = JSON.parse(resp);
             mapLezioni = new Map(temp.map(i => [i.lezione_calendario.id, i]));
             mapDateLezioni = new Map(temp.map(i => [i.lezione_calendario.lezione, i.giorno]));
@@ -679,7 +834,7 @@ function loadLezioni() {
 
 function filterAndGroup(options) {
     return options.reduce(function (res, option) {
-        if (new Date(new Date(option.giorno).toDateString()) >= today && res.filter(e => e.giorno == option.giorno).length == 0) {
+        if (new Date(new Date(option.giorno).toDateString()) >= today && res.filter(e => e.giorno === option.giorno).length === 0) {
             res.push(option);
         }
         return res;
@@ -693,7 +848,7 @@ function loadCalendario() {
         async: false,
         url: context + "/QuerySA?type=getCalendarioModello&modello=3",
         success: function (resp) {
-            if (resp != null)
+            if (resp !== null)
                 temp = JSON.parse(resp);
             mapCalendario = new Map(temp.map(i => [i.lezione, i]));
         }
@@ -1001,7 +1156,7 @@ $('button[id=deleteBy]').on('click', function () {
         onOpen: function () {
             $('#lezionid').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             maplezioniD.forEach(function (value, key) {
                 $("#lezionid").append('<option value="' + key + '">' + value + '</option>');
@@ -1013,13 +1168,13 @@ $('button[id=deleteBy]').on('click', function () {
             if (!err) {
                 return new Promise(function (resolve) {
                     resolve({
-                        "lezione": $('#lezionid').val(),
+                        "lezione": $('#lezionid').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();

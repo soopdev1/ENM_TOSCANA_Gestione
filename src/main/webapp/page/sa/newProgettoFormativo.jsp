@@ -373,9 +373,6 @@
                                                                                 <h5>Nome Progetto:&nbsp;</h5><label id="label_titolo" style="color:#000;"></label>
                                                                             </div>
                                                                             <div class="row">
-                                                                                <h5>Modalità di svolgimento:&nbsp;</h5><label id="label_svolgimento" style="color:#000;"></label>
-                                                                            </div>
-                                                                            <div class="row">
                                                                                 <h5>Descrizione:&nbsp;</h5><label id="label_descrizione" style="color:#000;"></label>
                                                                             </div>
                                                                             <div class="row">
@@ -507,9 +504,6 @@
             });
             $("#sede").change(function (e) {
                 $("#label_aula").html("<b>" + $("#" + this.id + " option[value='" + $(this).val() + "']").text() + "</b>");
-            });
-            $("#svolgimento").change(function (e) {
-                $("#label_svolgimento").html("<b>" + $("#" + this.id + " option[value='" + $(this).val() + "']").text() + "</b>");
             });
             $("#allievi").change(function (e) {
                 var allievi = "";

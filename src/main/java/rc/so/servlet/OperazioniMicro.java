@@ -362,16 +362,24 @@ public class OperazioniMicro extends HttpServlet {
                     JSONArray jsonarray = new JSONArray(neets);
                     for (int i = 0; i < jsonarray.length(); i++) {
                         JSONObject jsonobject = jsonarray.getJSONObject(i);
-                        temp = e.getEm().find(Allievi.class, Long.parseLong(jsonobject.getString("neet")));
+                        temp = e.getEm().find(Allievi.class, Long.valueOf(jsonobject.getString("neet")));
                         temp.setEsclusione_prg(jsonobject.getString("motivo"));
-                        temp.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class, "03"));
+                        temp.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class, "11"));
                         e.merge(temp);
                     }
                 }
-                p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId().equalsIgnoreCase("01")).collect(Collectors.toList()).forEach(a -> a.setEsclusione_prg("APPROVATO"));
+                p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("15")
+                        ).collect(Collectors.toList())
+                        .forEach(a -> a.setEsclusione_prg("APPROVATO"));
                 e.merge(p);
 
-                rigettaPrg = (int) (long) p.getAllievi().stream().filter(a -> a.getStatopartecipazione().getId().equalsIgnoreCase("01")).count() < min_allievi;
+                rigettaPrg = (int) (long) p.getAllievi().stream().filter(a -> a.getStatopartecipazione().getId().equalsIgnoreCase("13") || a.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("14") || a.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("15")
+                ).count() < min_allievi;
             }
             if (!rigettaPrg) {
                 p.setStato(e.getStatiByOrdineProcesso(p.getStato().getOrdine_processo() + 1));
@@ -381,17 +389,6 @@ public class OperazioniMicro extends HttpServlet {
                         new Date(), p, p.getStato()));//storico progetto
                 rigettaPrg_msg = "Numero minimo di NEET (" + min_allievi + ") per avviare il Progetto Formativo non raggiunto";
             }
-
-//            if (p.getStato().getId().equals("FB1")) {//check registri songoli e aula
-//                if (!checkValidateRegisterAllievo(e.getRegistriAllievi(e.getAllieviProgettiFormativi(p))) || !checkValidateRegister(e.getregisterPrg(p))) {
-//                    check = false;
-//                    resp.addProperty("message", "Ci sono ancora registri allievi o d'aula da controllare, il progetto non può essere validato.");
-//                } else {
-//                    p.setStato(e.getStatiByOrdineProcesso(p.getStato().getOrdine_processo() + 1));//STATO fase successiva
-//                }
-//            } else {
-//                p.setStato(e.getStatiByOrdineProcesso(p.getStato().getOrdine_processo() + 1));//STATO fase successiva
-//            }
             if (check) {
                 if (!rigettaPrg) {
                     e.persist(new Storico_Prg((p.getStato().getId().equals("AR") ? "Archiviato" : "Convalidato") + fineFa, new Date(), p, p.getStato()));//storico progetto
@@ -402,10 +399,6 @@ public class OperazioniMicro extends HttpServlet {
                 e.merge(p);
                 e.commit();
             }
-
-//            if (p.getStato().getId().equals("C")) {
-//                ExportExcel.compileTabella1(p.getId());
-//            }
             stato_succ = p.getStato().getId();
             if (Utility.invioEmailComunicazione(stato_prec, stato_succ)) {
                 //Invio Mail convalida modello 2 / modello 3 / modello 4 
