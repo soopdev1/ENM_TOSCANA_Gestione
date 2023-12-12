@@ -63,6 +63,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpSession;
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.joda.time.DateTime;
 
@@ -156,7 +157,7 @@ public class Entity {
         if (out != null) {
             if (out.getUrl() != null) {
                 if (SystemUtils.OS_NAME.contains("Windows") && out.getUrl().startsWith("/")) {
-                    return separatorsToSystem("C:"+out.getUrl());
+                    return separatorsToSystem("C:" + out.getUrl());
                 } else {
                     return separatorsToSystem(out.getUrl());
 
@@ -289,6 +290,24 @@ public class Entity {
         TypedQuery q = em.createNamedQuery("sa.byCF", SoggettiAttuatori.class);
         q.setParameter("codicefiscale", cf);
         return q.getResultList().isEmpty() ? null : (SoggettiAttuatori) q.getSingleResult();
+    }
+
+    public String getLAST_CIP() {
+        String annocorrente = new DateTime().year().getAsText();
+        TypedQuery<ProgettiFormativi> q = em.createNamedQuery("progetti.cip", ProgettiFormativi.class);
+        q.setParameter("anno", annocorrente);
+        String cipbase = q.getResultList().isEmpty() ? null : q.getSingleResult() .getCip();
+        if (cipbase == null) {
+            return annocorrente + "ENM0001";
+        } else {
+            String id = cipbase.replaceAll(annocorrente + "ENM", "").trim();
+            try {
+                int id_1 = Utility.parseInt(id) + 1;
+                return annocorrente + "ENM" + StringUtils.leftPad(String.valueOf(id_1), 4, "0");
+            } catch (Exception e) {
+                return annocorrente + "ENM0001";
+            }
+        }
     }
 
     public User getUserbyUsername(String username) {
@@ -700,6 +719,7 @@ public class Entity {
         }
         return q.getResultList().isEmpty() ? new ArrayList() : (List<SediFormazione>) q.getResultList();
     }
+
     public List<SediFormazione> getSediFormazione(SoggettiAttuatori soggetto) {
 
         HashMap<String, Object> param = new HashMap<>();
@@ -709,7 +729,7 @@ public class Entity {
         if (param.isEmpty()) {
             q.setMaxResults(maxQueryResult);
         }
-        
+
         for (HashMap.Entry<String, Object> m : param.entrySet()) {
             q.setParameter(m.getKey(), m.getValue());
         }

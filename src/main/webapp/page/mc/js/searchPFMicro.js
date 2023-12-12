@@ -683,7 +683,7 @@ function swalTableStory(idprogetto) {
 }
 
 function generateCIP(id) {
-    var cip = "N_" + id + "_C1";
+    var cip = "2024ENM0001";
     $.ajax({
         type: "POST",
         async: false,
@@ -691,7 +691,7 @@ function generateCIP(id) {
         success: function (data) {
             cip = data;
         },
-        error: function () {
+        error: function (ERR) {
             cip = "";
         }
     });

@@ -1296,7 +1296,7 @@ public class OperazioniSA extends HttpServlet {
             User us = (User) request.getSession().getAttribute("user");
             Entity e = new Entity();
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(getRequestValue(request, "idpr")));
+                    Long.valueOf(getRequestValue(request, "idpr")));
             List<StaffModelli> staff = p.getStaff_modelli().stream().filter(m -> m.getAttivo() == 1).collect(Collectors.toList());
             ModelliPrg m3 = Utility.filterModello3(p.getModelli());
             if (m3.getStato().equals("R")) {
@@ -1309,9 +1309,9 @@ public class OperazioniSA extends HttpServlet {
                         e.commit();
                     }
                 }
-                
+                List<LezioneCalendario> lezioniCalendario = e.getLezioniByModello(3);
                 List<Lezioni_Modelli> lezioni = m3.getLezioni();
-                if (lezioni.size() == 16) {
+                if (lezioni.size() == lezioniCalendario.size()) {
                     downloadFile = Pdf_new.MODELLO3(e,
                             us.getUsername(),
                             us.getSoggettoAttuatore(),

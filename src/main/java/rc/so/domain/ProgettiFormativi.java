@@ -42,7 +42,9 @@ import static org.apache.commons.lang3.builder.ToStringStyle.JSON_STYLE;
     @NamedQuery(name = "progetti.ProgettiSAOrdered", query = "SELECT p FROM ProgettiFormativi p WHERE p.soggetto=:soggetto ORDER BY CASE WHEN p.stato.tipo = 'chiuso' THEN 0 WHEN p.stato.tipo = 'errore' THEN 1 WHEN p.stato.tipo = 'controllare' THEN 2 ELSE 3 END, p.stato.tipo"),
     @NamedQuery(name = "progetti.ProgettiSA_Fa", query = "SELECT p FROM ProgettiFormativi p WHERE p.soggetto=:soggetto AND p.stato.id='FA'"),
     @NamedQuery(name = "progetti.toRend", query = "SELECT p FROM ProgettiFormativi p WHERE p.stato.id='CO' and p.extract=0 ORDER BY p.cip"),
-    @NamedQuery(name = "progetti.countConclusi", query = "SELECT count(p.id) as c FROM ProgettiFormativi p WHERE p.stato.ordine_processo >= 9"),})
+    @NamedQuery(name = "progetti.countConclusi", query = "SELECT count(p.id) as c FROM ProgettiFormativi p WHERE p.stato.ordine_processo >= 9"),
+    @NamedQuery(name = "progetti.cip", query = "SELECT p FROM ProgettiFormativi p WHERE p.cip IS NOT NULL AND p.cip LIKE CONCAT(:anno,'%') ORDER BY p.cip"),
+})
 @Entity
 @Table(name = "progetti_formativi")
 @JsonIgnoreProperties(value = {"docenti", "allievi", "documenti", "checklist_finale"})

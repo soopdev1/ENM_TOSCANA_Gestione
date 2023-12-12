@@ -470,10 +470,8 @@ public class Pdf_new {
                     + getOnlyStrings(sa.getRagionesociale()) + "_"
                     + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".EV.pdf");
 
-            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); 
-                    PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); 
-                    PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
-                
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+
                 PdfAcroForm form = getAcroForm(pdfDoc, true);
                 form.setGenerateAppearance(true);
 
@@ -601,9 +599,8 @@ public class Pdf_new {
                     + getOnlyStrings(sa.getRagionesociale()) + "_"
                     + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".CL_FIN.pdf");
 
-            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); 
-                    PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
-                
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+
                 PdfAcroForm form = getAcroForm(pdfDoc, true);
                 form.setGenerateAppearance(true);
 
@@ -640,7 +637,6 @@ public class Pdf_new {
                 setFieldsValue(form, fields, "IMPORTONEETA", roundDoubleAndFormat(Double.parseDouble(coeff_fa)) + " €");
                 setFieldsValue(form, fields, "IMPORTO ORARIO RICONOSCIUTOCONTROLL O ORE PRESENZE ALLIEVI  FASE B", roundDoubleAndFormat(Double.parseDouble(coeff_fb)) + " €");
 
-                
                 allievi_faseA.forEach(al1 -> {
                     setFieldsValue(form, fields, "COGNOMERow" + indice1.get(), al1.getCognome().toUpperCase());
                     setFieldsValue(form, fields, "NOMERow" + indice1.get(), al1.getNome().toUpperCase());
@@ -1815,22 +1811,18 @@ public class Pdf_new {
 
                 AtomicInteger in = new AtomicInteger(1);
                 allievi.forEach(a1 -> {
-                    setFieldsValue(form, fields, "CognomeRow" + in.get(), a1.getCognome().toUpperCase());
-                    setFieldsValue(form, fields, "NomeRow" + in.get(), a1.getNome().toUpperCase());
+                    setFieldsValue(form, fields, "NomeRow" + in.get(), a1.getCognome().toUpperCase()); //INVERTITI NEL MODELLO
+                    setFieldsValue(form, fields, "CognomeRow" + in.get(), a1.getNome().toUpperCase()); //INVERTITI NEL MODELLO
                     setFieldsValue(form, fields, "CodiceFiscaleRow" + in.get(), a1.getCodicefiscale().toUpperCase());
-                    setFieldsValue(form, fields, "DataiscrizionepercorsoRow" + in.get(), dataconsegna.toString(patternITA));
-                    setFieldsValue(form, fields, "DataGGRow" + in.get(), sdfITA.format(a1.getIscrizionegg()));
                     setFieldsValue(form, fields, "EmailRow" + in.get(), a1.getEmail().toLowerCase());
                     setFieldsValue(form, fields, "CellRow" + in.get(), a1.getTelefono());
                     in.addAndGet(1);
                 });
                 AtomicInteger in2 = new AtomicInteger(1);
                 docenti.forEach(a1 -> {
-                    setFieldsValue(form, fields, "DC_NomeRow" + in2.get(), a1.getCognome().toUpperCase());
-                    setFieldsValue(form, fields, "DC_CognomeRow" + in2.get(), a1.getNome().toUpperCase());
+                    setFieldsValue(form, fields, "DC_CognomeRow" + in2.get(), a1.getCognome().toUpperCase());//INVERTITI NEL MODELLO
+                    setFieldsValue(form, fields, "DC_NomeRow" + in2.get(), a1.getNome().toUpperCase());//INVERTITI NEL MODELLO
                     setFieldsValue(form, fields, "DC_CodiceFiscaleRow" + in2.get(), a1.getCodicefiscale().toUpperCase());
-                    setFieldsValue(form, fields, "DC_FasciaRow" + in2.get(), StringUtils.substring(a1.getFascia().getId(), a1.getFascia().getId().length() - 1));
-
                     if (a1.getDatawebinair() == null) {
                         setFieldsValue(form, fields, "DC_DataWebRow" + in2.get(), "");
                     } else {
@@ -1850,124 +1842,26 @@ public class Pdf_new {
                 });
 
                 lezioni.forEach(a1 -> {
-
                     int numlez = a1.getLezione_calendario().getLezione();
-                    String codiceUD = a1.getLezione_calendario().getUnitadidattica().getCodice();
-
-                    switch (numlez) {
-                        case 1:
-                        case 2:
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6:
-                        case 7:
-                        case 10:
-                            setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                            setFieldsValue(form, fields, "dallehhmm" + numlez, sdfHHMM.format(a1.getOrario_start()));
-                            setFieldsValue(form, fields, "allehhmm" + numlez, sdfHHMM.format(a1.getOrario_end()));
-                            setFieldsValue(form, fields, "DOCENTEUD" + numlez, a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                            break;
-                        case 8:
-                            switch (codiceUD) {
-                                case "UD8":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez + "_1", sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez + "_1", sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez + "_1", a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                                case "UD9":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez + "_2", a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                            }
-                            break;
-                        case 9:
-                            switch (codiceUD) {
-                                case "UD9":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez, sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez, sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez, a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                                case "UD10":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez + "_2", sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez + "_2", a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                            }
-                            break;
-                        case 11:
-                            switch (codiceUD) {
-                                case "UD11":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez, sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez, sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez, a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                                case "UD12":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez + "_2", sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez + "_2", a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                            }
-                            break;
-                        case 12:
-                            switch (codiceUD) {
-                                case "UD13":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez, sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez, sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez, a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                                case "UD14":
-                                    setFieldsValue(form, fields, "ggmmaa" + numlez + "_2", sdfITA.format(a1.getGiorno()));
-                                    setFieldsValue(form, fields, "dallehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_start()));
-                                    setFieldsValue(form, fields, "allehhmm" + numlez + "_2", sdfHHMM.format(a1.getOrario_end()));
-                                    setFieldsValue(form, fields, "DOCENTEUD" + numlez + "_2", a1.getDocente().getCognome().toUpperCase() + " " + a1.getDocente().getNome().toUpperCase());
-                                    break;
-                            }
-                            break;
+                    if (numlez >= 1 && numlez <= 24) {
+                        setFieldsValue(form, fields, "ggmmaa" + numlez, sdfITA.format(a1.getGiorno()));
+                        setFieldsValue(form, fields, "dallehhmm" + numlez, sdfHHMM.format(a1.getOrario_start()));
+                        setFieldsValue(form, fields, "allehhmm" + numlez, sdfHHMM.format(a1.getOrario_end()));
+                        setFieldsValue(form, fields, "docentelez" + numlez, a1.getDocente().getNome().toUpperCase() + " " + a1.getDocente().getCognome().toUpperCase());
+                        setFieldsValue(form, fields, "modal" + numlez, (a1.getTipolez().equals("P")) ? "IN PRESENZA" : "FAD");
                     }
                 });
 
-                String PRESENZA = pf.getSvolgimento().equals("P") ? "SI" : "NO";
-                String FAD = pf.getSvolgimento().equals("P") ? "NO" : "SI";
+                if (pf.getSedefisica() != null) {
+                    Comuni c_s = pf.getSedefisica().getComune();
+                    setFieldsValue(form, fields, "COMUNESEDE", c_s.getNome());
+                    setFieldsValue(form, fields, "PROVINCIASEDE", c_s.getCod_provincia());
+                    setFieldsValue(form, fields, "INDIRIZZOSEDE", pf.getSede().getIndirizzo());
+
+                }
 
                 fields.forEach((KEY, VALUE) -> {
-                    boolean checkbox = asList(VALUE.getAppearanceStates()).size() > 0;
-                    if (checkbox) {
-                        if (KEY.equalsIgnoreCase("PRESENZA")) {
-                            if (PRESENZA.equals("SI")) {
-                                setFieldsValue(form, fields, KEY, "On");
-                                Comuni c_s = pf.getSede().getComune();
-                                setFieldsValue(form, fields, "REGIONESEDE", c_s.getRegione());
-                                setFieldsValue(form, fields, "COMUNESEDE", c_s.getNome());
-                                setFieldsValue(form, fields, "PROVINCIASEDE", c_s.getCod_provincia());
-                                setFieldsValue(form, fields, "INDIRIZZOSEDE", pf.getSede().getIndirizzo());
-                            } else {
-                                form.partialFormFlattening(KEY);
-                            }
-                        } else if (KEY.equalsIgnoreCase("FAD")) {
-                            if (FAD.equals("SI")) {
-                                setFieldsValue(form, fields, KEY, "On");
-                                setFieldsValue(form, fields, "REGIONESEDE", "");
-                                setFieldsValue(form, fields, "COMUNESEDE", "");
-                                setFieldsValue(form, fields, "PROVINCIASEDE", "");
-                                setFieldsValue(form, fields, "INDIRIZZOSEDE", "");
-                            } else {
-                                form.partialFormFlattening(KEY);
-                            }
-                        } else {
-                            form.partialFormFlattening(KEY);
-                        }
-                    } else {
-                        form.partialFormFlattening(KEY);
-                    }
+                    form.partialFormFlattening(KEY);
                 });
 
                 if (flatten) {
@@ -2129,9 +2023,6 @@ public class Pdf_new {
 //                setFieldsValue(form, fields, "dom_comune", al.getComune_domicilio().getNome().toUpperCase());
 //                setFieldsValue(form, fields, "dom_cap", al.getCapdomicilio());
 //                setFieldsValue(form, fields, "dom_prov", al.getComune_domicilio().getCod_provincia().toUpperCase());
-
-                
-                
 
                 setFieldsValue(form, fields, "SESSO" + al.getSesso(), "Sì");
                 setFieldsValue(form, fields, "privacy1SI", "Sì");

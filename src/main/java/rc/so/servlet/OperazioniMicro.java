@@ -348,10 +348,12 @@ public class OperazioniMicro extends HttpServlet {
                 Long hh36 = Long.valueOf(129600000);
                 Map<Long, Long> oreRendicontateFaseA = Action.OreRendicontabiliAlunni_faseA(p.getId().intValue());
                 for (Allievi a : p.getAllievi()) {
+                    a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class, "15"));
                     if (oreRendicontateFaseA.get(a.getId()) != null && oreRendicontateFaseA.get(a.getId()).compareTo(hh36) < 0) {
                         a.setGruppo_faseB(-1);
-                        e.merge(a);
                     }
+                    e.merge(a);
+
                 }
                 e.merge(p);
             } else if (p.getStato().getId().equalsIgnoreCase("DV")) {
@@ -372,7 +374,7 @@ public class OperazioniMicro extends HttpServlet {
                         .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
                         .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
                         .equalsIgnoreCase("15")
-                        ).collect(Collectors.toList())
+                ).collect(Collectors.toList())
                         .forEach(a -> a.setEsclusione_prg("APPROVATO"));
                 e.merge(p);
 

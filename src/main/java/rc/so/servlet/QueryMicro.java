@@ -589,26 +589,9 @@ public class QueryMicro extends HttpServlet {
 
     protected void generatecip(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
-        ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(Utility.getRequestValue(request, "idprogetto")));
-        e.close();
-
-        if (p.getCip() == null || p.getCip().trim().equals("") || p.getCip().trim().equals("-")) {
-            String cip = p.getSoggetto().getProtocollo();
-            int start = (p.getSoggetto().getProgettiformativi().stream().filter(p1 -> p1.getCip() != null).collect(Collectors.toList()).size()) + 1;
-            cip = StringUtils.remove(cip, "YISU_");
-            if (!cip.startsWith("N")) {
-                cip = "N_" + cip;
-            }
-            cip = cip + "_C" + start;
-            try (PrintWriter out = response.getWriter();) {
-                out.print(cip);
-            }
-        } else {
-            try (PrintWriter out = response.getWriter();) {
-                out.print(p.getCip());
-            }
+        try (PrintWriter out = response.getWriter();) {
+            out.print(e.getLAST_CIP());
         }
-
     }
 
     protected void searchCpiUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
