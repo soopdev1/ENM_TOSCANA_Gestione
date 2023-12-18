@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -85,27 +86,27 @@ public class Docenti implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date datawebinair;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "fascia")
     private FasceDocenti fascia;
     
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "idsoggetti_attuatori")
     SoggettiAttuatori soggetto;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "progetti_docenti",
             joinColumns = @JoinColumn(name = "iddocenti"),
             inverseJoinColumns = @JoinColumn(name = "idprogetti_formativi"))
     List<ProgettiFormativi> progetti;
 
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<DocumentiPrg> registri_aula;
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Documenti_Allievi> registri_allievi;
 
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     List<Lezioni_Modelli> lezioni;
     
@@ -136,7 +137,7 @@ public class Docenti implements Serializable {
     private String tipo_inserimento;
     
     
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "docente",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     List<Attivita_Docente> attivita;
     

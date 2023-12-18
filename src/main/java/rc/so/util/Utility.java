@@ -101,6 +101,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import static java.util.Locale.ITALY;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -129,8 +130,12 @@ public class Utility {
 
     public static boolean demoversion = false;
 
+    
+    public static final ResourceBundle conf = ResourceBundle.getBundle("conf.conf");
+
+    
     // TEST //
-    public static boolean test = true;
+    public static boolean test = conf.getString("test").equals("SI");
     //////////
 
     //ADD RAF

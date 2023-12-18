@@ -113,7 +113,7 @@
                                                 </div>
                                                 <div class="form-group row">
                                                     <div class="col-lg-6">
-                                                        <label>S.A. sottoposto a controllo</label>
+                                                        <label>SE sottoposto a controllo</label>
                                                         <input class="form-control" type="text" readonly="" value="<%=p.getSoggetto().getRagionesociale()%>">
                                                     </div>
                                                     <div class="col-lg-6">

@@ -193,7 +193,7 @@
                                                         <th class="text-uppercase text-center">Telefono</th>
                                                         <th class="text-uppercase text-center">N. Protocollo</th>
                                                         <th class="text-uppercase text-center">Data Firma Convenzione</th>
-                                                        <th class="text-uppercase text-center">Scheda S.A.</th>
+                                                        <th class="text-uppercase text-center">Scheda SE</th>
                                                     </tr>
                                                 </thead>
                                             </table>  

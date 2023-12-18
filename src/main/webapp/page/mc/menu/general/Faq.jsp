@@ -12,7 +12,7 @@
                     <i class="kt-menu__link-bullet fa fa-comments">
                         <span></span>
                     </i>
-                    <span class="kt-menu__link-text">Domande S.A.</span>
+                    <span class="kt-menu__link-text">Domande SE</span>
                 </a>
             </li>
             <li class="kt-menu__item <%=pageName.equals("mangeFAQ.jsp") ? "kt-menu__item--active" : ""%>" aria-haspopup="true">

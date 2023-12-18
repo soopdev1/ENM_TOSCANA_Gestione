@@ -57,6 +57,7 @@ import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.right;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 import org.joda.time.DateTime;
+import static rc.so.util.Utility.conf;
 
 /**
  *
@@ -66,8 +67,7 @@ public class Database {
 
     public Connection c = null;
 
-    private static final ResourceBundle conf = ResourceBundle.getBundle("conf.conf");
-
+    
     public Database(boolean bando) {
         String driver = "com.mysql.cj.jdbc.Driver";
         String user = conf.getString("db.user");
@@ -81,7 +81,7 @@ public class Database {
             }
         } else {
             if (test) {
-                host = conf.getString("db.host") + ":3306/enm_gestione_toscana_prod";
+                host = conf.getString("db.host") + ":3306/enm_gestione_toscana";
             } else {
                 host = conf.getString("db.host") + ":3306/enm_gestione_toscana_prod";
             }
@@ -595,7 +595,7 @@ public class Database {
             String username = sa.getUsernameaccr();
             String date = new DateTime().toString(patternFile);
 
-            String sql = "SELECT id,UPPER(nome),UPPER(cognome),UPPER(cf),datanascita,CONCAT('F',fascia),LOWER(mail) "
+            String sql = "SELECT id,UPPER(nome),UPPER(cognome),UPPER(cf),datanascita,LOWER(mail) "
                     + "FROM allegato_b WHERE username = '" + username + "' GROUP BY cf ORDER BY id";
 
             try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
@@ -605,8 +605,8 @@ public class Database {
                     String cognome = rs.getString(3);
                     String cf = rs.getString(4);
                     Date data_nascita = getUtilDate(rs.getString(5), patternITA);
-                    String fascia = rs.getString(6);
-                    String email = rs.getString(7);
+                    String fascia = "FA";
+                    String email = rs.getString(6);
 
                     Docenti d = new Docenti(nome, cognome, cf, data_nascita, email);
                     d.setSoggetto(sa);
@@ -643,11 +643,11 @@ public class Database {
                             }
                         }
                     }
-
                 }
             }
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             LOGAPP.log(Level.SEVERE, estraiEccezione(ex));
         }
         return out;
