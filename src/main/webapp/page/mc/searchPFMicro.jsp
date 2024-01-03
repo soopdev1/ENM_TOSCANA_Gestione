@@ -211,7 +211,7 @@
                                             </div>
                                         </div>
                                         <div class="kt-portlet__body kt-scroll-x">
-                                            <table class="table table-striped table-bordered " cellspacing="0" id="kt_table_1" style="border-collapse: collapse;"> 
+                                            <table class="table table-striped table-bordered" cellspacing="0" id="kt_table_1" style="border-collapse: collapse;"> 
                                                 <thead>
                                                     <tr>
                                                         <th class="text-uppercase text-center">Azioni</th>

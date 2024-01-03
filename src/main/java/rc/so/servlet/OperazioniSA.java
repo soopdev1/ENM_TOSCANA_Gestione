@@ -76,7 +76,6 @@ import static java.lang.String.format;
 import java.math.BigDecimal;
 import static java.nio.file.Files.probeContentType;
 import java.sql.Statement;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -101,9 +100,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
-import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import rc.so.domain.Presenze_Lezioni;
+import rc.so.domain.Presenze_Lezioni_Allievi;
+import static rc.so.util.Utility.calcolaMillis;
+import static rc.so.util.Utility.estraiAllieviOK;
 import static rc.so.util.Utility.parseLong;
 
 /**
@@ -111,11 +113,11 @@ import static rc.so.util.Utility.parseLong;
  * @author dolivo
  */
 public class OperazioniSA extends HttpServlet {
-    
+
     protected void updtProfile(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        
+
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
         try {
@@ -180,7 +182,7 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void checkCF(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -191,7 +193,7 @@ public class OperazioniSA extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         response.getWriter().write(mapper.writeValueAsString(a));
     }
-    
+
     protected void getCodiceCatastaleComune(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -208,7 +210,7 @@ public class OperazioniSA extends HttpServlet {
         }
         response.getWriter().write(cod);
     }
-    
+
     protected void resetdatidemo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         User us = (User) request.getSession().getAttribute("user");
@@ -238,21 +240,21 @@ public class OperazioniSA extends HttpServlet {
         }
         redirect(request, response, request.getContextPath() + "/page/sa/indexSoggettoAttuatore.jsp");
     }
-    
+
     protected void generaterandomDocenti(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         Entity e = new Entity();
-        
+
         try {
             User us = (User) request.getSession().getAttribute("user");
             e.begin();
-            
+
             AtomicInteger indice = new AtomicInteger(1);
-            
+
             com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
-            
+
             String[] arr_sex = {"M", "F"};
-            
+
             while (indice.get() == 1) {
                 String nome = faker.name().firstName().toUpperCase();
                 String cognome = faker.name().lastName().toUpperCase();
@@ -262,10 +264,10 @@ public class OperazioniSA extends HttpServlet {
                 String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, comunenascita.getIstat());
                 if (e.getDocenteByCF_SA(codicefiscale, us.getSoggettoAttuatore()) == null) {
                     indice.addAndGet(1);
-                    
+
                     String email = faker.internet().emailAddress();
                     Date data_nascita = birtDate.toDate();
-                    
+
                     Docenti d = new Docenti(nome, cognome, codicefiscale, data_nascita, email);
                     d.setFascia(e.getEm().find(FasceDocenti.class, "FA"));
                     d.setStato("A");
@@ -274,7 +276,7 @@ public class OperazioniSA extends HttpServlet {
                     d.setScadenza_doc(new DateTime().plusYears(10).toDate());
                     d.setDocId("/mnt/mcn/gestione_neet/pdf-test.pdf");
                     d.setCurriculum("/mnt/mcn/gestione_neet/pdf-test.pdf");
-                    
+
                     d.setComune_di_nascita(comunenascita.getNome());
                     d.setRegione_di_residenza(comunenascita.getRegione());
                     d.setPec(faker.internet().emailAddress());
@@ -284,7 +286,7 @@ public class OperazioniSA extends HttpServlet {
                     d.setInquadramento(1);
                     d.setTipo_inserimento("GESTIONALE");
                     e.persist(d);
-                    
+
                     int nroAttivita_max = 2;
                     List<Attivita_Docente> list_attivita = new ArrayList();
                     Attivita_Docente temp;
@@ -306,48 +308,48 @@ public class OperazioniSA extends HttpServlet {
                     d.setAttivita(list_attivita);
                     d.setRichiesta_accr("/mnt/mcn/gestione_neet/pdf-test.pdf");
                     e.merge(d);
-                    
+
                 }
             }
-            
+
         } catch (Exception ex1) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
         } finally {
             e.commit();
             e.close();
         }
-        
+
         redirect(request, response, request.getContextPath() + "/page/sa/searchDocenti_sa.jsp");
     }
-    
+
     protected void generaterandomAllievi(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         Entity e = new Entity();
         try {
             User us = (User) request.getSession().getAttribute("user");
             e.begin();
             com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
-            
+
             String[] arr_sex = {"M", "F"};
-            
+
             AtomicInteger indice = new AtomicInteger(1);
             while (indice.get() < 6) {
                 Allievi a = new Allievi();
-                
+
                 a.setDocid("/mnt/mcn/gestione_neet/pdf-test.pdf");
                 Nazioni_rc nazionenascita = (Nazioni_rc) e.getEm().find(Nazioni_rc.class,
                         99L);
-                
+
                 a.setStato_nascita("100");
                 a.setComune_nascita(e.getEm().find(Comuni.class,
                         5721L));
                 a.setCittadinanza(nazionenascita);
-                
+
                 String nome = faker.name().firstName().toUpperCase();
                 String cognome = faker.name().lastName().toUpperCase();
                 DateTime birtDate = new DateTime(faker.date().birthday().getTime());
                 String sesso = arr_sex[new Random().nextInt(arr_sex.length)];
-                
+
                 String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, a.getComune_nascita().getIstat());
                 if (e.getAllievoCF(codicefiscale) == null) {
                     indice.addAndGet(1);
@@ -379,7 +381,7 @@ public class OperazioniSA extends HttpServlet {
                     a.setCondizione_mercato(e.getEm().find(Condizione_Mercato.class,
                             "01"));
                     a.setDatacpi(new DateTime().minusDays(60).toDate());
-                    
+
                     a.setCondizione_lavorativa(e.getEm().find(Condizione_Lavorativa.class,
                             1));
                     a.setNeet(e.getEm().find(Condizione_Lavorativa.class,
@@ -392,53 +394,53 @@ public class OperazioniSA extends HttpServlet {
                     a.setData_anpal(new DateTime().withDayOfMonth(1).toString("dd/MM/yyyy"));
                     a.setStato("A");
                     e.merge(a);
-                    
+
                 } else {
                     insertTR("E", "SERVICE", codicefiscale + " rc.so.servlet.OperazioniSA.generaterandomAllievi() " + e.getAllievoCF(codicefiscale));
                 }
             }
-            
+
         } catch (Exception ex1) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
         } finally {
             e.commit();
             e.close();
         }
-        
+
         redirect(request, response, request.getContextPath() + "/page/sa/searchAllievi.jsp");
-        
+
     }
-    
+
     protected void newAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         String save = getRequestValue(request, "save");
-        
+
         boolean salvataggio = false;
         if (save.equals("1")) {//MODELLO
             salvataggio = false;
         } else if (save.equals("0")) {
             salvataggio = true;
         }
-        
+
         File downloadFile = null;
-        
+
         Entity e = new Entity();
         e.begin();
-        
+
         String qrcrop = e.getPath("qr_crop");
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        
+
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
         try {
-            
+
             List<Documenti_Allievi> documenti = new ArrayList<>();
             List<TipoDoc_Allievi> tipo_doc = e.getTipoDocAllievi_ALL(e.getEm().find(StatiPrg.class,
                     "DV"));
-            
+
             Allievi a1 = e.getEm().find(Allievi.class, Utility.parseLong(getRequestValue(request, "allievo")));
-            
+
             if (a1 != null) {
                 String path = e.getPath("pathDocSA_Allievi")
                         .replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
@@ -448,7 +450,7 @@ public class OperazioniSA extends HttpServlet {
                 Date d_today = new Date();
                 SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd");
                 String today = sdf2.format(d_today);
-                
+
                 if (request.getParameter("prv2") != null) {
                     a1.setPrivacy2("SI");
                 } else {
@@ -459,7 +461,7 @@ public class OperazioniSA extends HttpServlet {
                 } else {
                     a1.setPrivacy3("NO");
                 }
-                
+
                 a1.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class,
                         "13"));
                 if (salvataggio) {
@@ -467,7 +469,7 @@ public class OperazioniSA extends HttpServlet {
                     String erroremodello1OK = "MODELLO 1 ERRATO. CONTROLLARE.";
                     TipoDoc_Allievi modello1 = tipo_doc.stream().filter(m1 -> m1.getId() == 3L).findAny().orElse(null);
                     Part p = request.getPart("doc_" + modello1.getId());
-                    
+
                     if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
                         a1.setStato("A");
                         try {
@@ -488,9 +490,9 @@ public class OperazioniSA extends HttpServlet {
                             modello1OK = false;
                             erroremodello1OK = "MODELLO 1 ERRATO. " + ex.getMessage() + ". CONTROLLARE.";
                         }
-                        
+
                         if (modello1OK) {
-                            
+
                             for (TipoDoc_Allievi t : tipo_doc) {
                                 Part pa = request.getPart("doc_" + t.getId());
                                 if (pa != null && pa.getSubmittedFileName() != null && pa.getSubmittedFileName().length() > 0) {
@@ -504,7 +506,7 @@ public class OperazioniSA extends HttpServlet {
                                     }
                                 }
                             }
-                            
+
                             a1.setDocumenti(documenti);
                             e.merge(a1);
                             e.flush();
@@ -514,12 +516,12 @@ public class OperazioniSA extends HttpServlet {
                             resp.addProperty("result", false);
                             resp.addProperty("message", erroremodello1OK);
                         }
-                        
+
                     } else {
                         resp.addProperty("result", false);
                         resp.addProperty("message", "Errore: non &egrave; stato possibile aggiungere l'allievo.<br>Documentazione errata.");
                     }
-                    
+
                 } else {
                     e.rollBack();
                     if (save.equals("1")) { //MODELLO
@@ -542,7 +544,7 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         if (salvataggio) {
             response.getWriter()
                     .write(resp.toString());
@@ -575,7 +577,7 @@ public class OperazioniSA extends HttpServlet {
             }
         }
     }
-    
+
     protected void scaricaModello1(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         e.begin();
@@ -584,10 +586,10 @@ public class OperazioniSA extends HttpServlet {
         boolean domiciliouguale = a.getIndirizzodomicilio().equalsIgnoreCase(a.getIndirizzoresidenza())
                 && a.getCivicodomicilio().equalsIgnoreCase(a.getCivicoresidenza())
                 && a.getComune_domicilio().getId().equals(a.getComune_residenza().getId());
-        
+
         User us = (User) request.getSession().getAttribute("user");
         File downloadFile = Pdf_new.MODELLO1(e, "3", us.getUsername(), us.getSoggettoAttuatore(), a, new DateTime(), true);
-        
+
         e.close();
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
@@ -612,16 +614,16 @@ public class OperazioniSA extends HttpServlet {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
     }
-    
+
     protected void uploadModello1(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         e.begin();
-        
+
         String qrcrop = e.getPath("qr_crop");
-        
+
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
-        
+
         String path = e.getPath("pathDocSA_Allievi")
                 .replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
                 .replace("@folder", Utility.correctName(request.getParameter("codicefiscale")));
@@ -629,10 +631,10 @@ public class OperazioniSA extends HttpServlet {
         createDir(path);
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd");
         String today = sdf2.format(new Date());
-        
+
         Allievi a = e.getEm().find(Allievi.class,
                 Long.parseLong(getRequestValue(request, "id")));
-        
+
         boolean modello1OK = false;
         String erroremodello1OK = "MODELLO 1 ERRATO. CONTROLLARE.";
         try {
@@ -660,7 +662,7 @@ public class OperazioniSA extends HttpServlet {
             resp.addProperty("result", false);
             resp.addProperty("message", modello1OK);
         }
-        
+
         if (modello1OK) {
             a.setStato("A");
             e.merge(a);
@@ -672,20 +674,20 @@ public class OperazioniSA extends HttpServlet {
             resp.addProperty("result", false);
             resp.addProperty("message", erroremodello1OK);
         }
-        
+
         e.close();
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void salvamodello4(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         request.getSession().setAttribute("esito4", null);
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        
+
         Entity e = new Entity();
         e.begin();
         String qrcrop = e.getPath("qr_crop");
@@ -705,7 +707,7 @@ public class OperazioniSA extends HttpServlet {
             String path = e.getPath("pathDocSA_Prg").replace("@rssa",
                     us.getSoggettoAttuatore().getId().toString()).replace("@folder",
                     pr.getId().toString());
-            
+
             String file_path;
             String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
             File dir = new File(path);
@@ -760,28 +762,28 @@ public class OperazioniSA extends HttpServlet {
             e.close();
             redirect(request, response, request.getContextPath() + "/page/sa/modello4.jsp?id=" + idpr + "&esito=konumero");
         }
-        
+
     }
-    
+
     protected void salvamodello3(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        
+
         Entity e = new Entity();
         e.begin();
         String qrcrop = e.getPath("qr_crop");
         ModelliPrg m = e.getEm().find(ModelliPrg.class,
-                Long.parseLong(getRequestValue(request, "idmodello")));
+                Long.valueOf(getRequestValue(request, "idmodello")));
         String idpr = getRequestValue(request, "idpr");
         ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
-                Long.parseLong(idpr));
+                Long.valueOf(idpr));
         TipoDoc modello = e.getEm().find(TipoDoc.class,
                 2L);
         User us = (User) request.getSession().getAttribute("user");
         String path = e.getPath("pathDocSA_Prg").replace("@rssa",
                 us.getSoggettoAttuatore().getId().toString()).replace("@folder",
                 pr.getId().toString());
-        
+
         String file_path;
         String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
         File dir = new File(path);
@@ -795,7 +797,7 @@ public class OperazioniSA extends HttpServlet {
                     + today
                     + part.getSubmittedFileName().substring(part.getSubmittedFileName().lastIndexOf("."));
             part.write(file_path);
-            
+
             File pdfdest = new File(file_path);
             String res = checkFirmaQRpdfA("MODELLO3", us.getUsername(), pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
             if (res.equals("OK")) {
@@ -838,13 +840,13 @@ public class OperazioniSA extends HttpServlet {
             e.close();
             redirect(request, response, request.getContextPath() + "/page/sa/modello3.jsp?id=" + idpr + "&esito=ko");
         }
-        
+
     }
-    
+
     protected void newProgettoFormativo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        
+
         String save = getRequestValue(request, "save");
         String modellodacompilare = null;
         boolean salvataggio = false;
@@ -854,19 +856,19 @@ public class OperazioniSA extends HttpServlet {
         } else if (save.equals("0")) {
             salvataggio = true;
         }
-        
+
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
         e.begin();
         String qrcrop = e.getPath("qr_crop");
         File downloadFile = null;
-        
+
         String[] date = request.getParameter("date").split("-");
         ArrayList<Docenti> docenti_list = new ArrayList<>();
         User us = (User) request.getSession().getAttribute("user");
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            
+
             ProgettiFormativi p = new ProgettiFormativi();
             p.setNome(e.getEm().find(NomiProgetto.class,
                     Long.valueOf(request.getParameter("nome_pf"))));
@@ -904,11 +906,11 @@ public class OperazioniSA extends HttpServlet {
             //setto ai documenti
             List<TipoDoc> tipo_doc = e.getTipoDoc(e.getEm().find(StatiPrg.class,
                     "DV"));
-            
+
             ArrayList<DocumentiPrg> documenti = new ArrayList<>();
             DocumentiPrg doc;
             String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", p.getId().toString());
-            
+
             String file_path;
             String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
             File dir = new File(path);
@@ -964,9 +966,9 @@ public class OperazioniSA extends HttpServlet {
                 doc.setProgetto(p);
                 documenti.add(doc);
             }
-            
+
             p.setDocenti(docenti_list);
-            
+
             e.persist(new Storico_Prg("Creato", new Date(), p, p.getStato()));//storico progetto
 
             if (salvataggio) {
@@ -1033,9 +1035,9 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         if (salvataggio) {
-            
+
             response.getWriter().write(resp.toString());
             response.getWriter().flush();
             response.getWriter().close();
@@ -1064,7 +1066,7 @@ public class OperazioniSA extends HttpServlet {
             }
         }
     }
-    
+
     protected void scaricamodello4(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         File downloadFile = null;
         try {
@@ -1092,7 +1094,7 @@ public class OperazioniSA extends HttpServlet {
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -1116,12 +1118,12 @@ public class OperazioniSA extends HttpServlet {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
     }
-    
+
     protected void scaricaregistrotemp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idpr = getRequestValue(request, "idpr");
-        
+
         File downloadFile = null;
-        
+
         if (Utility.demoversion) {
             //crea registrocomplessivo;
             FaseA FA = new FaseA(false, true);
@@ -1129,9 +1131,9 @@ public class OperazioniSA extends HttpServlet {
             Complessivo c1 = new Complessivo(FA.getHost());
             List<Lezione> ca = FA.calcolaegeneraregistrofasea(Integer.parseInt(idpr), c1.getHost(), false, false, false);
             List<Lezione> cb = FB.calcolaegeneraregistrofaseb(Integer.parseInt(idpr), c1.getHost(), false, false, false);
-            
+
             downloadFile = c1.registro_complessivo(Integer.parseInt(idpr), c1.getHost(), ca, cb, false);
-            
+
         } else {
             try {
                 Entity e = new Entity();
@@ -1147,7 +1149,7 @@ public class OperazioniSA extends HttpServlet {
                 insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
             }
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -1171,18 +1173,18 @@ public class OperazioniSA extends HttpServlet {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
     }
-    
+
     protected void scaricamodello6temp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         String idpr = getRequestValue(request, "idpr");
-        
+
         File downloadFile = null;
         try {
             User us = (User) request.getSession().getAttribute("user");
             Entity e = new Entity();
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(idpr));
-            
+
             ModelliPrg m6 = Utility.filterModello6(pf.getModelli());
             if (m6 != null) {
                 downloadFile = Pdf_new.MODELLO6(e,
@@ -1193,7 +1195,7 @@ public class OperazioniSA extends HttpServlet {
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -1216,23 +1218,23 @@ public class OperazioniSA extends HttpServlet {
         } else {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
-        
+
     }
-    
+
     protected void scaricaModello5(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         File downloadFile = null;
         try {
-            
+
             String idallievo = getRequestValue(request, "iduser");
             String idmodello = getRequestValue(request, "idmodello");
-            
+
             Entity e = new Entity();
-            
+
             Allievi a = e.getEm().find(Allievi.class,
                     Long.parseLong(idallievo));
             MascheraM5 m5 = e.getEm().find(MascheraM5.class,
                     Long.parseLong(idmodello));
-            
+
             if (a.getId().equals(m5.getAllievo().getId())) {
                 TipoDoc_Allievi tipodoc_m5;
                 if (m5.isTabella_premialita()) {
@@ -1242,13 +1244,13 @@ public class OperazioniSA extends HttpServlet {
                     tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
                             20L);
                 }
-                
+
                 User us = (User) request.getSession().getAttribute("user");
                 String[] datifrequenza = Action.dati_modello5_neet(
                         String.valueOf(a.getId()),
                         String.valueOf(us.getSoggettoAttuatore().getId()),
                         String.valueOf(m5.getProgetto_formativo().getId()));
-                
+
                 downloadFile = Pdf_new.MODELLO5(e,
                         tipodoc_m5.getModello(),
                         us.getUsername(),
@@ -1257,14 +1259,14 @@ public class OperazioniSA extends HttpServlet {
                         datifrequenza,
                         m5,
                         new DateTime(), true);
-                
+
             }
             e.close();
-            
+
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -1287,9 +1289,9 @@ public class OperazioniSA extends HttpServlet {
         } else {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
-        
+
     }
-    
+
     protected void scaricamodello3(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         File downloadFile = null;
         try {
@@ -1323,14 +1325,14 @@ public class OperazioniSA extends HttpServlet {
                             ).collect(Collectors.toList()),
                             p.getDocenti(), lezioni, staff,
                             new DateTime(), true);
-                    
+
                 }
             }
             e.close();
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -1353,16 +1355,16 @@ public class OperazioniSA extends HttpServlet {
         } else {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
-        
+
     }
-    
+
     protected void updtAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         JsonObject resp = new JsonObject();
         try {
             e.begin();
-            
+
             Allievi a = e.getEm().find(Allievi.class,
                     Long.parseLong(request.getParameter("idal")));
             String codicefiscale = request.getParameter("codicefiscale");
@@ -1405,7 +1407,7 @@ public class OperazioniSA extends HttpServlet {
                     }
                     a.setComune_nascita(statoEstero);
                 }
-                
+
                 a.setNome(conversionText(request.getParameter("nome").toUpperCase()));
                 a.setCognome(conversionText(request.getParameter("cognome").toUpperCase()));
                 a.setCodicefiscale(request.getParameter("codicefiscale").toUpperCase());
@@ -1415,7 +1417,7 @@ public class OperazioniSA extends HttpServlet {
                 a.setCapresidenza(request.getParameter("capres"));
                 a.setComune_residenza((Comuni) e.getEm().find(Comuni.class,
                         Long.parseLong(request.getParameter("comuneres"))));
-                
+
                 if (request.getParameter("checkind") != null) {
                     a.setIndirizzodomicilio(conversionText(request.getParameter("indirizzores")));
                     a.setCivicodomicilio(request.getParameter("civicores").toUpperCase());
@@ -1445,7 +1447,7 @@ public class OperazioniSA extends HttpServlet {
                         Integer.parseInt(request.getParameter("condizione_lavorativa"))).getDescrizione());
                 a.setEmail(request.getParameter("email"));
                 a.setSesso(Integer.parseInt(request.getParameter("codicefiscale").substring(9, 11)) > 40 ? "F" : "M");
-                
+
                 a.setCanale((Canale) e.getEm().find(Canale.class,
                         Integer.parseInt(request.getParameter("conoscenza"))));
                 a.setMotivazione((Motivazione) e.getEm().find(Motivazione.class,
@@ -1455,13 +1457,13 @@ public class OperazioniSA extends HttpServlet {
                 e.merge(a);
                 e.flush();
                 e.commit();
-                
+
                 resp.addProperty("result", true);
             } else {
                 resp.addProperty("result", false);
                 resp.addProperty("message", "Errore: non &egrave; stato possibile aggiornare le informazioni dell'allievo.<br>Il seguente codice fiscale gi&agrave; già presente");
             }
-            
+
         } catch (Exception ex) {
             e.insertTracking(null, "updateAllievo Errore: " + ex.getMessage());
             resp.addProperty("result", false);
@@ -1473,13 +1475,13 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void updtCartaID(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
             e.begin();
-            
+
             Allievi a = e.getEm().find(Allievi.class,
                     Long.parseLong(request.getParameter("id")));
             Part p = request.getPart("cartaid");
@@ -1487,10 +1489,10 @@ public class OperazioniSA extends HttpServlet {
             File dir = new File(path);
             dir.mkdirs();
             p.write(path);
-            
+
             a.setScadenzadocid(new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("datascadenza")));
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA updtCartaId: " + ex.getMessage());
@@ -1503,7 +1505,7 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void updtCartaIDAD(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
@@ -1529,7 +1531,7 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadDocIdDocente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         String scadenza = request.getParameter("scadenza");
@@ -1540,16 +1542,16 @@ public class OperazioniSA extends HttpServlet {
             Docenti d = e.getEm().find(Docenti.class,
                     Long.valueOf(request.getParameter("id")));
             d.setScadenza_doc(new SimpleDateFormat("dd/MM/yyyy").parse(scadenza));
-            
+
             String path = e.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
             createDir(path);
-            
+
             String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
             path += "Doc_id_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + d.getCodicefiscale() + ext;
-            
+
             p.write(path);
             d.setDocId(path);
-            
+
             e.commit();
             resp.addProperty("result", true);
             resp.addProperty("path", path);
@@ -1561,31 +1563,31 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadCurriculumDocente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
-        
+
         Part p = request.getPart("file");
         Entity e = new Entity();
         try {
             e.begin();
             Docenti d = e.getEm().find(Docenti.class,
                     Long.parseLong(request.getParameter("id")));
-            
+
             String path = e.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
             createDir(path);
-            
+
             String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
             path += "Curriculum_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + d.getCodicefiscale() + ext;
-            
+
             p.write(path);
             d.setCurriculum(path);
-            
+
             e.commit();
             resp.addProperty("result", true);
             resp.addProperty("path", path);
@@ -1596,15 +1598,15 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyDoc(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
-        
+
         Part p = request.getPart("file");
         Entity e = new Entity();
         try {
@@ -1614,7 +1616,7 @@ public class OperazioniSA extends HttpServlet {
                     Long.parseLong(request.getParameter("id")));
             p.write(d.getPath());
             d.setScadenza(scadenza);
-            
+
             if (scadenza != null) {
                 List<DocumentiPrg> doc_mod = e.getDocIdModifiableDocente(((User) request.getSession().getAttribute("user")).getSoggettoAttuatore(), d.getDocente());
                 doc_mod.remove(d);
@@ -1623,7 +1625,7 @@ public class OperazioniSA extends HttpServlet {
                     doc.setScadenza(scadenza);
                 }
             }
-            
+
             e.commit();
             resp.addProperty("result", true);
         } catch (Exception ex) {
@@ -1633,15 +1635,15 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadDocPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
-        
+
         Part p = request.getPart("file");
         Entity e = new Entity();
         try {
@@ -1652,13 +1654,13 @@ public class OperazioniSA extends HttpServlet {
             List<TipoDoc> tipo_obb = e.getTipoDocObbl(prg.getStato());
             List<DocumentiPrg> doc_list = e.getDocPrg(prg);
             User us = (User) request.getSession().getAttribute("user");
-            
+
             tipo_obb.remove(tipo);
-            
+
             for (DocumentiPrg d : doc_list) {
                 tipo_obb.remove(d.getTipo());
             }
-            
+
             e.begin();
             //creao il path
             String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", prg.getId().toString());
@@ -1687,7 +1689,7 @@ public class OperazioniSA extends HttpServlet {
                 boolean checkdocs = true, checkregistri = true;
                 msg.append("Sono stati caricati tutti i documenti necessari per questa fase. Ora il progetto può essere inviato al Microcredito per essere controllato.<br>");
                 warning.append("Tuttavia, i seguenti allievi non hanno effettuato le ore necessarie per la Fase B:<br>");
-                
+
                 for (Allievi allievo : prg.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
                         .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
                         .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
@@ -1742,10 +1744,10 @@ public class OperazioniSA extends HttpServlet {
                     resp.addProperty("message", "");
                 }
             }
-            
+
             e.commit();
             resp.addProperty("result", true);
-            
+
         } catch (Exception ex) {
             e.rollBack();
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -1754,12 +1756,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -1776,7 +1778,7 @@ public class OperazioniSA extends HttpServlet {
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("id_progetto")));
-            
+
             if (p.getStato().getModifiche().getNome() == 1) {
                 p.setNome(e.getEm().find(NomiProgetto.class,
                         Long.parseLong(request.getParameter("nome_pf"))));
@@ -1816,7 +1818,7 @@ public class OperazioniSA extends HttpServlet {
                 modified = modified ? true : allievi_old.size() > 0;
                 modified = modified ? true : now_allievi > prev_allievi;
             }
-            
+
             if (modified) {
                 p.setModello2_check(1);
             }
@@ -1850,7 +1852,7 @@ public class OperazioniSA extends HttpServlet {
 //            }
             e.merge(p);
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.rollBack();
@@ -1864,23 +1866,23 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyDocenti(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
-        
+
         User us = (User) request.getSession().getAttribute("user");
         Entity e = new Entity();
         e.begin();
-        
+
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("id_progetto")));
             List<Docenti> docenti_old = e.getDocentiPrg(p);
             List<Docenti> docenti_list = new ArrayList();
             ArrayList<DocumentiPrg> documenti = new ArrayList();
-            
+
             String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", p.getId().toString());
             File dir = new File(path);
             createDir(path);
@@ -1890,9 +1892,9 @@ public class OperazioniSA extends HttpServlet {
             String name;
             Docenti d;
             DocumentiPrg doc;
-            
+
             boolean copy = true;
-            
+
             for (String s : request.getParameterValues("docenti[]")) {
                 d = e.getEm().find(Docenti.class,
                         Long.parseLong(s));
@@ -1906,12 +1908,12 @@ public class OperazioniSA extends HttpServlet {
                     if (!copy) {
                         break;
                     }
-                    
+
                     doc = new DocumentiPrg(pathSave.replace("\\", "/"), d.getScadenza_doc(), e.getEm().find(TipoDoc.class,
                             20L), d, p);
                     e.persist(doc);
                     documenti.add(doc);
-                    
+
                     name = "Curriculum_" + today + "_" + d.getId() + d.getCurriculum().substring(d.getCurriculum().lastIndexOf("."));
                     file_path = dir.getAbsolutePath() + name;
                     pathSave = path + name;
@@ -1920,21 +1922,21 @@ public class OperazioniSA extends HttpServlet {
                     if (!copy) {
                         break;
                     }
-                    
+
                     doc = new DocumentiPrg(pathSave.replace("\\", "/"), null, e.getEm().find(TipoDoc.class,
                             21L), d, p);
                     e.persist(doc);
                     documenti.add(doc);
-                    
+
                 } else {
                     docenti_old.remove(d);
                 }
             }
-            
+
             for (Docenti old : docenti_old) {//setto i doc dei docenti eliminati come deleted
                 e.deleteDocPrg(p, old);
             }
-            
+
             p.setDocenti(docenti_list);
             p.getDocumenti().addAll(documenti);
             e.merge(p);
@@ -1958,14 +1960,14 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void goNext(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
         e.begin();
-        
+
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("id")));
@@ -2012,14 +2014,14 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void setEsitoAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
         e.begin();
-        
+
         try {
             Allievi a = e.getEm().find(Allievi.class,
                     Long.parseLong(request.getParameter("id")));
@@ -2041,7 +2043,7 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadRegistro(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         Part p = request.getPart("file");
@@ -2054,7 +2056,7 @@ public class OperazioniSA extends HttpServlet {
             List<TipoDoc_Allievi> tipo_obb = e.getTipoDocAllieviObbl(a.getProgetto().getStato());
             List<TipoDoc> tipo_obb_prg = e.getTipoDocObbl(a.getProgetto().getStato());
             Documenti_Allievi doc_a = new Documenti_Allievi();
-            
+
             Date giorno = request.getParameter("giorno") != null ? new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("giorno")) : null;
             Date orariostart_mattina = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
             Date orarioend_mattina = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
@@ -2062,9 +2064,9 @@ public class OperazioniSA extends HttpServlet {
             Date orarioend_pomeriggio = request.getParameter("orario2_end") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
             Docenti docente = e.getEm().find(Docenti.class,
                     Long.parseLong(request.getParameter("docente")));
-            
+
             User us = (User) request.getSession().getAttribute("user");
-            
+
             e.begin();
             //creao il path
             String path = e.getPath("pathDocSA_Prg_RegistriIndividuali").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", a.getProgetto().getId().toString());
@@ -2079,7 +2081,7 @@ public class OperazioniSA extends HttpServlet {
                 p.write(file_path);
                 doc_a.setPath(file_path);
             }
-            
+
             doc_a.setTipo(tipo);
             doc_a.setGiorno(giorno);
             doc_a.setDocente(docente);
@@ -2089,14 +2091,14 @@ public class OperazioniSA extends HttpServlet {
             doc_a.setOrarioend_pom(orarioend_pomeriggio);
             doc_a.setAllievo(a);
             e.persist(doc_a);
-            
+
             e.commit();
-            
+
             e.begin();
             double hh, totale;
             boolean checkregistri = true;
             boolean checkdocs = true;
-            
+
             List<TipoDoc_Allievi> doc_allievo;
             StringBuilder msg = new StringBuilder();
             StringBuilder warning = new StringBuilder();
@@ -2145,7 +2147,7 @@ public class OperazioniSA extends HttpServlet {
             }
             e.commit();
             resp.addProperty("result", true);
-            
+
         } catch (Exception ex) {
             e.rollBack();
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -2154,12 +2156,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyRegistro(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         Part p = request.getPart("file");
@@ -2168,12 +2170,12 @@ public class OperazioniSA extends HttpServlet {
             Date giorno = request.getParameter("giorno") != null ? new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("giorno")) : null;
             Date orariostart_mattina = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
             Date orarioend_mattina = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
-            
+
             Date orariostart_pomeriggio = request.getParameter("orario2_start") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
             Date orarioend_pomeriggio = request.getParameter("orario2_end") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
             Docenti docente = e.getEm().find(Docenti.class,
                     Long.parseLong(request.getParameter("docente")));
-            
+
             e.begin();
             Documenti_Allievi doc = e.getEm().find(Documenti_Allievi.class,
                     Long.parseLong(request.getParameter("iddocumento")));
@@ -2191,12 +2193,12 @@ public class OperazioniSA extends HttpServlet {
             doc.setOrarioend_pom(orarioend_pomeriggio);
             e.merge(doc);
             e.commit();
-            
+
             e.begin();
             double hh, totale;
             boolean checkregistri = true;
             boolean checkdocs = true;
-            
+
             List<TipoDoc_Allievi> doc_allievo;
             StringBuilder msg = new StringBuilder();
             StringBuilder warning = new StringBuilder();
@@ -2251,15 +2253,15 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadDocPrg_FaseB(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
-        
+
         Part p = request.getPart("file");
         Entity e = new Entity();
         try {
@@ -2271,7 +2273,7 @@ public class OperazioniSA extends HttpServlet {
             List<TipoDoc_Allievi> tipo_obb = e.getTipoDocAllieviObbl(a.getProgetto().getStato());
             List<TipoDoc> tipo_obb_prg = e.getTipoDocObbl(a.getProgetto().getStato());
             User us = (User) request.getSession().getAttribute("user");
-            
+
             e.begin();
             //creao il path
             String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId().toString() + "")).replace("@folder", Utility.correctName(a.getCodicefiscale()));
@@ -2303,12 +2305,12 @@ public class OperazioniSA extends HttpServlet {
                 e.merge(a);
             }
             e.commit();
-            
+
             e.begin();
             double hh, totale;
             boolean checkregistri = true;
             boolean checkdocs = true;
-            
+
             List<TipoDoc_Allievi> doc_allievo;
             StringBuilder msg = new StringBuilder();
             StringBuilder warning = new StringBuilder();
@@ -2344,7 +2346,7 @@ public class OperazioniSA extends HttpServlet {
                     }
                 }
             }
-            
+
             for (DocumentiPrg dprg : a.getProgetto().getDocumenti()) {
                 tipo_obb_prg.remove(dprg.getTipo());
             }
@@ -2362,7 +2364,7 @@ public class OperazioniSA extends HttpServlet {
             }
             e.commit();
             resp.addProperty("result", true);
-            
+
         } catch (Exception ex) {
             e.rollBack();
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -2371,19 +2373,19 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyDocPrg_FaseB(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
-        
+
         Part p = request.getPart("file");
         Entity e = new Entity();
         try {
-            
+
             e.begin();
             //se carico il MODELLO SE setto il valore in Allievo
             Documenti_Allievi d = e.getEm().find(Documenti_Allievi.class,
@@ -2402,7 +2404,7 @@ public class OperazioniSA extends HttpServlet {
                 e.merge(a);
             }
             p.write(d.getPath());
-            
+
             e.commit();
             resp.addProperty("result", true);
         } catch (Exception ex) {
@@ -2412,12 +2414,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void getTotalHoursRegistriByAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         double totale = 0;
@@ -2449,14 +2451,14 @@ public class OperazioniSA extends HttpServlet {
             e.close();
         }
     }
-    
+
     protected void uploadRegistrioAula(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
         try {
             e.begin();
-            
+
             TipoDoc t = e.getEm().find(TipoDoc.class,
                     10L);//10 id tipo registro aula.
             ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
@@ -2464,15 +2466,15 @@ public class OperazioniSA extends HttpServlet {
             Docenti docente = e.getEm().find(Docenti.class,
                     Long.parseLong(request.getParameter("docente")));
             String[] date = request.getParameter("range").split("-");
-            
+
             SimpleDateFormat sdf_time = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_date = new SimpleDateFormat("dd/MM/yyyy");
-            
+
             DocumentiPrg doc = new DocumentiPrg();
-            
+
             doc.setProgetto(prg);
             doc.setDocente(docente);
-            
+
             if (date.length == 3) {
                 doc.setOrariostart(sdf_time.parse(date[1].trim()));
                 doc.setOrarioend(sdf_time.parse(date[2].trim()));
@@ -2482,14 +2484,14 @@ public class OperazioniSA extends HttpServlet {
                 doc.setOrarioend(sdf_time.parse(date[1].trim()));
                 doc.setGiorno(sdf_date.parse(request.getParameter("giorno")));
             }
-            
+
             doc.setValidate(0);
             doc.setOre((double) (doc.getOrarioend().getTime() - doc.getOrariostart().getTime()) / 3600000);//calcolo ore
             prg.setOre(prg.getOre() + doc.getOre());
             doc.setTipo(t);
-            
+
             Part p = request.getPart("registro");
-            
+
             if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
                 String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", prg.getId().toString());
                 File dir = new File(path);
@@ -2498,7 +2500,7 @@ public class OperazioniSA extends HttpServlet {
                 p.write(file_path);
                 doc.setPath(file_path);
             }
-            
+
             List<Presenti> presenti = new ArrayList<>();
             Allievi a;
             Date in, out;
@@ -2517,7 +2519,7 @@ public class OperazioniSA extends HttpServlet {
             /* controllo se tutti i documenti sono stati caricati per poter mandare il progetto avanti */
             List<TipoDoc> tipo_obb = e.getTipoDocObbl(prg.getStato());
             List<DocumentiPrg> doc_list = e.getDocPrg(prg);
-            
+
             for (DocumentiPrg doc_prg : doc_list) {
                 tipo_obb.remove(doc_prg.getTipo());
             }
@@ -2528,7 +2530,7 @@ public class OperazioniSA extends HttpServlet {
             } else {
                 resp.addProperty("message", "");
             }
-            
+
             e.commit();
             resp.addProperty("result", true);
         } catch (Exception ex) {
@@ -2538,12 +2540,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void modifyRegistrioAula(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
@@ -2552,13 +2554,13 @@ public class OperazioniSA extends HttpServlet {
             Docenti docente = e.getEm().find(Docenti.class,
                     Long.parseLong(request.getParameter("docente")));
             String[] date = request.getParameter("range").split("-");
-            
+
             SimpleDateFormat sdf_time = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_date = new SimpleDateFormat("dd/MM/yyyy");
-            
+
             DocumentiPrg doc = e.getEm().find(DocumentiPrg.class,
                     Long.parseLong(request.getParameter("iddoc")));
-            
+
             doc.setDocente(docente);
             doc.setOrariostart(sdf_time.parse(date[1].trim()));
             doc.setOrarioend(sdf_time.parse(date[2].trim()));
@@ -2569,11 +2571,11 @@ public class OperazioniSA extends HttpServlet {
             doc.setOre((double) (doc.getOrarioend().getTime() - doc.getOrariostart().getTime()) / 3600000);//calcolo ore
             prg.setOre(prg.getOre() + doc.getOre());
             Part p = request.getPart("registro");
-            
+
             if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
                 p.write(doc.getPath());
             }
-            
+
             List<Presenti> presenti = new ArrayList<>();
             sdf_time.setTimeZone(TimeZone.getTimeZone("CET"));//per fixare l'ora dei presenti
             Allievi a;
@@ -2598,12 +2600,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void checkEmail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -2614,28 +2616,28 @@ public class OperazioniSA extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         response.getWriter().write(mapper.writeValueAsString(a));
     }
-    
+
     protected void deleteRegister(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
-        
+
         Entity e = new Entity();
-        
+
         try {
             e.begin();
             ProgettiFormativi p;
             DocumentiPrg registro = e.getEm().find(DocumentiPrg.class,
                     Long.parseLong(request.getParameter("id")));
             p = registro.getProgetto();
-            
+
             p.setOre(p.getOre() - registro.getOre());
             registro.setDeleted(1);
             registro.setOre(0);
-            
+
             registro.setOrarioend(registro.getOrariostart());
             List<DocumentiPrg> registri_day = e.getRegisterProgetto_by_Day(registro.getGiorno(), registro.getProgetto());
-            
+
             registri_day.stream().filter(r -> !r.getId().equals(registro.getId())).forEach(d -> {
                 p.setOre(p.getOre() - d.getOre());
                 d.setDeleted(1);
@@ -2654,18 +2656,18 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void sendAsk(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
-        
+
         try {
             String ask = request.getParameter("ask");
             e.begin();
@@ -2686,12 +2688,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadLezione(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
@@ -2700,7 +2702,7 @@ public class OperazioniSA extends HttpServlet {
             String tipo_modello = request.getParameter("tipo_modello");
             SediFormazione sedefisica = e.getEm().find(SediFormazione.class, parseLong(getRequestValue(request, "sedefisica")));
             e.begin();
-            
+
             boolean modellotrovato = true;
             Docenti d;
             LezioneCalendario l;
@@ -2709,7 +2711,7 @@ public class OperazioniSA extends HttpServlet {
                     Long.valueOf(request.getParameter("id_modello")));
             Lezioni_Modelli lm;
             Date giorno, orariostart, orarioend;
-            
+
             if (tipo_modello.equalsIgnoreCase("m3_single") || tipo_modello.equalsIgnoreCase("m4_single")) {
                 d = e.getEm().find(Docenti.class,
                         Long.valueOf(request.getParameter("docente")));
@@ -2742,7 +2744,7 @@ public class OperazioniSA extends HttpServlet {
                 orariostart = request.getParameter("orario2_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
                 orarioend = request.getParameter("orario2_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
                 Lezioni_Modelli lm2 = tipo_modello.equalsIgnoreCase("m3_double") ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d) : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")));
-                
+
                 e.persist(lm);
                 e.persist(lm2);
             } else {
@@ -2773,7 +2775,7 @@ public class OperazioniSA extends HttpServlet {
                 List<Lezioni_Modelli> listLezioniCaricate = e.getLezioniByProgetto(m);
                 int gruppi = Utility.numberGroupsModello4(m.getProgetto());
                 boolean completa = true;
-                
+
                 for (int i = 1; i <= gruppi; i++) {
                     for (LezioneCalendario cal : listLezioneCalendario) {
                         if (!Utility.isPresent_LessonGroup(listLezioniCaricate, cal.getId(), i)) {
@@ -2788,7 +2790,7 @@ public class OperazioniSA extends HttpServlet {
                     msg = "Tutte le lezioni relative al modello 4 sono state caricate, puoi procedere al caricamento dell'intero modulo.";
                 }
             }
-            
+
             if (sedefisica != null) {
                 ProgettiFormativi pf = m.getProgetto();
                 if (pf.getSedefisica() == null) {
@@ -2796,9 +2798,9 @@ public class OperazioniSA extends HttpServlet {
                     e.merge(pf);
                 }
             }
-            
+
             e.commit();
-            
+
             if (modellotrovato) {
                 resp.addProperty("result", true);
                 resp.addProperty("message", msg);
@@ -2814,19 +2816,19 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void updateLezione(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
         try {
             String tipo_modello = request.getParameter("tipo_modello");
             e.begin();
-            
+
             Docenti d;
             Lezioni_Modelli lm;
             Date giorno, orariostart, orarioend;
@@ -2851,7 +2853,7 @@ public class OperazioniSA extends HttpServlet {
                         Long.parseLong(request.getParameter("docente1")));
                 orariostart = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
                 orarioend = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
-                
+
                 lm = e.getEm().find(Lezioni_Modelli.class,
                         Long.parseLong(request.getParameter("id1")));
                 lm.setDocente(d);
@@ -2869,7 +2871,7 @@ public class OperazioniSA extends HttpServlet {
                 lm2.setGiorno(giorno);
                 lm2.setOrario_start(orariostart);
                 lm2.setOrario_end(orarioend);
-                
+
                 e.merge(lm);
                 e.merge(lm2);
             }
@@ -2883,12 +2885,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void creaGruppi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         JsonObject resp = new JsonObject();
@@ -2942,21 +2944,21 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void manageM2(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String tipo_op = request.getParameter("tipo_op");
-        
+
         if (tipo_op != null && tipo_op.equalsIgnoreCase("download")) {
             response.setContentType("text/plain");
             response.setCharacterEncoding("UTF-8");
-            
+
             User us = (User) request.getSession().getAttribute("user");
-            
+
             Entity e = new Entity();
             e.begin();
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("id_prg")));
-            
+
             File downloadFile = Pdf_new.MODELLO2(e, getRequestValue(request, "modello"), us.getUsername(),
                     us.getSoggettoAttuatore(), p,
                     p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
@@ -2966,7 +2968,7 @@ public class OperazioniSA extends HttpServlet {
                     ).collect(Collectors.toList()),
                     new DateTime(), true);
             e.close();
-            
+
             if (downloadFile != null && downloadFile.exists()) {
                 OutputStream outStream;
                 try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -2992,12 +2994,12 @@ public class OperazioniSA extends HttpServlet {
         } else {
             JsonObject resp = new JsonObject();
             Part p = request.getPart("file_m2");
-            
+
             Entity e = new Entity();
             try {
-                
+
                 String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                
+
                 e.begin();
                 ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
                         Long.parseLong(request.getParameter("id_prg")));
@@ -3005,7 +3007,7 @@ public class OperazioniSA extends HttpServlet {
                         Long.parseLong(request.getParameter("idfile")));
                 String newpath = d.getPath() + "_v_" + new DateTime().toString(patternComplete) + "."
                         + ext;
-                
+
                 String directory = getStartPath(FilenameUtils.getFullPath(d.getPath()));
                 newpath = getStartPath(newpath);
 //                createDir(getStartPath() + FilenameUtils.getFullPath(d.getPath()));
@@ -3027,14 +3029,14 @@ public class OperazioniSA extends HttpServlet {
             } finally {
                 e.close();
             }
-            
+
             response.getWriter().write(resp.toString());
             response.getWriter().flush();
             response.getWriter().close();
         }
-        
+
     }
-    
+
     protected void addDocente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //        Utility.printRequest(request);
 
@@ -3047,7 +3049,7 @@ public class OperazioniSA extends HttpServlet {
         } else if (save.equals("0")) {
             salvataggio = true;
         }
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
@@ -3058,26 +3060,26 @@ public class OperazioniSA extends HttpServlet {
                 e.begin();
                 String nome = getRequestValue(request, "nome").toUpperCase();
                 String cognome = getRequestValue(request, "cognome").toUpperCase();
-                
+
                 String email = getRequestValue(request, "email");
-                
+
                 Part docid = request.getPart("docid");
                 String scadenza = getRequestValue(request, "scadenzadoc");
                 Part cv = request.getPart("cv");
-                
+
                 Date data_nascita = null;
                 if (!request.getParameter("data").equals("")) {
                     data_nascita = new SimpleDateFormat("dd/MM/yyyy").parse(getRequestValue(request, "data"));
                 }
-                
+
                 String qrcrop = e.getPath("qr_crop");
-                
+
                 Docenti d = new Docenti(nome, cognome, cf, data_nascita, email);
                 d.setFascia(e.getEm().find(FasceDocenti.class,
                         getRequestValue(request, "fascia")));
                 d.setStato("DV");
                 d.setSoggetto(us.getSoggettoAttuatore());
-                
+
                 d.setScadenza_doc(new SimpleDateFormat("dd/MM/yyyy").parse(scadenza));
                 String path = e.getPath("pathDoc_Docenti").replace("@docente", cf);
                 String pathcv = path;
@@ -3094,7 +3096,7 @@ public class OperazioniSA extends HttpServlet {
                         cv.write(dir.getAbsolutePath() + File.separator + "Curriculum_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + cf + ext);
                     }
                     d.setCurriculum(pathcv.replace("\\", "/"));
-                    
+
                 }
                 /*Modifica 14 06 21 - Nuovi campi ed attivita*/
                 String comune_nascita = new String(getRequestValue(request, "com_nas").getBytes(Charsets.ISO_8859_1), Charsets.UTF_8);
@@ -3104,7 +3106,7 @@ public class OperazioniSA extends HttpServlet {
                 int titolo_studio = Integer.parseInt(getRequestValue(request, "tit_stu"));
                 int area_studio = Integer.parseInt(getRequestValue(request, "area_stu"));
                 int inquad = Integer.parseInt(getRequestValue(request, "inquad"));
-                
+
                 d.setComune_di_nascita(comune_nascita);
                 d.setRegione_di_residenza(reg_res);
                 d.setPec(pec);
@@ -3113,9 +3115,9 @@ public class OperazioniSA extends HttpServlet {
                 d.setArea_prevalente_di_qualificazione(area_studio);
                 d.setInquadramento(inquad);
                 d.setTipo_inserimento("GESTIONALE");
-                
+
                 e.persist(d);
-                
+
                 try {
                     /*Modifica 14 06 21 - Singole Attivita*/
                     int nroAttivita_max = Integer.parseInt(e.getPath("numAttivita_docente"));
@@ -3148,10 +3150,10 @@ public class OperazioniSA extends HttpServlet {
 
                 //CREA DOCUMENTO
                 if (salvataggio) {
-                    
+
                     boolean all1OK;
                     String erroreall1OK = "RICHIESTA ACCREDITAMENTO DOCENTE ERRATA. CONTROLLARE.";
-                    
+
                     try {
                         TipoDoc richiesta = e.getEm().find(TipoDoc.class,
                                 34L);
@@ -3170,7 +3172,7 @@ public class OperazioniSA extends HttpServlet {
                         } else {
                             all1OK = true;
                         }
-                        
+
                         if (all1OK) {
                             d.setRichiesta_accr(destpath.replace("\\", "/"));
                             //  UPLOAD
@@ -3182,7 +3184,7 @@ public class OperazioniSA extends HttpServlet {
                             resp.addProperty("result", false);
                             resp.addProperty("message", erroreall1OK);
                         }
-                        
+
                     } catch (Exception ex) {
                         e.rollBack();
                         resp.addProperty("result", false);
@@ -3207,7 +3209,7 @@ public class OperazioniSA extends HttpServlet {
             resp.addProperty("result", false);
             resp.addProperty("message", "Errore: Codice fiscale già presente.");
         }
-        
+
         if (salvataggio) {
             response.getWriter()
                     .write(resp.toString());
@@ -3240,7 +3242,7 @@ public class OperazioniSA extends HttpServlet {
             }
         }
     }
-    
+
     protected void checkEmail_Docente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -3252,12 +3254,12 @@ public class OperazioniSA extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         response.getWriter().write(mapper.writeValueAsString(a));
     }
-    
+
     protected void checkCF_Docente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        
+
         String cf = request.getParameter("cf");
         User us = (User) request.getSession().getAttribute("user");
         Entity e = new Entity();
@@ -3272,7 +3274,7 @@ public class OperazioniSA extends HttpServlet {
 //            response.getWriter().write(mapper.writeValueAsString(a));
 //        }
     }
-    
+
     protected void manageMembriStaff(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
@@ -3299,7 +3301,7 @@ public class OperazioniSA extends HttpServlet {
                 e.persist(n);
             }
             e.commit();
-            
+
             resp.addProperty("result", true);
             resp.addProperty("title", title);
             resp.addProperty("message", "Operazione effettuata con successo");
@@ -3315,12 +3317,12 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void downloadregistro(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 //        String path = 
     }
-    
+
     protected void deleteMembroStaff(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -3344,9 +3346,9 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void rendicontaAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         String qrcrop = e.getPath("qr_crop");
@@ -3354,17 +3356,17 @@ public class OperazioniSA extends HttpServlet {
         User us = (User) request.getSession().getAttribute("user");
         e.begin();
         boolean ok = true;
-        
+
         try {
-            
+
             boolean domanda = Boolean.parseBoolean(request.getParameter("domanda_ammissione"));
-            
+
             MascheraM5 mask = new MascheraM5();
             Allievi a = e.getEm().find(Allievi.class,
                     Long.parseLong(request.getParameter("id_allievo")));
             mask.setAllievo(a);
             mask.setProgetto_formativo(a.getProgetto());
-            
+
             if (domanda) {
                 mask.setForma_giuridica(e.getEm().find(Formagiuridica.class,
                         Integer.parseInt(request.getParameter("formaGiuridica"))));
@@ -3393,7 +3395,7 @@ public class OperazioniSA extends HttpServlet {
                         p.write(damm.getPath());
                         mask.setDomanda_ammissione_presente(true);
                         mask.setDomanda_ammissione(path.replace("\\", "/"));
-                        
+
                         Email email_txt = (Email) e.getEmail("domanda_amm");
                         String testomail = StringUtils.replace(email_txt.getTesto(), "@nomecognome", a.getNome().toUpperCase() + " "
                                 + a.getCognome().toUpperCase());
@@ -3409,7 +3411,7 @@ public class OperazioniSA extends HttpServlet {
                             mask.setBando_sud(false);
                         } else {
                             mask.setNo_agevolazione(false);
-                            
+
                             if (Boolean.parseBoolean(request.getParameter("bando_se"))) {
                                 mask.setBando_se(true);
                                 mask.setBando_se_opzione(request.getParameter("bando_se_option"));
@@ -3428,7 +3430,7 @@ public class OperazioniSA extends HttpServlet {
                             } else {
                                 mask.setBando_reg(false);
                             }
-                            
+
                         }
                         mask.setTabella_valutazionefinale_val(request.getParameter("tab1"));
                         mask.setTabella_valutazionefinale_punteggio(parseDouble(request.getParameter("punteggio_tab1")));
@@ -3439,7 +3441,7 @@ public class OperazioniSA extends HttpServlet {
                         resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
                         e.insertTracking("System", "ERROR DOMANDA AMMISSIONE: " + Utility.estraiEccezione(ex1));
                     }
-                    
+
                 } else {
                     ok = false;
                     resp.addProperty("result", false);
@@ -3466,10 +3468,10 @@ public class OperazioniSA extends HttpServlet {
                 mask.setTabella_valutazionefinale_punteggio(0.0);
                 mask.setTabella_valutazionefinale_totale(0.0);
             }
-            
+
             boolean modello7OK;
             String erroremodello7OK = "MODELLO 7 ERRATO. CONTROLLARE.";
-            
+
             if (ok) {
                 //Modello 7 - Attestato di frequenza, necessario per la tabella della premialità            
                 Part p7 = request.getPart("doc_modello7");
@@ -3484,7 +3486,7 @@ public class OperazioniSA extends HttpServlet {
                     } else {
                         mask.setTabella_premialita(false);
                     }
-                    
+
                     TipoDoc_Allievi tipodoc_m7 = e.getEm().find(TipoDoc_Allievi.class,
                             22L);
                     Documenti_Allievi modello7_allievo = a.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0
@@ -3492,9 +3494,9 @@ public class OperazioniSA extends HttpServlet {
                     if (modello7_allievo != null) {
                         File dir = new File(modello7_allievo.getPath());
                         p7.write(dir.getAbsolutePath());
-                        
+
                         File pdfdest = new File(dir.getAbsolutePath());
-                        
+
                         String res = checkFirmaQRpdfA("MODELLO7", us.getUsername(),
                                 pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
                         if (!res.equals("OK")) {
@@ -3503,9 +3505,9 @@ public class OperazioniSA extends HttpServlet {
                         } else {
                             modello7OK = true;
                         }
-                        
+
                     } else {
-                        
+
                         String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", Utility.correctName(a.getCodicefiscale()));
                         File dir = new File(path);
                         createDir(path);
@@ -3514,9 +3516,9 @@ public class OperazioniSA extends HttpServlet {
                         path += namefile;
                         String destpath = dir.getAbsolutePath() + File.separator + namefile;
                         p7.write(destpath);
-                        
+
                         File pdfdest = new File(destpath);
-                        
+
                         String res = checkFirmaQRpdfA("MODELLO7", us.getUsername(),
                                 pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
                         if (!res.equals("OK")) {
@@ -3525,7 +3527,7 @@ public class OperazioniSA extends HttpServlet {
                         } else {
                             modello7OK = true;
                         }
-                        
+
                         Documenti_Allievi m7 = new Documenti_Allievi(path.replace("\\", "/"), tipodoc_m7, null, a);
                         e.persist(m7);
                         a.getDocumenti().add(m7);
@@ -3534,7 +3536,7 @@ public class OperazioniSA extends HttpServlet {
                 } else {
                     modello7OK = false;
                 }
-                
+
                 if (modello7OK) {
                     e.persist(mask);
                     e.commit();
@@ -3558,16 +3560,16 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void concludiPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
-        
+
         Entity e = new Entity();
         e.begin();
         User us = (User) request.getSession().getAttribute("user");
-        
+
         try {
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("pf")));
@@ -3585,17 +3587,17 @@ public class OperazioniSA extends HttpServlet {
             path_m6 += modello6.getDescrizione() + "_" + today + ext;
             String file_path = dir.getAbsolutePath() + File.separator + modello6.getDescrizione() + "_" + today + ext;
             partm6.write(file_path);
-            
+
             File pdfdest = new File(file_path);
             String res = checkFirmaQRpdfA("MODELLO6", us.getUsername(), pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
-            
+
             if (res.equals("OK")) {
                 DocumentiPrg doc_m6 = new DocumentiPrg();
                 doc_m6.setPath(path_m6.replace("\\", "/"));
                 doc_m6.setTipo(modello6);
                 doc_m6.setProgetto(pf);
                 e.persist(doc_m6);
-                
+
                 List<DocumentiPrg> documenti = pf.getDocumenti();
                 documenti.add(doc_m6);
                 pf.setDocumenti(documenti);
@@ -3620,20 +3622,20 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void modifyEmail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         String iddocente = getRequestValue(request, "id");
         String email = getRequestValue(request, "email");
-        
+
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
         try {
-            
+
             e.begin();
             Docenti d = e.getEm().find(Docenti.class,
                     Long.parseLong(iddocente));
@@ -3651,20 +3653,20 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void deleteModello5Alunno(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
-        
+
         Entity e = new Entity();
-        
+
         try {
             e.begin();
             MascheraM5 m5 = e.getEm().find(MascheraM5.class,
@@ -3696,12 +3698,12 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadM5Alunno(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //TO DO 
         JsonObject resp = new JsonObject();
@@ -3718,16 +3720,16 @@ public class OperazioniSA extends HttpServlet {
             Documenti_Allievi modello5_allievo = a.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0
                     && dc.getTipo().getId().equals(tipodoc_m5.getId())
             ).findFirst().orElse(null);
-            
+
             boolean modello5OK = false;
             String erroremodello5OK = "MODELLO 5 ERRATO. CONTROLLARE.";
-            
+
             try {
-                
+
                 if (modello5_allievo != null) {
                     File dir = new File(modello5_allievo.getPath());
                     p.write(dir.getAbsolutePath());
-                    
+
                     File pdfdest = new File(dir.getAbsolutePath());
                     String res = checkFirmaQRpdfA("MODELLO5", us.getUsername(),
                             pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
@@ -3735,7 +3737,7 @@ public class OperazioniSA extends HttpServlet {
                         modello5OK = false;
                         erroremodello5OK = res;
                     }
-                    
+
                 } else {
                     String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", Utility.correctName(a.getCodicefiscale()));
                     File dir = new File(path);
@@ -3777,26 +3779,26 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void scaricaModello7(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         User us = (User) request.getSession().getAttribute("user");
-        
+
         String idallievo = getRequestValue(request, "iduser");
         String orerendicontabili = Utility.roundFloatAndFormat(Long.parseLong(getRequestValue(request, "orerendicontabili")), true);
-        
+
         if (Utility.demoversion) {
             orerendicontabili = "80";
         }
-        
+
         File downloadFile = null;
         try {
-            
+
             Entity e = new Entity();
             e.begin();
             Allievi a = e.getEm().find(Allievi.class,
@@ -3804,11 +3806,11 @@ public class OperazioniSA extends HttpServlet {
             downloadFile = Pdf_new.MODELLO7(e, us.getUsername(), a, orerendicontabili,
                     new DateTime(), true);
             e.close();
-            
+
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -3831,9 +3833,9 @@ public class OperazioniSA extends HttpServlet {
         } else {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
-        
+
     }
-    
+
     protected void uploadRegistroComplessivo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
@@ -3845,14 +3847,14 @@ public class OperazioniSA extends HttpServlet {
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("id")));
             DocumentiPrg registroComplessivoPresente = pf.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0 && dc.getTipo().getId() == 30L).findFirst().orElse(null);
-            
+
             boolean registroOK;
             String erroreregistroOK = "REGISTRO COMPLESSIVO ERRATO. CONTROLLARE.";
-            
+
             if (registroComplessivoPresente != null) {
                 File dir = new File(registroComplessivoPresente.getPath());
                 p.write(dir.getAbsolutePath());
-                
+
                 String res = checkFirmaQRpdfA("REGISTRO COMPLESSIVO", String.valueOf(pf.getId()),
                         dir, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
                 if (!res.equals("OK")) {
@@ -3861,24 +3863,24 @@ public class OperazioniSA extends HttpServlet {
                 } else {
                     registroOK = true;
                 }
-                
+
             } else {
                 TipoDoc complessivo = e.getEm().find(TipoDoc.class,
                         30L);
-                
+
                 String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
                 String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", pf.getId().toString());
-                
+
                 File dir = new File(path);
                 createDir(path);
                 Part part = request.getPart("file");
                 String ext = part.getSubmittedFileName().substring(part.getSubmittedFileName().lastIndexOf("."));
-                
+
                 path += complessivo.getDescrizione() + "_" + today + ext;
                 part.write(dir.getAbsolutePath() + File.separator + complessivo.getDescrizione() + "_" + today + ext);
-                
+
                 File filedest = new File(dir.getAbsolutePath() + File.separator + complessivo.getDescrizione() + "_" + today + ext);
-                
+
                 String res = checkFirmaQRpdfA("REGISTRO COMPLESSIVO", String.valueOf(pf.getId()),
                         filedest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
                 if (!res.equals("OK")) {
@@ -3887,18 +3889,18 @@ public class OperazioniSA extends HttpServlet {
                 } else {
                     registroOK = true;
                 }
-                
+
                 DocumentiPrg comp = new DocumentiPrg();
                 comp.setPath(path.replace("\\", "/"));
                 comp.setTipo(complessivo);
                 comp.setProgetto(pf);
                 e.persist(comp);
-                
+
                 List<DocumentiPrg> docs = pf.getDocumenti();
                 docs.add(comp);
                 pf.setDocumenti(docs);
             }
-            
+
             if (registroOK) {
                 e.merge(pf);
                 e.flush();
@@ -3909,7 +3911,7 @@ public class OperazioniSA extends HttpServlet {
                 resp.addProperty("result", false);
                 resp.addProperty("message", erroreregistroOK);
             }
-            
+
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA uploadRegistroComplessivo: " + ex.getMessage());
             resp.addProperty("result", false);
@@ -3917,20 +3919,20 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void uploadDichiarazioneM6(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         JsonObject resp = new JsonObject();
-        
+
         Entity e = new Entity();
         e.begin();
-        
+
         try {
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(request.getParameter("pf")));
@@ -3972,11 +3974,11 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void abilitaModificaCalendarM3(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
@@ -3989,10 +3991,10 @@ public class OperazioniSA extends HttpServlet {
                     "SOA");
             pf.setStato(SOA);
             m3.setStato("R");
-            
+
             e.merge(pf);
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA abilitaModificaCalendarM3: " + ex.getMessage());
@@ -4004,9 +4006,9 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void abilitaModificaCalendarM4(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
@@ -4019,10 +4021,10 @@ public class OperazioniSA extends HttpServlet {
                     "SOB");
             pf.setStato(SOA);
             m4.setStato("R");
-            
+
             e.merge(pf);
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA abilitaModificaCalendarM4: " + ex.getMessage());
@@ -4034,11 +4036,11 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void deleteAllLessons(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Date today = new Date();
         DateTimeComparator dateTimeComparator = DateTimeComparator.getDateOnlyInstance();
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
@@ -4049,7 +4051,7 @@ public class OperazioniSA extends HttpServlet {
             ModelliPrg m = e.getEm().find(ModelliPrg.class,
                     Long.parseLong(request.getParameter("modello")));
             String track = "deleteAllLessons. Cancellazione lezioni del PF (" + pf.getId() + " - " + tipo + " " + m.getId() + "): ";
-            
+
             for (Lezioni_Modelli l : m.getLezioni()) {
                 if (dateTimeComparator.compare(l.getGiorno(), today) > -1) {
                     track += l.getId() + " ";
@@ -4063,11 +4065,11 @@ public class OperazioniSA extends HttpServlet {
                 m.setStato("S");
             }
             e.merge(pf);
-            
+
             e.persist(new Tracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), track));
-            
+
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA deleteAllLessons: " + ex.getMessage());
@@ -4079,10 +4081,10 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void deleteByLesson(HttpServletRequest request, HttpServletResponse response) throws IOException {
         DateTimeComparator dateTimeComparator = DateTimeComparator.getDateOnlyInstance();
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
@@ -4103,11 +4105,11 @@ public class OperazioniSA extends HttpServlet {
             track += "SET NULL";
             m3.setStato("S");
             e.merge(pf);
-            
+
             e.persist(new Tracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), track));
-            
+
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA abilitaModificaCalendarM3: " + ex.getMessage());
@@ -4119,10 +4121,10 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void deleteByGroup(HttpServletRequest request, HttpServletResponse response) throws IOException {
         DateTimeComparator dateTimeComparator = DateTimeComparator.getDateOnlyInstance();
-        
+
         Entity e = new Entity();
         JsonObject resp = new JsonObject();
         try {
@@ -4149,11 +4151,11 @@ public class OperazioniSA extends HttpServlet {
             track += "SET NULL";
             m4.setStato("L");
             e.merge(pf);
-            
+
             e.persist(new Tracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), track));
-            
+
             e.commit();
-            
+
             resp.addProperty("result", true);
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA abilitaModificaCalendarM3: " + ex.getMessage());
@@ -4165,15 +4167,15 @@ public class OperazioniSA extends HttpServlet {
         response.getWriter().flush();
         response.getWriter().close();
     }
-    
+
     protected void simulaconcludi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         Entity e = new Entity();
-        
+
         String idpr = getRequestValue(request, "idpr");
         String fase = getRequestValue(request, "fase");
-        
+
         try {
             e.begin();
             Long hh36 = Long.valueOf(129600000);
@@ -4186,13 +4188,13 @@ public class OperazioniSA extends HttpServlet {
 
 //            Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) p.getId());
             Map<Long, Long> oreRendicontabili_faseA = Action.OreRendicontabiliAlunni_faseA((int) (long) p.getId());
-            
+
             if (fase.equals("1")) {
-                
+
                 for (Allievi a : al) {
                     if (oreRendicontabili_faseA.get(a.getId()) == null || (oreRendicontabili_faseA.get(a.getId())
                             != null && oreRendicontabili_faseA.get(a.getId()).compareTo(hh36) < 0)) {
-                        
+
                     } else {
                         if (allievi_m5.get(a.getId()) == null) {
 //                            System.out.println("INSERIRE () " + a.getCognome());
@@ -4239,11 +4241,11 @@ public class OperazioniSA extends HttpServlet {
                             e.persist(m5);
                             a.getDocumenti().add(m5);
                             e.merge(a);
-                            
+
                         }
                     }
                 }
-                
+
             }
             e.commit();
         } catch (Exception ex) {
@@ -4251,32 +4253,32 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         redirect(request, response, request.getContextPath() + "/page/sa/concludiPrg.jsp?id=" + idpr);
     }
-    
+
     protected void simulafaseb(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
-        
+
         try {
             e.begin();
             String idpr = getRequestValue(request, "idpr");
-            
+
             ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(idpr));
-            
+
             ModelliPrg m4 = Utility.filterModello4(pr.getModelli());
-            
+
             Database d1 = new Database(false);
             d1.svuotaregistroB(idpr);
             m4.getLezioni().forEach(lez -> {
                 d1.popolaregistro_B(pr, lez);
             });
             d1.closeDB();
-            
+
             pr.setStato(e.getEm().find(StatiPrg.class,
                     "F"));
             e.merge(pr);
@@ -4288,68 +4290,68 @@ public class OperazioniSA extends HttpServlet {
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void simulafasea(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         JsonObject resp = new JsonObject();
         Entity e = new Entity();
-        
+
         try {
             e.begin();
             String idpr = getRequestValue(request, "idpr");
-            
+
             ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
                     Long.parseLong(idpr));
-            
+
             ModelliPrg m3 = Utility.filterModello3(pr.getModelli());
-            
+
             DateTime oggi = new DateTime();
-            
+
             Date startpr = oggi.minusDays(12).withMillisOfDay(0).toDate();
             Date endpr = oggi.plusDays(30).withMillisOfDay(0).toDate();
             pr.setStart(startpr);
             pr.setEnd(endpr);
             pr.setEnd_fa(oggi.minusDays(1).withMillisOfDay(0).toDate());
             e.merge(pr);
-            
+
             Database d1 = new Database(false);
-            
+
             d1.svuotaregistro(idpr);
-            
+
             m3.getLezioni().forEach(l1 -> {
-                
+
                 int subday = 13 - l1.getLezione_calendario().getLezione();
                 Date dest = oggi.minusDays(subday).withMillisOfDay(0).toDate();
                 l1.setGiorno(dest);
                 e.merge(l1);
                 d1.popolaregistro_A(pr, l1);
-                
+
             });
-            
+
             d1.closeDB();
             e.commit();
             resp.addProperty("result", true);
-            
+
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA abilitaModificaCalendarM3: " + ex.getMessage());
             resp.addProperty("result", false);
         } finally {
             e.close();
         }
-        
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
-        
+
     }
-    
+
     protected void simulacalendario(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         Entity e = new Entity();
@@ -4357,39 +4359,39 @@ public class OperazioniSA extends HttpServlet {
         String idpr = getRequestValue(request, "idpr");
         try {
             e.begin();
-            
+
             String idmodello = getRequestValue(request, "idmodello");
-            
+
             ModelliPrg m = e.getEm().find(ModelliPrg.class,
                     Long.parseLong(idmodello));
-            
+
             List<LezioneCalendario> lezioniCalendario_m3 = e.getLezioniByModello(3);
             List<LezioneCalendario> lezioniCalendario_m4 = e.getLezioniByModello(4);
-            
+
             List<LezioneCalendario> grouppedByLezione_m3 = Utility.grouppedByLezione(lezioniCalendario_m3);
             List<LezioneCalendario> grouppedByLezione_m4 = Utility.grouppedByLezione(lezioniCalendario_m4);
-            
+
             if (modello.equals("3")) {
                 DateTime start = null;
                 for (LezioneCalendario lez : grouppedByLezione_m3) {
-                    
+
                     Lezioni_Modelli temp = Utility.lezioneFiltered(m.getLezioni(), lez.getId());
                     if (lez.isDoppia()) {
                         if (temp == null) {
                             if (start != null) {
                                 start = start.plusDays(1);
-                                
+
                                 double orastart1 = 9.0;
-                                
+
                                 double orastart2 = 16.0;
-                                
+
                                 Date giorno = start.toDate();
                                 Docenti d = m.getProgetto().getDocenti().get(0);
-                                
+
                                 double oraend1 = orastart1 + lez.getOre1();
-                                
+
                                 BigDecimal bigDecimal1 = new BigDecimal(String.valueOf(oraend1));
-                                
+
                                 int intValue1 = bigDecimal1.intValue();
                                 BigDecimal doublevalue = bigDecimal1.subtract(new BigDecimal(intValue1));
                                 String oraend1_v = String.valueOf(intValue1);
@@ -4401,10 +4403,10 @@ public class OperazioniSA extends HttpServlet {
                                 } else {
                                     oraend1_v += ":00";
                                 }
-                                
+
                                 double oraend2 = orastart2 + lez.getOre2();
                                 BigDecimal bigDecimal2 = new BigDecimal(String.valueOf(oraend2));
-                                
+
                                 int intValue2 = bigDecimal2.intValue();
                                 BigDecimal doublevalue2 = bigDecimal2.subtract(new BigDecimal(intValue2));
                                 String oraend2_v = String.valueOf(intValue2);
@@ -4416,15 +4418,15 @@ public class OperazioniSA extends HttpServlet {
                                 } else {
                                     oraend2_v += ":00";
                                 }
-                                
+
                                 Date orariostart1 = new SimpleDateFormat("HH:mm").parse("09:00");
                                 Date orarioend1 = new SimpleDateFormat("HH:mm").parse(oraend1_v);
                                 Date orariostart2 = new SimpleDateFormat("HH:mm").parse("16:00");
                                 Date orarioend2 = new SimpleDateFormat("HH:mm").parse(oraend2_v);
-                                
+
                                 Lezioni_Modelli lm1 = new Lezioni_Modelli(giorno, orariostart1, orarioend1, new Date(), m, lez, d);
                                 Lezioni_Modelli lm2 = new Lezioni_Modelli(giorno, orariostart2, orarioend2, new Date(), m, lez, d);
-                                
+
                                 e.persist(lm1);
                                 e.persist(lm2);
 //                            System.out.println("LEZIONE " + lez.getLezione() + " DOPPIA DA INSERIRE " + lm1.getGiorno() + " " + lm1.getOrainizio() + " - " + lm1.getOrafine());
@@ -4451,16 +4453,16 @@ public class OperazioniSA extends HttpServlet {
                         }
                     }
                 }
-                
+
                 m.setStato("R");
                 e.merge(m);
-                
+
                 e.commit();
-                
+
             } else {
-                
+
                 int gruppi = Utility.numberGroupsModello4(m.getProgetto());
-                
+
                 for (int i = 1; i <= gruppi; i++) {
                     DateTime start = new DateTime();
                     for (LezioneCalendario lez : grouppedByLezione_m4) {
@@ -4468,18 +4470,18 @@ public class OperazioniSA extends HttpServlet {
                         if (temp == null) {
                             if (lez.isDoppia()) {
                                 start = start.plusDays(1);
-                                
+
                                 double orastart1 = 9.0;
-                                
+
                                 double orastart2 = 16.0;
-                                
+
                                 Date giorno = start.toDate();
                                 Docenti d = m.getProgetto().getDocenti().get(0);
-                                
+
                                 double oraend1 = orastart1 + lez.getOre1();
-                                
+
                                 BigDecimal bigDecimal1 = new BigDecimal(String.valueOf(oraend1));
-                                
+
                                 int intValue1 = bigDecimal1.intValue();
                                 BigDecimal doublevalue = bigDecimal1.subtract(new BigDecimal(intValue1));
                                 String oraend1_v = String.valueOf(intValue1);
@@ -4491,10 +4493,10 @@ public class OperazioniSA extends HttpServlet {
                                 } else {
                                     oraend1_v += ":00";
                                 }
-                                
+
                                 double oraend2 = orastart2 + lez.getOre2();
                                 BigDecimal bigDecimal2 = new BigDecimal(String.valueOf(oraend2));
-                                
+
                                 int intValue2 = bigDecimal2.intValue();
                                 BigDecimal doublevalue2 = bigDecimal2.subtract(new BigDecimal(intValue2));
                                 String oraend2_v = String.valueOf(intValue2);
@@ -4506,18 +4508,18 @@ public class OperazioniSA extends HttpServlet {
                                 } else {
                                     oraend2_v += ":00";
                                 }
-                                
+
                                 Date orariostart1 = new SimpleDateFormat("HH:mm").parse("09:00");
                                 Date orarioend1 = new SimpleDateFormat("HH:mm").parse(oraend1_v);
                                 Date orariostart2 = new SimpleDateFormat("HH:mm").parse("16:00");
                                 Date orarioend2 = new SimpleDateFormat("HH:mm").parse(oraend2_v);
-                                
+
                                 Lezioni_Modelli lm1 = new Lezioni_Modelli(giorno, orariostart1, orarioend1, new Date(), m, lez, d, i);
                                 Lezioni_Modelli lm2 = new Lezioni_Modelli(giorno, orariostart2, orarioend2, new Date(), m, lez, d, i);
-                                
+
                                 e.persist(lm1);
                                 e.persist(lm2);
-                                
+
                             } else {
                                 start = start.plusDays(1);
                                 Date giorno, orariostart, orarioend;
@@ -4532,26 +4534,26 @@ public class OperazioniSA extends HttpServlet {
                         } else {
                             start = new DateTime(temp.getGiorno().getTime());
                         }
-                        
+
                     }
-                    
+
                 }
                 m.setStato("R");
                 e.merge(m);
-                
+
                 e.commit();
             }
-            
+
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         } finally {
             e.close();
         }
-        
+
         redirect(request, response, request.getContextPath() + "/page/sa/modello" + modello + ".jsp?id=" + idpr);
-        
+
     }
-    
+
     protected void addregistro(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String idpr = getRequestValue(request, "idpr");
@@ -4559,7 +4561,7 @@ public class OperazioniSA extends HttpServlet {
         String giorno = getRequestValue(request, "giorno");
         String gruppofaseb = getRequestValue(request, "gruppofaseb");
         try {
-            
+
             Entity e = new Entity();
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(idpr));
             List<Allievi> allievi = p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
@@ -4568,21 +4570,21 @@ public class OperazioniSA extends HttpServlet {
                     .equalsIgnoreCase("15")
             ).collect(Collectors.toList());
             List<Docenti> docenti = p.getDocenti();
-            
+
             String idsa = getRequestValue(request, "idsa");
             String cip = getRequestValue(request, "cip");
-            
+
             DateTime data = Utility.format(Utility.getRequestValue(request, "data"), "yyyy-MM-dd");
-            
+
             String fase = getRequestValue(request, "fase");
             String start = getRequestValue(request, "start");
-            
+
             List<Registro_completo> user_start = new ArrayList<>();
             List<String[]> list_utenti = new ArrayList<>();
             List<String[]> list_start = new ArrayList<>();
             List<String[]> list_ud = new ArrayList<>();
             List<String> idlezioni = new ArrayList<>();
-            
+
             Enumeration<String> parameterNames = request.getParameterNames();
             while (parameterNames.hasMoreElements()) {
                 String paramName = parameterNames.nextElement();
@@ -4592,13 +4594,13 @@ public class OperazioniSA extends HttpServlet {
                     String ruolo = paramName.contains("doc") ? "DOCENTE" : "ALLIEVO NEET";
                     idlezioni.add(idl);
                     list_utenti.add(new String[]{iduser, idl, String.valueOf(paramName.contains("doc")), getRequestValue(request, paramName)});
-                    
+
                     Registro_completo r1 = new Registro_completo();
                     r1.setId(Integer.parseInt(idl));
                     r1.setIdutente(Integer.parseInt(iduser));
                     r1.setRuolo(ruolo);
                     r1.setTotaleorerendicontabili(Long.parseLong(getRequestValue(request, paramName)));
-                    
+
                     Registro_completo verificasepresente = user_start.stream()
                             .filter(u1 -> u1.getIdutente() == r1.getIdutente()
                             && u1.getRuolo().equals(r1.getRuolo())).findAny().orElse(null);
@@ -4607,20 +4609,20 @@ public class OperazioniSA extends HttpServlet {
                     } else {
                         verificasepresente.setTotaleorerendicontabili(verificasepresente.getTotaleorerendicontabili() + r1.getTotaleorerendicontabili());
                     }
-                    
+
                 } else if (paramName.contains("_") && paramName.contains("start")) {
                     list_start.add(new String[]{paramName.split("_")[1], getRequestValue(request, paramName)});
                 } else if (paramName.contains("_") && paramName.contains("ud")) {
                     list_ud.add(new String[]{paramName.split("_")[1], getRequestValue(request, paramName)});
                 }
             }
-            
+
             String ud = "";
             for (String[] ud1 : list_ud) {
                 ud += ud1[1] + "_";
             }
             ud = StringUtils.removeEnd(ud, "_");
-            
+
             AtomicInteger numpartecipanti = new AtomicInteger(0);
             AtomicDouble orafinedocenti = new AtomicDouble(0.0);
             idlezioni.stream().distinct().sorted().collect(Collectors.toList()).forEach(
@@ -4637,7 +4639,7 @@ public class OperazioniSA extends HttpServlet {
                         }
                     }
             );
-            
+
             DateTime st_data = new DateTime(2000, 1, 1, Integer.parseInt(start.split(":")[0]), Integer.parseInt(start.split(":")[1]));
             DateTime res_data = st_data.plusMillis(orafinedocenti.intValue());
             long durata = new Period(st_data, res_data, PeriodType.millis()).getValue(0);
@@ -4667,7 +4669,7 @@ public class OperazioniSA extends HttpServlet {
                         u1.setCognome(d1.getCognome());
                         u1.setNome(d1.getNome());
                         u1.setEmail(d1.getEmail());
-                        
+
                         u1.setOrelogin(start);
                         for (String[] st1 : list_start) {
                             if (st1[0].equals(String.valueOf(u1.getId()))) {
@@ -4675,10 +4677,10 @@ public class OperazioniSA extends HttpServlet {
                                 break;
                             }
                         }
-                        
+
                         u1.setOrelogout(new DateTime(1, 1, 1, Integer.parseInt(u1.getOrelogin().split(":")[0]),
                                 Integer.parseInt(u1.getOrelogin().split(":")[1])).plusMillis((int) u1.getTotaleorerendicontabili()).toString("HH:mm"));
-                        
+
                     }
                 } else {
                     Allievi d1 = allievi.stream().filter(dd -> dd.getId().intValue() == u1.getIdutente()).findAny().orElse(null);
@@ -4690,24 +4692,204 @@ public class OperazioniSA extends HttpServlet {
                         u1.setOrelogout(new DateTime(1, 1, 1, Integer.parseInt(u1.getOrelogin().split(":")[0]),
                                 Integer.parseInt(u1.getOrelogin().split(":")[1])).plusMillis((int) u1.getTotaleorerendicontabili()).toString("HH:mm"));
                     }
-                    
+
                 }
-                
+
                 if (u1.getTotaleorerendicontabili() > 0) {
                     Database db = new Database(false);
                     db.insertRegistro(u1);
                     db.closeDB();
                 }
             });
-            
+
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
         redirect(request, response, request.getContextPath() + "/page/sa/registroaula_edit.jsp?idpr="
                 + idpr + "&data=" + datareturn + "&giorno=" + giorno + "&gruppo=" + gruppofaseb);
+
+    }
+
+    protected void SCARICAREGISTROCARTACEO(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        File downloadFile = null;
+        try {
+            Entity e = new Entity();
+            String idpresenza = getRequestValue(request, "idpresenza");
+            Presenze_Lezioni pl1 = e.getEm().find(Presenze_Lezioni.class, Long.valueOf(idpresenza));
+            downloadFile = new File(pl1.getPathdocumento());
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        }
+        
+        if (downloadFile != null && downloadFile.exists()) {
+            OutputStream outStream;
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                String mimeType = probeContentType(downloadFile.toPath());
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                String headerKey = "Content-Disposition";
+                String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                response.setHeader(headerKey, headerValue);
+                outStream = response.getOutputStream();
+                byte[] buffer = new byte[4096 * 4096];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, bytesRead);
+                }
+            }
+            outStream.close();
+        } else {
+            redirect(request, response, request.getContextPath() + "/404.jsp");
+        }
         
     }
     
+    protected void SCARICAREGISTROCARTACEOBASE(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        File downloadFile = null;
+        try {
+            User us = (User) request.getSession().getAttribute("user");
+            Entity e = new Entity();
+            String idcalendar = getRequestValue(request, "idcalendar");
+            Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, Long.valueOf(idcalendar));
+            downloadFile = Pdf_new.REGISTROCARTACEO(e, us.getUsername(), lm, new DateTime());
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        }
+
+        if (downloadFile != null && downloadFile.exists()) {
+            OutputStream outStream;
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                String mimeType = probeContentType(downloadFile.toPath());
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                String headerKey = "Content-Disposition";
+                String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                response.setHeader(headerKey, headerValue);
+                outStream = response.getOutputStream();
+                byte[] buffer = new byte[4096 * 4096];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, bytesRead);
+                }
+            }
+            outStream.close();
+        } else {
+            redirect(request, response, request.getContextPath() + "/404.jsp");
+        }
+
+    }
+
+    protected void SALVAPRESENZELEZIONE(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idcalendar = getRequestValue(request, "idcalendar");
+//        Utility.printRequest(request);
+        Entity e = new Entity();
+        User us = (User) request.getSession().getAttribute("user");
+        try {
+
+            String qrcrop = e.getPath("qr_crop");
+
+            TipoDoc registrogiornaliero = e.getEm().find(TipoDoc.class,
+                    3L);
+
+            String idpr = getRequestValue(request, "idpr");
+
+            String orai = getRequestValue(request, "orai");
+            String oraf = getRequestValue(request, "oraf");
+            Docenti d1 = e.getEm().find(Docenti.class, Long.valueOf(getRequestValue(request, "docente")));
+
+            ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
+                    Long.valueOf(idpr));
+            Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, Long.valueOf(idcalendar));
+
+            if (pr != null && lm != null && lm.getModello().getProgetto().getId().equals(pr.getId())) {
+
+                Part p = request.getPart("registrofirmato");
+
+                if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
+                    String today = new SimpleDateFormat("dd-MM-yyyy").format(lm.getGiorno());
+                    String path = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", pr.getId().toString());
+                    File dir = new File(path);
+                    createDir(path);
+                    Part part = request.getPart("registrofirmato");
+                    String ext = part.getSubmittedFileName().substring(part.getSubmittedFileName().lastIndexOf("."));
+                    String finp = dir.getAbsolutePath() + File.separator + registrogiornaliero.getDescrizione() + "_" + today + "_" + lm.getId() + ext;
+                    part.write(finp);
+                    File filedest = new File(finp);
+
+                    String res = checkFirmaQRpdfA("REGISTRO GIORNALIERO", String.valueOf(pr.getId()),
+                            filedest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
+
+                    if (!res.equals("OK")) {
+                        insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), res);
+                        redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=KO1");
+                    } else {
+                        e.begin();
+                        Presenze_Lezioni pl1 = new Presenze_Lezioni();
+                        pl1.setDatalezione(lm.getGiorno());
+                        pl1.setDocente(d1);
+                        pl1.setOrainizio(orai);
+                        pl1.setOrafine(oraf);
+                        pl1.setLezioneriferimento(lm);
+                        pl1.setDatainserimento(new DateTime().toDate());
+                        pl1.setProgetto(pr);
+                        pl1.setPathdocumento(finp.replace("\\", "/"));
+                        e.persist(pl1);
+
+                        e.commit();
+                        e.close();
+
+                        for (Allievi a1 : estraiAllieviOK(pr)) {
+
+                            Long allievo_durata = 0L;
+
+                            boolean allievo_presente = getRequestValue(request, "sino_" + a1.getId()).equals("1");
+
+                            String allievo_orai = getRequestValue(request, "orai_" + a1.getId());
+                            String allievo_oraf = getRequestValue(request, "oraf_" + a1.getId());
+                            if (!allievo_presente) {
+                                allievo_orai = "00:00";
+                                allievo_oraf = "00:00";
+                            } else {
+                                allievo_durata = calcolaMillis(orai, oraf);
+                            }
+                            Entity ep2 = new Entity();
+                            ep2.begin();
+                            //PERSIST
+                            Presenze_Lezioni_Allievi pla = new Presenze_Lezioni_Allievi();
+                            pla.setDatainserimento(new DateTime().toDate());
+                            pla.setDurata(allievo_durata);
+                            pla.setOrainizio(allievo_orai);
+                            pla.setOrafine(allievo_oraf);
+                            pla.setAllievo(a1);
+                            pla.setPresenzelezioni(pl1);
+                            pla.setPresente(allievo_presente);
+                            ep2.persist(pla);
+                            ep2.commit();
+                            ep2.close();
+                            redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=OK");
+                        }
+                    }
+                } else {
+                    redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=KO2");
+                }
+            } else {
+                redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=KO3");
+            }
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+            redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=KO4");
+        }
+    }
+
     protected void editregistro(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<String[]> update = new ArrayList<>();
@@ -4725,9 +4907,9 @@ public class OperazioniSA extends HttpServlet {
         String datareturn = StringUtils.replace(Utility.getRequestValue(request, "data"), "-", "");
         String giorno = getRequestValue(request, "giorno");
         String gruppofaseb = getRequestValue(request, "gruppofaseb");
-        
+
         AtomicDouble addstart = new AtomicDouble(0.0);
-        
+
         update.stream().filter(up1 -> up1[2].equals("true")).forEach(up1 -> {
             try {
                 Long new_millisrend = Long.parseLong(up1[1]);
@@ -4736,27 +4918,27 @@ public class OperazioniSA extends HttpServlet {
                 insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
             }
         });
-        
+
         DateTime st_data = new DateTime(2000, 1, 1, Integer.parseInt(start.split(":")[0]), Integer.parseInt(start.split(":")[1]));
         DateTime res_data = st_data.plusMillis(addstart.intValue());
         Period p = new Period(st_data, res_data, PeriodType.millis());
         long durata = p.getValue(0);
         String oraend = res_data.toString("HH:mm");
-        
+
         update.stream().forEach(up1 -> {
             try {
                 Long new_millisrend = Long.parseLong(up1[1]);
-                
+
                 DateTime res_datalogout = new DateTime(1, 1, 1, Integer.parseInt(start.split(":")[0]),
                         Integer.parseInt(start.split(":")[1])).plusMillis(new_millisrend.intValue());
-                
+
                 String upd = "UPDATE registro_completo SET totaleore='" + new_millisrend + "', totaleorerendicontabili = '" + new_millisrend
                         + "', orainizio='" + start + "', orafine='" + oraend + "', durata = '" + durata
                         + "', orelogin='" + start + "', orelogout='" + res_datalogout.toString("HH:mm") + "' "
                         + "WHERE id = " + up1[0] + " AND idprogett_formativi=" + idpr;
-                
+
                 Database db = new Database(false);
-                
+
                 try (Statement st = db.getC().createStatement()) {
                     st.execute(upd);
                 }
@@ -4767,12 +4949,12 @@ public class OperazioniSA extends HttpServlet {
                 insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
             }
         });
-        
+
         redirect(request, response, request.getContextPath() + "/page/sa/registroaula_edit.jsp?idpr="
                 + idpr + "&data=" + datareturn + "&giorno=" + giorno + "&gruppo=" + gruppofaseb);
-        
+
     }
-    
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User us = (User) request.getSession().getAttribute("user");
@@ -4981,39 +5163,48 @@ public class OperazioniSA extends HttpServlet {
                 case "resetdatidemo":
                     resetdatidemo(request, response);
                     break;
+                case "SALVAPRESENZELEZIONE":
+                    SALVAPRESENZELEZIONE(request, response);
+                    break;
+                case "SCARICAREGISTROCARTACEOBASE":
+                    SCARICAREGISTROCARTACEOBASE(request, response);
+                    break;
+                case "SCARICAREGISTROCARTACEO":
+                    SCARICAREGISTROCARTACEO(request, response);
+                    break;
                 default:
                     break;
-                
+
             }
         }
     }
-    
+
     private class checkResult {
-        
+
         boolean result;
         String message = "";
-        
+
         public boolean isResult() {
             return result;
         }
-        
+
         public void setResult(boolean result) {
             this.result = result;
         }
-        
+
         public String getMessage() {
             return message;
         }
-        
+
         public void setMessage(String message) {
             this.message = message;
         }
     }
-    
+
     private double getHour(Date in, Date out) {
         return ((double) (out.getTime() - in.getTime()) / 3600000);
     }
-    
+
     private boolean checkFaseAllievi(List<Allievi> allievi) {
         for (Allievi a : allievi) {
             if (a.getEsito().equals("Fase B")) {
@@ -5022,7 +5213,7 @@ public class OperazioniSA extends HttpServlet {
         }
         return false;
     }
-    
+
     private checkResult checkScadenze(ProgettiFormativi prg) {
         checkResult out = new checkResult();
         Date today = new Date();
@@ -5033,7 +5224,7 @@ public class OperazioniSA extends HttpServlet {
                 out.setMessage(out.getMessage() + d.getDocente().getCognome() + ", ");
             }
         });
-        
+
         if (!out.getMessage().equals("")) {
             out.message = "Docenti col documento scaduto:<br>" + out.message.substring(0, out.getMessage().lastIndexOf(","));
         }
@@ -5044,11 +5235,11 @@ public class OperazioniSA extends HttpServlet {
                 allievi += a.getCognome() + ", ";
             }
         }
-        
+
         if (!allievi.equals("")) {
             out.message = out.message + "<br><br>Allievi col documento scaduto:<br>" + allievi.substring(0, allievi.lastIndexOf(","));
         }
-        
+
         return out;
     }
 

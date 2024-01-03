@@ -59,7 +59,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
                     orderable: false,
                     render: function (data, type, row, meta) {
 
-                        var option = '<div class="dropdown dropdown-inline">'
+                        var option = '<div class="dropdown position-static">'
                                 + '<button type="button" class="btn btn-icon btn-sm btn-icon-md btn-circle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'
                                 + '   <i class="flaticon-more-1"></i>'
                                 + '</button>'

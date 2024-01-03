@@ -118,6 +118,7 @@ import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Store;
 import org.joda.time.DateTime;
+import static rc.so.util.Utility.sd1;
 
 /**
  *
@@ -171,6 +172,20 @@ public class Pdf_new {
         File out1 = MODELLO3_BASE(e, username, sa, pf, al, docenti, lezioni, staff, dataconsegna, flatten);
         if (out1 != null) {
             File out2 = convertPDFA(out1, "MODELLO3", e);
+            if (out2 != null) {
+                return out2;
+            }
+        }
+        return null;
+    }
+
+    public static File REGISTROCARTACEO(Entity e,
+            String username,
+            Lezioni_Modelli lm,
+            DateTime dataconsegna) {
+        File out1 = REGISTROCARTACEO_BASE(null, e, username, lm, dataconsegna);
+        if (out1 != null) {
+            File out2 = convertPDFA(out1, "REGISTROCARTACEO", e);
             if (out2 != null) {
                 return out2;
             }
@@ -318,6 +333,103 @@ public class Pdf_new {
     }
 
     //MODELLI
+    private static File REGISTROCARTACEO_BASE(
+            String pathdest,
+            Entity e,
+            String username,
+            Lezioni_Modelli lm,
+            DateTime dataconsegna) {
+
+        try {
+
+            TipoDoc p = e.getEm().find(TipoDoc.class, 4L);
+            String contentb64 = p.getModello();
+
+            File pdfOut;
+            if (pathdest == null) {
+                String pathtemp = e.getPath("pathtemp");
+                createDir(pathtemp);
+                pdfOut = new File(pathtemp
+                        + username + "_"
+                        + StringUtils.deleteWhitespace(
+                                "REGISTROCARTACEO_BASE_"
+                                + sd1.format(lm.getGiorno()) + "_" + lm.getModello().getProgetto().getId() + "_"
+                                + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".R0.pdf"));
+            } else {
+                pdfOut = new File(pathdest);
+            }
+
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+                PdfAcroForm form = getAcroForm(pdfDoc, true);
+                form.setGenerateAppearance(true);
+                Map<String, PdfFormField> fields = form.getAllFormFields();
+
+                //PAG.1
+                setFieldsValue(form, fields, "NOMESA", lm.getModello().getProgetto().getSoggetto().getRagionesociale().toUpperCase());
+                setFieldsValue(form, fields, "DD", lm.getModello().getProgetto().getSoggetto().getDd());
+                setFieldsValue(form, fields, "COGNOME", lm.getModello().getProgetto().getSoggetto().getCognome().toUpperCase());
+                setFieldsValue(form, fields, "NOME", lm.getModello().getProgetto().getSoggetto().getNome().toUpperCase());
+                setFieldsValue(form, fields, "CARICA", lm.getModello().getProgetto().getSoggetto().getCarica().toUpperCase());
+                setFieldsValue(form, fields, "CIP", lm.getModello().getProgetto().getCip());
+                setFieldsValue(form, fields, "DATAINIZIO", sdfITA.format(lm.getModello().getProgetto().getStart()));
+                setFieldsValue(form, fields, "DATAFINE", sdfITA.format(lm.getModello().getProgetto().getEnd()));
+
+                if (lm.getModello().getProgetto().getSedefisica() != null) {
+                    Comuni c_s = lm.getModello().getProgetto().getSedefisica().getComune();
+                    setFieldsValue(form, fields, "REGIONESEDE", c_s.getRegione());
+                    setFieldsValue(form, fields, "COMUNESEDE", c_s.getNome());
+                    setFieldsValue(form, fields, "PROVINCIASEDE", c_s.getCod_provincia());
+//                    setFieldsValue(form, fields, "CAPSEDE", c_s.getC());
+                    setFieldsValue(form, fields, "INDIRIZZOSEDE", lm.getModello().getProgetto().getSede().getIndirizzo());
+
+                }
+
+                setFieldsValue(form, fields, "DATALEZ", sdfITA.format(lm.getGiorno()));
+                setFieldsValue(form, fields, "UDLEZ", lm.getLezione_calendario().getUnitadidattica().getDescrizione());
+                setFieldsValue(form, fields, "MODLEZ", lm.getLezione_calendario().getUnitadidattica().getCodice());
+                setFieldsValue(form, fields, "ORELEZ", roundDoubleAndFormat(lm.getLezione_calendario().getUnitadidattica().getOre()));
+
+                setFieldsValue(form, fields, "DOC_COGN", lm.getDocente().getCognome().toUpperCase());
+                setFieldsValue(form, fields, "DOC_NOM", lm.getDocente().getNome().toUpperCase());
+                setFieldsValue(form, fields, "DOC_CF", lm.getDocente().getCodicefiscale().toUpperCase());
+                setFieldsValue(form, fields, "DOC_RUOLO", "DOCENTE");
+
+                List<Allievi> allievi = lm.getModello().getProgetto().getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
+                        .equalsIgnoreCase("15")
+                ).collect(Collectors.toList());
+
+                AtomicInteger in = new AtomicInteger(1);
+                allievi.forEach(a1 -> {
+                    setFieldsValue(form, fields, "ALL_COGN" + in.get(), a1.getCognome().toUpperCase());
+                    setFieldsValue(form, fields, "ALL_NOM" + in.get(), a1.getNome().toUpperCase());
+                    setFieldsValue(form, fields, "ALL_CF" + in.get(), a1.getCodicefiscale().toUpperCase());
+                    setFieldsValue(form, fields, "ALL_RUOLO" + in.get(), "ALLIEVO/A");
+                    in.addAndGet(1);
+                });
+
+                fields.forEach((KEY, VALUE) -> {
+                    form.partialFormFlattening(KEY);
+                });
+
+                form.flattenFields();
+                form.flush();
+
+                BarcodeQRCode barcode = new BarcodeQRCode(username + " / REGCART / "
+                        + StringUtils.deleteWhitespace(sd1.format(lm.getGiorno()) + "_" + lm.getModello().getProgetto().getId())
+                        + " / " + dataconsegna.toString("ddMMyyyyHHmmSSS"));
+                printbarcode(barcode, pdfDoc);
+            }
+            if (checkPDF(pdfOut)) {
+                return pdfOut;
+            }
+        } catch (Exception ex) {
+            e.insertTracking("ERROR SYSTEM ", estraiEccezione(ex));
+        }
+        return null;
+    }
+
     private static File ALLEGATOB1_BASE(
             String pathdest,
             Entity e,
@@ -2422,7 +2534,8 @@ public class Pdf_new {
             return pdfa;
         } else {
 
-            if (nomedoc.equalsIgnoreCase("ASSENZA POSIZIONE")) {
+            if (nomedoc.equalsIgnoreCase("ASSENZA POSIZIONE")
+                    || nomedoc.equalsIgnoreCase("REGISTRO GIORNALIERO")) {
                 return "OK";
             }
             String out = "KO";
@@ -2483,8 +2596,8 @@ public class Pdf_new {
             String qrcrop
     ) {
 
-//        if (true) {
-        if (Utility.test || Utility.demoversion) {
+        if (true) {
+//        if (Utility.test || Utility.demoversion) {
             return "OK";
         }
 
@@ -2502,6 +2615,7 @@ public class Pdf_new {
                 || nomedoc.equalsIgnoreCase("modello6")
                 || nomedoc.equalsIgnoreCase("modello7")
                 || nomedoc.equalsIgnoreCase("REGISTRO COMPLESSIVO")
+                || nomedoc.equalsIgnoreCase("REGISTRO GIORNALIERO")
                 || nomedoc.equalsIgnoreCase("ASSENZA POSIZIONE")
                 || nomedoc.equalsIgnoreCase("allegatob1")) { //  QR e FIRMA
             if (getExtension(file.getName()).endsWith("p7m")) {

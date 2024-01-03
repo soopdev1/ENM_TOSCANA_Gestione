@@ -110,28 +110,28 @@ var KTSelect2 = function() {
 
         // tagging support
         $('#kt_select2_12_1, #kt_select2_12_2, #kt_select2_12_3, #kt_select2_12_4').select2({
-            placeholder: "Select an option",
+            placeholder: "Scegli...",
         });
 
         // disabled mode
         $('#kt_select2_7').select2({
-            placeholder: "Select an option"
+            placeholder: "Scegli..."
         });
 
         // disabled results
         $('#kt_select2_8').select2({
-            placeholder: "Select an option"
+            placeholder: "Scegli..."
         });
 
         // limiting the number of selections
         $('#kt_select2_9').select2({
-            placeholder: "Select an option",
+            placeholder: "Scegli...",
             maximumSelectionLength: 2
         });
 
         // hiding the search box
         $('#kt_select2_10').select2({
-            placeholder: "Select an option",
+            placeholder: "Scegli...",
             minimumResultsForSearch: Infinity
         });
 
@@ -143,7 +143,7 @@ var KTSelect2 = function() {
 
         // disabled results
         $('.kt-select2-general').select2({
-            placeholder: "Select an option"
+            placeholder: "Scegli..."
         });
     }
 

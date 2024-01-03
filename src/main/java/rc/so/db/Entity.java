@@ -66,6 +66,8 @@ import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.joda.time.DateTime;
+import rc.so.domain.Presenze_Lezioni;
+import rc.so.domain.Presenze_Lezioni_Allievi;
 
 /**
  *
@@ -296,7 +298,7 @@ public class Entity {
         String annocorrente = new DateTime().year().getAsText();
         TypedQuery<ProgettiFormativi> q = em.createNamedQuery("progetti.cip", ProgettiFormativi.class);
         q.setParameter("anno", annocorrente);
-        String cipbase = q.getResultList().isEmpty() ? null : q.getSingleResult() .getCip();
+        String cipbase = q.getResultList().isEmpty() ? null : q.getSingleResult().getCip();
         if (cipbase == null) {
             return annocorrente + "ENM0001";
         } else {
@@ -1299,15 +1301,35 @@ public class Entity {
     }
 
     public Nazioni_rc nazionenascita(String statonascita) {
-        TypedQuery q = this.em.createNamedQuery("nazioni_rc.byIstat", Nazioni_rc.class);
+        TypedQuery<Nazioni_rc> q = this.em.createNamedQuery("nazioni_rc.byIstat", Nazioni_rc.class);
         q.setParameter("istat", statonascita);
-        return q.getResultList().isEmpty() ? null : (Nazioni_rc) q.getSingleResult();
+        if (q.getResultList().isEmpty()) {
+            q = this.em.createNamedQuery("nazioni_rc.byCodiceFiscale", Nazioni_rc.class);
+            q.setParameter("codicefiscale", statonascita);
+            return q.getResultList().isEmpty() ? null : q.getSingleResult();
+        } else {
+            return q.getSingleResult();
+        }
+
     }
 
     public Comuni byIstatEstero(String istat) {
         TypedQuery q = this.em.createNamedQuery("comuni.byIstatEstero", Comuni.class);
         q.setParameter("istat", istat);
         return q.getResultList().isEmpty() ? null : (Comuni) q.getSingleResult();
+    }
+
+    public Presenze_Lezioni getPresenzeLezione(Lezioni_Modelli lezioneriferimento) {
+        TypedQuery<Presenze_Lezioni> q = this.em.createNamedQuery("presenzelezioni.lezioni", Presenze_Lezioni.class);
+        q.setParameter("lezioneriferimento", lezioneriferimento);
+        q.setMaxResults(1);
+        return q.getResultList().isEmpty() ? null : q.getSingleResult();
+    }
+    
+    public List<Presenze_Lezioni_Allievi> getpresenzelezioniGiornata(Presenze_Lezioni pl) {
+        TypedQuery<Presenze_Lezioni_Allievi> q = this.em.createNamedQuery("presenzelezioni.giornata", Presenze_Lezioni_Allievi.class);
+        q.setParameter("presenzelezioni", pl);
+        return q.getResultList();
     }
 
 }

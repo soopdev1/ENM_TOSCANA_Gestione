@@ -215,16 +215,21 @@
                                                         <%} else {%>
                                                         <div class='col-6 paddig_0_r' id="msgItem_<%=lez.getLezione()%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
                                                             <%if (temp == null) {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>, '<%=lez.getUd1()%>','<%=idsedefisica%>')" class='btn-icon kt-font-io document disablelink' >
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>, '<%=lez.getUd1()%>', '<%=idsedefisica%>')" class='btn-icon kt-font-io document disablelink' >
                                                                 <i id="mainIcon_<%=lez.getLezione()%>" class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%} else {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="lezioniSingle(<%=lez.getId()%>, <%=lez.getLezione()%>)" class='btn-icon kt-font-io document disablelink'>
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="lezioniSingle(<%=lez.getId()%>, <%=lez.getLezione()%>)" 
+                                                               class='btn-icon kt-font-io document disablelink'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
+                                                            <%if (!temp.getTipolez().equals("F")) {%>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" title="VISUALIZZA/MODIFICA REGISTRO PRESENZE" 
+                                                                  href="calendar.jsp?idcalendar=<%=temp.getId()%>" 
+                                                                  class='btn-icon kt-font-io'><i class='fa fa-calendar-alt kt-font-io' style='font-size: 20px;'></i></a>
                                                             <%}%>
+                                                           <%}%>
                                                         </div>
-
                                                         <%}%> 
                                                         <div class='col-6 paddig_0_l' style='text-align: left;'>
                                                             <a class="btn btn-icon btn-sm" id="icon_<%=lez.getLezione()%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="">
@@ -233,7 +238,11 @@
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%></h5>
+                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%>
+                                                            <%if (temp.getTipolez().equals("F")) {%>
+                                                             (FAD)
+                                                            <%}%>
+                                                            </h5>
                                                         </div>
                                                     </div>
                                                 </div>

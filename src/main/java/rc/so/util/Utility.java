@@ -56,6 +56,7 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import static java.lang.Math.toRadians;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ROUND_HALF_DOWN;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -92,6 +93,7 @@ import static java.nio.file.Paths.get;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -103,6 +105,7 @@ import java.util.Locale;
 import static java.util.Locale.ITALY;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -130,10 +133,8 @@ public class Utility {
 
     public static boolean demoversion = false;
 
-    
     public static final ResourceBundle conf = ResourceBundle.getBundle("conf.conf");
 
-    
     // TEST //
     public static boolean test = conf.getString("test").equals("SI");
     //////////
@@ -162,15 +163,16 @@ public class Utility {
     public static final String timestampFAD = "yyyy-MM-dd HH:mm:ss.SSSSSS";
     public static final String timestampSQLZONE = "yyyy-MM-dd HH:mm:ss Z";
     public static final String timestampSQL = "yyyy-MM-dd HH:mm:ss";
-    public static final String timestampITA = "dd/MM/yyyy HH:mm:ss";    
+    public static final String timestampITA = "dd/MM/yyyy HH:mm:ss";
     public static final String timestampITAcomplete = "dd/MM/yyyy HH:mm:ss.SSS";
     public static final SimpleDateFormat sd0 = new SimpleDateFormat(timestampSQL);
+    public static final SimpleDateFormat sd1 = new SimpleDateFormat(patternid);
     public static final DateTimeFormatter dtf = DateTimeFormat.forPattern(patternSql);
     public static final DateTimeFormatter dtfad = DateTimeFormat.forPattern(timestampFAD);
     public static final DateTimeFormatter dtfh = DateTimeFormat.forPattern(patternHmin);
     public static final DateTimeFormatter dtfsql = DateTimeFormat.forPattern(timestampSQL);
 
-    public static final String APP = "ENM_NEET";
+    public static final String APP = "ENM_TOSCANA";
     public static final Logger LOGAPP = Logger.getLogger(APP);
 
     //END RAF
@@ -472,7 +474,7 @@ public class Utility {
         if (pdffile.exists()) {
             try {
                 int pag;
-                try ( InputStream is = new FileInputStream(pdffile);  PdfReader pdfReader = new PdfReader(is)) {
+                try (InputStream is = new FileInputStream(pdffile); PdfReader pdfReader = new PdfReader(is)) {
                     PdfDocument pd = new PdfDocument(pdfReader);
                     pag = pd.getNumberOfPages();
                     pd.close();
@@ -815,9 +817,17 @@ public class Utility {
 
     public static String roundDoubleAndFormat(double f) {
         try {
-            BigDecimal bigDecimal = new BigDecimal(Double.toString(f));
-            bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
-            return numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
+            String out = new DecimalFormat("###,###.#", DecimalFormatSymbols.getInstance(Locale.ITALIAN))
+                    .format(BigDecimal.valueOf(f).setScale(2, ROUND_HALF_DOWN).doubleValue());
+            if (out.startsWith(",0")) {
+                return "0";
+            } else {
+                return out;
+            }
+
+//            BigDecimal bigDecimal = new BigDecimal(Double.toString(f));
+//            bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
+//            return numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
         }
@@ -992,14 +1002,16 @@ public class Utility {
         return 0.0;
 
     }
+
     public static long parseLong(String f) {
         try {
-            
+
             return Long.valueOf(f);
         } catch (Exception e) {
         }
         return 0L;
     }
+
     public static int parseInt(String f) {
         try {
             return Integer.parseInt(f);
@@ -1013,7 +1025,7 @@ public class Utility {
         boolean es;
         try {
             long byteing = source.length();
-            try ( OutputStream out = new FileOutputStream(dest)) {
+            try (OutputStream out = new FileOutputStream(dest)) {
                 long contenuto = FileUtils.copyFile(source, out);
                 es = byteing == contenuto;
             }
@@ -1220,7 +1232,7 @@ public class Utility {
     private static int getIdAllievo(Database db, String nome, String cognome, int idpr) {
         try {
             String sql = "SELECT idallievi FROM allievi WHERE nome = ? AND cognome = ? AND idprogetti_formativi = ? AND id_statopartecipazione = ? ORDER BY idallievi DESC LIMIT 1";
-            try ( PreparedStatement ps = db.getC().prepareStatement(sql)) {
+            try (PreparedStatement ps = db.getC().prepareStatement(sql)) {
                 ps.setString(1, nome);
                 ps.setString(2, cognome);
                 ps.setInt(3, idpr);
@@ -1239,7 +1251,7 @@ public class Utility {
     private static int getIdDocente(Database db, String nome, String cognome, int idsa) {
         try {
             String sql = "SELECT iddocenti FROM docenti WHERE nome = ? AND cognome = ? AND idsoggetti_attuatori = ? AND stato = ? ORDER BY iddocenti DESC LIMIT 1";
-            try ( PreparedStatement ps = db.getC().prepareStatement(sql)) {
+            try (PreparedStatement ps = db.getC().prepareStatement(sql)) {
                 ps.setString(1, nome);
                 ps.setString(2, cognome);
                 ps.setInt(3, idsa);
@@ -1325,4 +1337,55 @@ public class Utility {
 
     }
 
+    public static List<Allievi> estraiAllieviOK(ProgettiFormativi p) {
+        try {
+            List<Allievi> a = p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
+                    .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
+                    .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
+                    .equalsIgnoreCase("15")
+            ).collect(Collectors.toList());
+            a.sort(Comparator.comparing(Allievi::getCognome));
+            return a;
+        } catch (Exception ex) {
+            insertTR("E", "SERVICE", estraiEccezione(ex));
+            return new ArrayList<>();
+        }
+    }
+
+    public static int parseIntR(String value) {
+        try {
+            value = StringUtils.replace(value, "_", "");
+            if (value.contains(".")) {
+                StringTokenizer st = new StringTokenizer(value, ".");
+                value = st.nextToken();
+            }
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+        }
+        return 0;
+    }
+
+    public static Long parseLongR(String value) {
+        try {
+            if (value.contains(".")) {
+                StringTokenizer st = new StringTokenizer(value, ".");
+                value = st.nextToken();
+            }
+            return Long.valueOf(value);
+        } catch (Exception e) {
+        }
+        return 0L;
+    }
+
+    public static Long calcolaMillis(String orainizio, String orafine) {
+        try {
+            DateTime dt1 = new DateTime(2023, 1, 1, parseIntR(orainizio.split(":")[0]), parseIntR(orainizio.split(":")[1]));
+            DateTime dt2 = new DateTime(2023, 1, 1, parseIntR(orafine.split(":")[0]), parseIntR(orafine.split(":")[1]));
+            Period p = new Period(dt1, dt2, PeriodType.millis());
+            return Long.valueOf(String.valueOf(p.getValue(0)));
+        } catch (Exception ex) {
+            insertTR("E", "SERVICE", estraiEccezione(ex));
+            return 0L;
+        }
+    }
 }

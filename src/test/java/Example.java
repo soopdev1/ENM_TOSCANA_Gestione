@@ -1,18 +1,12 @@
 
-import static rc.so.util.Utility.conversionText;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import static org.apache.poi.ss.usermodel.CellType.BLANK;
@@ -24,8 +18,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import rc.so.db.Database;
 import rc.so.db.Entity;
 import rc.so.domain.Comuni;
-import rc.so.domain.Docenti;
-import rc.so.domain.SoggettiAttuatori;
 import static rc.so.util.Utility.cp_toUTF;
 
 //import rc.so.db.Entity;

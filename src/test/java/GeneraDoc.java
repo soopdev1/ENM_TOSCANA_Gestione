@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Map;
 import org.joda.time.DateTime;
 import rc.so.domain.Allievi;
+import rc.so.domain.Lezioni_Modelli;
 
 
 /*
@@ -24,21 +25,25 @@ import rc.so.domain.Allievi;
 public class GeneraDoc {
 
     public static void main(String[] args) {
+        java.util.logging.Logger.getLogger(
+        "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
 //        String idpr = "614";
-        String idall = "2469";
+//        String idall = "2469";
 //        String usernameSA = "FLCOMMERCIALISTI";
 
         Entity e = new Entity();
         e.begin();
 //        ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
 //                Long.valueOf(idpr));
-        Allievi al = e.getEm().find(Allievi.class, 
-                Long.valueOf(idall));
-
+//        Allievi al = e.getEm().find(Allievi.class, 
+//                Long.valueOf(idall));
+    
+            Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, 2L);
+            File f1 = Pdf_new.REGISTROCARTACEO(e, "rcc", lm, new DateTime());
 //        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
 //        ModelliPrg m4 = Utility.filterModello4(prg.getModelli());
-        File f1 = Pdf_new.MODELLO0(e, "30", al);
+//        File f1 = Pdf_new.MODELLO0(e, "30", al);
         System.out.println(f1.getPath());
 //        File f2 = Pdf_new.MODELLO2(e,
 //                            "1",
