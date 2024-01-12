@@ -221,7 +221,7 @@ public class Lezioni_Modelli implements Serializable {
     }
     
 
-    public Lezioni_Modelli(Date giorno, Date orario_start, Date orario_end, Date data_modifica, ModelliPrg modello, LezioneCalendario lezione_calendario, Docenti docente, int gruppo_faseB) {
+    public Lezioni_Modelli(Date giorno, Date orario_start, Date orario_end, Date data_modifica, ModelliPrg modello, LezioneCalendario lezione_calendario, Docenti docente, int gruppo_faseB, String tipolez) {
         this.giorno = giorno;
         this.orario_start = orario_start;
         this.orario_end = orario_end;
@@ -230,6 +230,7 @@ public class Lezioni_Modelli implements Serializable {
         this.lezione_calendario = lezione_calendario;
         this.docente = docente;
         this.gruppo_faseB = gruppo_faseB;
+        this.tipolez = tipolez;
     }
 
     @Override

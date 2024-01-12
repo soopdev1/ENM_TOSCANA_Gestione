@@ -36,7 +36,7 @@
             //  String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
             Presenze_Lezioni pl1 = e.getPresenzeLezione(lm);
             List<Presenze_Lezioni_Allievi> pa1 = new ArrayList<>();
-            boolean modify = (pl1 == null);
+            boolean modify = false;
 
             if (pl1 != null) {
                 pa1 = e.getpresenzelezioniGiornata(pl1);
@@ -83,6 +83,7 @@
         <link href="<%=src%>/assets/demo/default/base/style.bundle.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/raf/jquery-confirm.min.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/resource/custom.css" rel="stylesheet" type="text/css" />
+
         <link rel="shortcut icon" href="<%=src%>/assets/media/logos/favicon.ico" />
         <style type="text/css">
             .form-group {
@@ -156,8 +157,7 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <h5><a data-container="body" data-html="true" data-toggle="kt-tooltip" title="TORNA INDIETRO" 
-                                                           href="modello3.jsp?id=<%=p.getId()%>" class='btn-icon kt-font-io'><i class="fa fa-arrow-left"></i>
-                                                        </a> REGISTRO PRESENZE LEZIONE <%=Utility.sdfITA.format(lm.getGiorno())%> - <%=lm.getLezione_calendario().getUnitadidattica().getCodice()%> 
+                                                           href="showModelli.jsp?id=<%=p.getId()%>" class='btn-icon kt-font-io'><i class="fa fa-arrow-left"></i></a> REGISTRO PRESENZE LEZIONE <%=Utility.sdfITA.format(lm.getGiorno())%> - <%=lm.getLezione_calendario().getUnitadidattica().getCodice()%> 
                                                         (<%=lm.getLezione_calendario().getUnitadidattica().getDescrizione()%>) </h5>
                                                         <%if (modify) {%>
                                                     <form action="<%=request.getContextPath()%>/OperazioniSA" method="POST" target="_blank">
@@ -300,6 +300,8 @@
                                                                                 allievo_oraf = pla.getOrafine();
                                                                             }
                                                                         }
+
+
                                                                 %>
                                                             <input type="hidden" id="modify_<%=a1.getId()%>" name="modify_<%=a1.getId()%>" value="<%=modifyallievo%>" />
                                                             <input type="hidden" id="startoi_<%=a1.getId()%>" value="<%=allievo_orai%>" />
@@ -336,7 +338,7 @@
                                                                         <div class="col-md-6">
                                                                             <%if (modify) {%>
                                                                             <select class="form-control kt-select2-general sel-presenza" id="orai_<%=a1.getId()%>" name="orai_<%=a1.getId()%>"
-                                                                                    style="width: 100%" required>
+                                                                                    style="width: 100%" required onchange="return checkorariomax();">
                                                                                 <option value="<%=lm.getOrainizio()%>" selected><%=lm.getOrainizio()%></option>
                                                                             </select>
                                                                             <%} else if (allievo_presente.equals("1")) {%>
@@ -380,7 +382,7 @@
                                             <%} else {%>
                                             </form>
 
-                                            <form action="<%=request.getContextPath()%>/OperazioniSA" method="POST" target="_blank">
+                                            <form action="<%=request.getContextPath()%>/OperazioniMicro" method="POST" target="_blank">
                                                 <input type="hidden" name="type" value="SCARICAREGISTROCARTACEO" />
                                                 <input type="hidden" name="idpresenza" value="<%=pl1.getIdpresenzelezioni()%>" />
                                                 <button type="submit" class='btn btn-success'><small><i class="fa fa-file-download"></i> SCARICA REGISTRO FIRMATO DIGITALMENTE</small></button>

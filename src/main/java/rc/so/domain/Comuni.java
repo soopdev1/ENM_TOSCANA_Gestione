@@ -65,7 +65,7 @@ public class Comuni implements Serializable {
     @Column(name = "codicicatastali_altri")
     private String codicicatastali_altri;
 
-    @OneToOne(mappedBy = "id", cascade = CascadeType.ALL,
+    @OneToOne(mappedBy = "id", cascade = CascadeType.MERGE,
             fetch = FetchType.LAZY, optional = false)
     private ComuniCoord coordinate;
 

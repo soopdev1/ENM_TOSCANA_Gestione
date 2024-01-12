@@ -58,7 +58,7 @@ public class User implements Serializable {
     @Column(name = "token_timestamp")
     @Temporal(TemporalType.TIMESTAMP)
     private Date token_timestamp;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "idsoggetti_attuatori")
     private SoggettiAttuatori soggettoAttuatore;
 

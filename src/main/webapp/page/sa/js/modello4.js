@@ -25,9 +25,9 @@ let tempLezioni = "";
 
 let allievi_total;
 let numberGroups = new Set();
-let msg_neet_excluded = "I seguenti NEET sono stati esclusi durante la creazione dei gruppi:<br>";
+let msg_neet_excluded = "I seguenti allievi sono stati esclusi durante la creazione dei gruppi:<br>";
 
-function setRangeDatesDay(giornoLezione, lezione, gruppo) {
+function setRangeDatesDay(giornoLezione, lezione, gruppo, daytoadd) {
     setDateInizioFine(lezioniModello4.filter(i => i.gruppo_faseB === gruppo));
 
     let rangeDate_min = dataStart;
@@ -36,7 +36,7 @@ function setRangeDatesDay(giornoLezione, lezione, gruppo) {
     let prevLez = (lezione - 1) + '_' + gruppo;
     let nextLez = (lezione + 1) + '_' + gruppo;
     if (typeof (mapDateLezioni.get(prevLez)) !== 'undefined') {
-        days = 1;
+        days = daytoadd;
         if (moment(new Date(mapDateLezioni.get(prevLez))).format('YYYY-MM-DD') <= moment(new Date()).format('YYYY-MM-DD')) {
             days++;
         }
@@ -68,7 +68,7 @@ function setRangeDatesDay(giornoLezione, lezione, gruppo) {
 
 function changeLezione(idlezione, l, grp) {
     let lez = mapLezioni.get(idlezione + '_' + grp);
-    let days = setRangeDatesDay(new Date(lez.giorno), l, grp);
+    let days = setRangeDatesDay(new Date(lez.giorno), l, grp, 0);
     swal.fire({
         title: 'Visualizza/Modifica Lezione ' + l + ' - Gruppo ' + grp + '<br>(Unità didattica ' + lez.codice_ud + ')',
         html: getHtml("swalLezioneCalendarioSingle", context),
@@ -96,8 +96,7 @@ function changeLezione(idlezione, l, grp) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
-
+            };
             $('#giorno').datepicker({
                 orientation: "bottom left",
                 todayHighlight: false,
@@ -107,7 +106,7 @@ function changeLezione(idlezione, l, grp) {
                 endDate: days[1],
                 startDate: days[0],
                 daysOfWeekHighlighted: "0",
-                daysOfWeekDisabled: [0],
+                daysOfWeekDisabled: [0]
             });
             $("#tot_hh").html('Totale ore di lezione da effettuare: <b>' + lez.lezione_calendario.ore + '</b>');
             $('#orario1_start').val(lez.orainizio);
@@ -126,6 +125,17 @@ function changeLezione(idlezione, l, grp) {
                     }
                 }
             });
+
+            if (lez.tipolez === "F") {
+                $("#tipolez").append('<option selected value="F">IN FAD</option>');
+                $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+            } else {
+                $("#tipolez").append('<option  value="F">IN FAD</option>');
+                $("#tipolez").append('<option selected value="P">IN PRESENZA</option>');
+
+            }
+
+
             $('#docente').select2({
                 dropdownCssClass: "select2-on-top",
                 minimumResultsForSearch: -1
@@ -147,13 +157,13 @@ function changeLezione(idlezione, l, grp) {
                         "giorno": $('#giorno').val(),
                         "docente": $('#docente').val(),
                         "orario1_start": $('#orario1_start').val(),
-                        "orario1_end": $('#orario1_end').val(),
+                        "orario1_end": $('#orario1_end').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -206,7 +216,6 @@ function changeLezioneDouble(idlezione1, idlezione2, l, grp) {
         cancelButtonText: '&nbsp;<i class="la la-close"></i>',
         cancelButtonClass: "btn btn-io-n",
         confirmButtonClass: "btn btn-io",
-        width: '75%',
         customClass: {
             popup: 'animated bounceInUp'
         },
@@ -225,7 +234,7 @@ function changeLezioneDouble(idlezione1, idlezione2, l, grp) {
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
+            };
 
             $('#giorno').datepicker({
                 orientation: "bottom left",
@@ -307,13 +316,13 @@ function changeLezioneDouble(idlezione1, idlezione2, l, grp) {
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
                         "orario2_start": $('#orario2_start').val(),
-                        "orario2_end": $('#orario2_end').val(),
+                        "orario2_end": $('#orario2_end').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -355,9 +364,15 @@ function changeLezioneDouble(idlezione1, idlezione2, l, grp) {
     });
 }
 
-function uploadLezione(idprogetto, idm, idl, grp) {
+function uploadLezione(idprogetto, idm, idl, grp, ud, sedefisica) {
     let t = mapCalendario.get(idl);
     let days = setRangeDatesDay(null, idl, grp);
+
+    if (ud.endsWith('4B') || ud.endsWith('5B')) {
+        days = setRangeDatesDay(null, idl, grp, 0);
+    } else {
+        days = setRangeDatesDay(null, idl, grp, 1);
+    }
 
     let orario_default_start = '9:00';
     let orario_default_end = sumHHMM(orario_default_start, doubletoHHmm(t.ore1 + t.ore2));
@@ -402,10 +417,30 @@ function uploadLezione(idprogetto, idm, idl, grp) {
                 daysOfWeekHighlighted: "0",
                 daysOfWeekDisabled: [0]
             });
-            $('#orario1_start').val(orario_default_start);
-            $('#orario1_end').val(orario_default_end);
-            $('#orario1_start').timepicker("setTime", orario_default_start);
-            $('#orario1_end').timepicker("setTime", orario_default_end);
+
+            if (ud.endsWith("B")) {
+
+                if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
+                    var lez_prima = mapLezioni.get(idl - 1);
+                    var fineproposta = sumHHMM(lez_prima.orafine, doubletoHHmm(t.ore1 + t.ore2));
+                    $('#orario1_start').val(lez_prima.orafine);
+                    $('#orario1_end').val(fineproposta);
+                    $('#orario1_start').timepicker("setTime", lez_prima.orafine);
+                    $('#orario1_end').timepicker("setTime", fineproposta);
+
+                } else {
+                    $('#orario1_start').val(orario_default_start);
+                    $('#orario1_end').val(orario_default_end);
+                    $('#orario1_start').timepicker("setTime", orario_default_start);
+                    $('#orario1_end').timepicker("setTime", orario_default_end);
+                }
+            } else {
+                $('#orario1_start').val(orario_default_start);
+                $('#orario1_end').val(orario_default_end);
+                $('#orario1_start').timepicker("setTime", orario_default_start);
+                $('#orario1_end').timepicker("setTime", orario_default_end);
+            }
+
 
             $('#giorno').val(formattedDate(days[2]));
             $("#giorno").datepicker("update");
@@ -420,6 +455,72 @@ function uploadLezione(idprogetto, idm, idl, grp) {
                     $("#docente").append('<option value="' + json[i].id + '">' + json[i].cognome + " " + json[i].nome + '</option>');
                 }
             });
+
+            $('#tipolez').select2({
+                dropdownCssClass: "select2-on-top",
+                minimumResultsForSearch: -1
+            });
+            $('#tipolez').change(function (e) {
+                if ($('#tipolez').val() === "P") {
+                    $('#sedefisica_label').css("display", "");
+                    $('#sedefisica_div').css("display", "");
+                    $('#sedefisica').addClass('obbligatory');
+                } else {
+                    $('#sedefisica_label').css("display", "none");
+                    $('#sedefisica_div').css("display", "none");
+                    $('#sedefisica').removeClass('obbligatory');
+                }
+            });
+
+            $('#sedefisica').select2({
+                dropdownCssClass: "select2-on-top",
+                minimumResultsForSearch: -1
+            });
+            if (sedefisica === "") {
+                $.get(context + "/QuerySA?type=getSedeByPrg&idprogetto=" + idprogetto, function (resp) {
+                    var json = JSON.parse(resp);
+                    for (var i = 0; i < json.length; i++) {
+                        $("#sedefisica").append('<option value="' + json[i].id + '">' + json[i].denominazione + " : " + json[i].indirizzo + " - " + json[i].comune.nome + '</option>');
+                    }
+                });
+            } else {
+                $.get(context + "/QuerySA?type=getSedeById&sedefisica=" + sedefisica, function (resp) {
+                    var json = JSON.parse(resp);
+                    $("#sedefisica").append('<option selected value="' + json.id + '">' + json.denominazione + " : " + json.indirizzo + " - " + json.comune.nome + '</option>');
+                });
+            }
+            if (ud.endsWith("B")) {
+                if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
+                    var lez_prima = mapLezioni.get(idl - 1);
+                    if (lez_prima.tipolez === "P") {
+                        $("#tipolez").append('<option value="P" selected>IN PRESENZA</option>');
+
+                    } else {
+                        $("#tipolez").append('<option value="F" selected>IN FAD</option>');
+
+                    }
+                } else {
+                    $("#tipolez").append('<option value="F">IN FAD</option>');
+                    $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+
+                }
+            } else {
+                $("#tipolez").append('<option value="F">IN FAD</option>');
+                $("#tipolez").append('<option value="P">IN PRESENZA</option>');
+
+            }
+
+
+            if ($('#tipolez').val() === "P") {
+                $('#sedefisica_label').css("display", "");
+                $('#sedefisica_div').css("display", "");
+                $('#sedefisica').addClass('obbligatory');
+            } else {
+                $('#sedefisica_label').css("display", "none");
+                $('#sedefisica_div').css("display", "none");
+                $('#sedefisica').removeClass('obbligatory');
+            }
+
 
             $('#orario1_start').change(function (e) {
                 $('#orario1_start').val(checktime($('#orario1_start').val(), '8:00', $('#orario1_end').val()));
@@ -440,12 +541,14 @@ function uploadLezione(idprogetto, idm, idl, grp) {
                         "docente": $('#docente').val(),
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
+                        "sedefisica": $('#sedefisica').val(),
+                        "tipolez": $('#tipolez').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -458,6 +561,8 @@ function uploadLezione(idprogetto, idm, idl, grp) {
             fdata.append("id_calendariolezione", t.id);
             fdata.append("idgruppo", grp);
             fdata.append("id_modello", idm);
+            fdata.append("sedefisica", result.value.sedefisica);
+            fdata.append("tipolez", result.value.tipolez);
             $.ajax({
                 type: "POST",
                 url: context + '/OperazioniSA?type=uploadLezione',
@@ -484,13 +589,13 @@ function uploadLezione(idprogetto, idm, idl, grp) {
 }
 
 function uploadLezioneDouble(idprogetto, idm, idl, grp) {
-    let t = calendarioModello4.find(({lezione}) => lezione == idl);
+    let t = calendarioModello4.find(({lezione}) => lezione === idl);
     let ora_def_1_s = "9:00";
     let ora_def_1_f = sumHHMM(ora_def_1_s, doubletoHHmm(t.ore1));
     let ora_def_2_s = sumHHMM(ora_def_1_f, "1:00");
     let ora_def_2_f = sumHHMM(ora_def_2_s, doubletoHHmm(t.ore2));
 
-    let days = setRangeDatesDay(null, idl, grp);
+    let days = setRangeDatesDay(null, idl, grp, 1);
 
     swal.fire({
         title: 'Carica Lezione ' + t.lezione + ' - Gruppo ' + grp + '<br>(Unità didattiche ' + t.ud1 + ' e ' + t.ud2 + ')',
@@ -516,12 +621,10 @@ function uploadLezioneDouble(idprogetto, idm, idl, grp) {
                     down: 'la la-angle-down'
                 }
             });
-
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
-            }
-
+            };
             $('#giorno').datepicker({
                 orientation: "bottom left",
                 todayHighlight: false,
@@ -553,11 +656,11 @@ function uploadLezioneDouble(idprogetto, idm, idl, grp) {
 
             $('#docente1').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $('#docente2').select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             $.get(context + "/QuerySA?type=getDocentiByPrg&idprogetto=" + idprogetto, function (resp) {
                 var json = JSON.parse(resp);
@@ -578,16 +681,12 @@ function uploadLezioneDouble(idprogetto, idm, idl, grp) {
             $('#orario2_end').change(function (e) {
                 $('#orario2_end').val(checktime($('#orario2_end').val(), $('#orario2_start').val(), '21:00'));
             });
-//            $('#giorno').change(function (e) {
-//                checkRegistroAlievoExist(idallievo, $(this).val());
-//            });
         },
         preConfirm: function () {
             var err = false;
             err = checkObblFieldsContent($('#swalLezioneCalendarioDouble')) ? true : err;
             err = !check_limit_hh($('#orario1_start').val(), $('#orario1_end').val(), t.ore1, t.ud1, false) ? true : err;
             err = !check_limit_hh($('#orario2_start').val(), $('#orario2_end').val(), t.ore2, t.ud2, true) ? true : err;
-//            err = checkRegistroAlievoExist(idallievo, $("#giorno").val()) ? true : err;
             if (!err) {
                 return new Promise(function (resolve) {
                     resolve({
@@ -597,13 +696,13 @@ function uploadLezioneDouble(idprogetto, idm, idl, grp) {
                         "orario1_start": $('#orario1_start').val(),
                         "orario1_end": $('#orario1_end').val(),
                         "orario2_start": $('#orario2_start').val(),
-                        "orario2_end": $('#orario2_end').val(),
+                        "orario2_end": $('#orario2_end').val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -649,12 +748,13 @@ function uploadLezioneDouble(idprogetto, idm, idl, grp) {
 function buttonsControl(lezioni, calendario, gruppo) {
     let nrolezioni = lezioni + 1;
     lezioni = lezioni < calendario ? lezioni + 1 : lezioni;
+
     for (let i = 1; i <= lezioni; i++) {
         $('#a_lez' + i + '_' + gruppo).removeClass("disablelink");
     }
     cssPage(nrolezioni, gruppo);
     maplezioniD = new Map();
-    maplezioniD = new Map(filterAndGroupByG(tempLezioni, gruppo).map(i => [i.id, moment(new Date(i.giorno)).format("DD-MM-YYYY") + " ( Lezione " + i.lezione_calendario.lezione + ")"]));
+    maplezioniD = new Map(filterAndGroupByG(tempLezioni, gruppo).map(i => [i.id, moment(new Date(i.giorno)).format("DD-MM-YYYY") + " ( Modulo " + i.lezione_calendario.ud1 + ")"]));
     if (maplezioniD.size > 0) {
         lessonsEditable = true;
         $('#deleteByGroup_' + gruppo).removeAttr('disabled');
@@ -672,7 +772,7 @@ function loadLezioni() {
         async: false,
         url: context + "/QuerySA?type=getLezioniByProgetto&idmodello=" + $('#m4Id').val(),
         success: function (resp) {
-            if (resp != null) {
+            if (resp !== null) {
                 temp = JSON.parse(resp);
                 mapLezioni = new Map(temp.map(i => [i.lezione_calendario.id + "_" + i.gruppo_faseB, i]));
                 mapDateLezioni = new Map(temp.map(i => [i.lezione_calendario.lezione + "_" + i.gruppo_faseB, i.giorno]));
@@ -685,7 +785,7 @@ function loadLezioni() {
 
 function filterAndGroupByG(options, group) {
     return options.reduce(function (res, option) {
-        if (new Date(new Date(option.giorno).toDateString()) >= today && option.gruppo_faseB == group && res.filter(e => e.giorno == option.giorno).length == 0) {
+        if (new Date(new Date(option.giorno).toDateString()) >= today && option.gruppo_faseB === group && res.filter(e => e.giorno === option.giorno).length === 0) {
             res.push(option);
         }
         return res;
@@ -699,7 +799,7 @@ function loadCalendario() {
         async: false,
         url: context + "/QuerySA?type=getCalendarioModello&modello=4",
         success: function (resp) {
-            if (resp != null)
+            if (resp !== null)
                 temp = JSON.parse(resp);
             mapCalendario = new Map(temp.map(i => [i.lezione, i]));
         }
@@ -736,7 +836,7 @@ function setDateInizioFine(lez) {
 }
 
 function countLezioneEffettive(l, gr) {
-    let filteredByGroup = l.filter(i => i.gruppo_faseB == gr);
+    let filteredByGroup = l.filter(i => i.gruppo_faseB === parseInt(gr));
     let cnt = filteredByGroup.reduce(function (values, v) {
         if (!values.set[v.lezione_calendario.lezione]) {
             values.set[v.lezione_calendario.lezione] = 1;
@@ -841,7 +941,7 @@ function lezioniSingle(idlezione, l, grp) {
     }
 }
 
-function showLezioneSingle(idlezione, l, grp) {
+function showLezioneSingle(idlezione, l, grp, ud, sedefisica) {
     let lez = mapLezioni.get(idlezione + '_' + grp);
     swal.fire({
         title: 'Visualizza Lezione ' + l + ' - Gruppo ' + grp + '<br>(Unità didattica ' + lez.codice_ud + ')',
@@ -852,11 +952,14 @@ function showLezioneSingle(idlezione, l, grp) {
         cancelButtonText: '&nbsp;<i class="la la-close"></i>',
         cancelButtonClass: "btn btn-io-n",
         confirmButtonClass: "btn btn-io",
-        showCancelButton: false,
         customClass: {
             popup: 'animated bounceInUp'
         },
         onOpen: function () {
+            
+            
+            
+            
             $("#alertmsg_day").html("La modifica è disabilitata in quanto la data della lezione è antecedente ad oggi.");
             $("#warning_day").show();
             $("#tot_hh1").html('Totale ore di lezione da effettuare : <b>' + lez.lezione_calendario.ore + '</b>');
@@ -882,7 +985,6 @@ function showLezioneDouble(idlezione1, idlezione2, l, grp) {
         cancelButtonText: '&nbsp;<i class="la la-close"></i>',
         cancelButtonClass: "btn btn-io-n",
         confirmButtonClass: "btn btn-io",
-        showCancelButton: false,
         width: '75%',
         customClass: {
             popup: 'animated bounceInUp'
@@ -910,7 +1012,8 @@ function showLezioneDouble(idlezione1, idlezione2, l, grp) {
 $('#createGroups').on("click", function () {
     let allievi_ok = allievi_total.filter(al => al.gruppo_faseB !== -1);
     let diff = allievi_ok.length - $("[id^=param_] :selected").length;
-    let msg = diff !== 0 ? ('Attenzione, non hai selezionato <b>' + diff + '</b> NEET durante la creazione dei gruppi.<br> Se procedi, non sarà possibile una loro assegnazione secondaria.') : 'Vuoi procedere con la creazione dei gruppi?';
+    let msg = diff !== 0 ? ('Attenzione, non hai selezionato <b>' + diff + '</b> allievi durante la creazione dei gruppi.<br> Se procedi, non sarà possibile una loro assegnazione successiva.')
+            : 'Vuoi procedere con la creazione dei gruppi?';
     swal.fire({
         title: 'Creazione Gruppi',
         html: '<h5>' + msg + '</h5>',
@@ -982,8 +1085,9 @@ function getNeets(load) {
         async: false,
         url: context + "/QuerySA?type=getAllieviByProgetto&id=" + $('#pId').val() + "&load=" + load,
         success: function (resp) {
-            if (resp !== null)
+            if (resp !== null) {
                 temp = JSON.parse(resp);
+            }
         }
     });
     return temp;
@@ -1006,9 +1110,9 @@ function createGroups() {
     allievi_total = getNeets("no");
     let allievi_ko = allievi_total.filter(al => al.gruppo_faseB === -1);
     let allievi_ok = allievi_total.filter(al => al.gruppo_faseB !== -1);
-    
+
     let mapAllievi = new Map(allievi_ok.map(i => [i.id, (i.nome + " " + i.cognome)]));
-    msg_neet_excluded = "I seguenti NEET sono stati esclusi dalla creazione dei gruppi in quanto non hanno effettuato le 36 ore durante la Fase A:<br>";
+    msg_neet_excluded = "I seguenti allievi sono stati esclusi dalla creazione dei gruppi in quanto non hanno effettuato le 36 ore durante la Fase A:<br>";
 
     let excludedPresent = false;
     for (let a of allievi_ko) {
@@ -1054,7 +1158,7 @@ function createGroups() {
 function loadGroups() {
     allievi_total = getNeets("si");
     let excludedPresent = false;
-    msg_neet_excluded = "I seguenti NEET sono stati esclusi durante la creazione dei gruppi:<br>";
+    msg_neet_excluded = "I seguenti allievi sono stati esclusi durante la creazione dei gruppi:<br>";
     for (let a of allievi_total) {
         if (a[0] > 0) {
             numberGroups.add(a[0]);
@@ -1068,6 +1172,7 @@ function loadGroups() {
             }
         }
     }
+
     if (excludedPresent) {
         $("#neet_excluded").attr('data-content', msg_neet_excluded);
         $("#neet_excluded").show();
@@ -1077,14 +1182,14 @@ function loadGroups() {
 
 function setMultiselect() {
     $('.kt-select2').select2({
-        placeholder: "Seleziona NEET",
+        placeholder: "Selezionare allievo/a",
         maximumSelectionLength: 3,
         language: {
             maximumSelected: function (e) {
-                return "Puoi selezionare massimo " + e.maximum + " NEET per gruppo";
+                return "Puoi selezionare massimo " + e.maximum + " allievi per gruppo";
             },
             noResults: function () {
-                return "Nessun NEET assegnabile";
+                return "Nessun allievo/a assegnabile";
             }
         }
     });
@@ -1198,7 +1303,7 @@ $('button[id^=deleteByGroup_]').on('click', function () {
         onOpen: function () {
             $('#lezionid_' + grp).select2({
                 dropdownCssClass: "select2-on-top",
-                minimumResultsForSearch: -1,
+                minimumResultsForSearch: -1
             });
             maplezioniD = new Map(filterAndGroupByG(tempLezioni, grp).map(i => [i.id, moment(new Date(i.giorno)).format("DD-MM-YYYY") + " ( Lezione " + i.lezione_calendario.lezione + ")"]));
             maplezioniD.forEach(function (value, key) {
@@ -1211,13 +1316,13 @@ $('button[id^=deleteByGroup_]').on('click', function () {
             if (!err) {
                 return new Promise(function (resolve) {
                     resolve({
-                        "lezione": $('#lezionid_' + grp).val(),
+                        "lezione": $('#lezionid_' + grp).val()
                     });
                 });
             } else {
                 return false;
             }
-        },
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -1265,8 +1370,7 @@ $('button[id^=deleteAllGroup_]').on('click', function () {
         confirmButtonClass: "btn btn-io",
         customClass: {
             popup: 'animated bounceInUp'
-        },
-
+        }
     }).then((result) => {
         if (result.value) {
             showLoad();
@@ -1312,6 +1416,7 @@ jQuery(document).ready(function () {
         disableOptions();
 
         lezioniModello4 = loadLezioni();
+        console.log(lezioniModello4);
         calendarioModello4 = loadCalendario();
 //        setDateInizioFine(lezioniModello4);
         for (let gr of numberGroups) {
@@ -1330,6 +1435,7 @@ jQuery(document).ready(function () {
         } else {
             $('#revert').attr('disabled', 'disabled');
         }
+
         if (lessonsEditable) {
             $('#deleteAll').removeAttr('disabled');
         } else {

@@ -243,172 +243,171 @@ public class OperazioniSA extends HttpServlet {
 
     protected void generaterandomDocenti(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        Entity e = new Entity();
-
-        try {
-            User us = (User) request.getSession().getAttribute("user");
-            e.begin();
-
-            AtomicInteger indice = new AtomicInteger(1);
-
-            com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
-
-            String[] arr_sex = {"M", "F"};
-
-            while (indice.get() == 1) {
-                String nome = faker.name().firstName().toUpperCase();
-                String cognome = faker.name().lastName().toUpperCase();
-                DateTime birtDate = new DateTime(faker.date().birthday().getTime());
-                String sesso = arr_sex[new Random().nextInt(arr_sex.length)];
-                Comuni comunenascita = e.getEm().find(Comuni.class, 5721L);
-                String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, comunenascita.getIstat());
-                if (e.getDocenteByCF_SA(codicefiscale, us.getSoggettoAttuatore()) == null) {
-                    indice.addAndGet(1);
-
-                    String email = faker.internet().emailAddress();
-                    Date data_nascita = birtDate.toDate();
-
-                    Docenti d = new Docenti(nome, cognome, codicefiscale, data_nascita, email);
-                    d.setFascia(e.getEm().find(FasceDocenti.class, "FA"));
-                    d.setStato("A");
-                    d.setDatawebinair(new DateTime().minusDays(15).toDate());
-                    d.setSoggetto(us.getSoggettoAttuatore());
-                    d.setScadenza_doc(new DateTime().plusYears(10).toDate());
-                    d.setDocId("/mnt/mcn/gestione_neet/pdf-test.pdf");
-                    d.setCurriculum("/mnt/mcn/gestione_neet/pdf-test.pdf");
-
-                    d.setComune_di_nascita(comunenascita.getNome());
-                    d.setRegione_di_residenza(comunenascita.getRegione());
-                    d.setPec(faker.internet().emailAddress());
-                    d.setCellulare("0350000000");
-                    d.setTitolo_di_studio(1);
-                    d.setArea_prevalente_di_qualificazione(2);
-                    d.setInquadramento(1);
-                    d.setTipo_inserimento("GESTIONALE");
-                    e.persist(d);
-
-                    int nroAttivita_max = 2;
-                    List<Attivita_Docente> list_attivita = new ArrayList();
-                    Attivita_Docente temp;
-                    for (int i = 1; i <= nroAttivita_max; i++) {
-                        temp = new Attivita_Docente(
-                                1,
-                                "COMMITTENTE DEMO " + i,
-                                new DateTime().withDayOfYear(1).toDate(),
-                                new DateTime().minusDays(4).toDate(),
-                                1,
-                                "aa",
-                                4,
-                                3,
-                                1,
-                                d);
-                        list_attivita.add(temp);
-                        e.persist(temp);
-                    }
-                    d.setAttivita(list_attivita);
-                    d.setRichiesta_accr("/mnt/mcn/gestione_neet/pdf-test.pdf");
-                    e.merge(d);
-
-                }
-            }
-
-        } catch (Exception ex1) {
-            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
-        } finally {
-            e.commit();
-            e.close();
-        }
-
-        redirect(request, response, request.getContextPath() + "/page/sa/searchDocenti_sa.jsp");
+//        Entity e = new Entity();
+//
+//        try {
+//            User us = (User) request.getSession().getAttribute("user");
+//            e.begin();
+//
+//            AtomicInteger indice = new AtomicInteger(1);
+//
+//            com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
+//
+//            String[] arr_sex = {"M", "F"};
+//
+//            while (indice.get() == 1) {
+//                String nome = faker.name().firstName().toUpperCase();
+//                String cognome = faker.name().lastName().toUpperCase();
+//                DateTime birtDate = new DateTime(faker.date().birthday().getTime());
+//                String sesso = arr_sex[new Random().nextInt(arr_sex.length)];
+//                Comuni comunenascita = e.getEm().find(Comuni.class, 5721L);
+//                String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, comunenascita.getIstat());
+//                if (e.getDocenteByCF_SA(codicefiscale, us.getSoggettoAttuatore()) == null) {
+//                    indice.addAndGet(1);
+//
+//                    String email = faker.internet().emailAddress();
+//                    Date data_nascita = birtDate.toDate();
+//
+//                    Docenti d = new Docenti(nome, cognome, codicefiscale, data_nascita, email);
+//                    d.setFascia(e.getEm().find(FasceDocenti.class, "FA"));
+//                    d.setStato("A");
+//                    d.setDatawebinair(new DateTime().minusDays(15).toDate());
+//                    d.setSoggetto(us.getSoggettoAttuatore());
+//                    d.setScadenza_doc(new DateTime().plusYears(10).toDate());
+//                    d.setDocId("/mnt/mcn/gestione_neet/pdf-test.pdf");
+//                    d.setCurriculum("/mnt/mcn/gestione_neet/pdf-test.pdf");
+//
+//                    d.setComune_di_nascita(comunenascita.getNome());
+//                    d.setRegione_di_residenza(comunenascita.getRegione());
+//                    d.setPec(faker.internet().emailAddress());
+//                    d.setCellulare("0350000000");
+//                    d.setTitolo_di_studio(1);
+//                    d.setArea_prevalente_di_qualificazione(2);
+//                    d.setInquadramento(1);
+//                    d.setTipo_inserimento("GESTIONALE");
+//                    e.persist(d);
+//
+//                    int nroAttivita_max = 2;
+//                    List<Attivita_Docente> list_attivita = new ArrayList();
+//                    Attivita_Docente temp;
+//                    for (int i = 1; i <= nroAttivita_max; i++) {
+//                        temp = new Attivita_Docente(
+//                                1,
+//                                "COMMITTENTE DEMO " + i,
+//                                new DateTime().withDayOfYear(1).toDate(),
+//                                new DateTime().minusDays(4).toDate(),
+//                                1,
+//                                "aa",
+//                                4,
+//                                3,
+//                                1,
+//                                d);
+//                        list_attivita.add(temp);
+//                        e.persist(temp);
+//                    }
+//                    d.setAttivita(list_attivita);
+//                    d.setRichiesta_accr("/mnt/mcn/gestione_neet/pdf-test.pdf");
+//                    e.merge(d);
+//
+//                }
+//            }
+//
+//        } catch (Exception ex1) {
+//            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
+//        } finally {
+//            e.commit();
+//            e.close();
+//        }
+//
+//        redirect(request, response, request.getContextPath() + "/page/sa/searchDocenti_sa.jsp");
     }
 
     protected void generaterandomAllievi(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        Entity e = new Entity();
-        try {
-            User us = (User) request.getSession().getAttribute("user");
-            e.begin();
-            com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
-
-            String[] arr_sex = {"M", "F"};
-
-            AtomicInteger indice = new AtomicInteger(1);
-            while (indice.get() < 6) {
-                Allievi a = new Allievi();
-
-                a.setDocid("/mnt/mcn/gestione_neet/pdf-test.pdf");
-                Nazioni_rc nazionenascita = (Nazioni_rc) e.getEm().find(Nazioni_rc.class,
-                        99L);
-
-                a.setStato_nascita("100");
-                a.setComune_nascita(e.getEm().find(Comuni.class,
-                        5721L));
-                a.setCittadinanza(nazionenascita);
-
-                String nome = faker.name().firstName().toUpperCase();
-                String cognome = faker.name().lastName().toUpperCase();
-                DateTime birtDate = new DateTime(faker.date().birthday().getTime());
-                String sesso = arr_sex[new Random().nextInt(arr_sex.length)];
-
-                String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, a.getComune_nascita().getIstat());
-                if (e.getAllievoCF(codicefiscale) == null) {
-                    indice.addAndGet(1);
-                    a.setNome(nome);
-                    a.setCognome(cognome);
-                    a.setCodicefiscale(codicefiscale);
-                    a.setTelefono("3520000000");
-                    a.setDatanascita(birtDate.toDate());
-                    String address = faker.address().streetAddress();
-                    a.setIndirizzoresidenza(address);
-                    a.setCivicoresidenza("1");
-                    a.setCapresidenza("00001");
-                    a.setComune_residenza(a.getComune_nascita());
-                    a.setIndirizzodomicilio(address);
-                    a.setCivicodomicilio("1");
-                    a.setCapdomicilio("00001");
-                    a.setComune_domicilio(a.getComune_nascita());
-                    a.setScadenzadocid(new DateTime().plusYears(10).toDate());
-                    a.setIscrizionegg(new DateTime().minusDays(20).toDate());
-                    a.setTitoloStudio(e.getEm().find(TitoliStudio.class,
-                            "07"));
-                    a.setSoggetto(us.getSoggettoAttuatore());
-                    a.setCpi(e.getEm().find(CPI.class,
-                            "H501C000523"));
-                    a.setMotivazione(e.getEm().find(Motivazione.class,
-                            2));
-                    a.setCanale(e.getEm().find(Canale.class,
-                            1));
-                    a.setCondizione_mercato(e.getEm().find(Condizione_Mercato.class,
-                            "01"));
-                    a.setDatacpi(new DateTime().minusDays(60).toDate());
-
-                    a.setCondizione_lavorativa(e.getEm().find(Condizione_Lavorativa.class,
-                            1));
-                    a.setNeet(e.getEm().find(Condizione_Lavorativa.class,
-                            1).getDescrizione());
-                    a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class,
-                            "01"));
-                    a.setEmail(faker.internet().emailAddress());
-                    a.setSesso(sesso);
-                    a.setData_up(new DateTime().toDate());
-                    a.setData_anpal(new DateTime().withDayOfMonth(1).toString("dd/MM/yyyy"));
-                    a.setStato("A");
-                    e.merge(a);
-
-                } else {
-                    insertTR("E", "SERVICE", codicefiscale + " rc.so.servlet.OperazioniSA.generaterandomAllievi() " + e.getAllievoCF(codicefiscale));
-                }
-            }
-
-        } catch (Exception ex1) {
-            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
-        } finally {
-            e.commit();
-            e.close();
-        }
-
-        redirect(request, response, request.getContextPath() + "/page/sa/searchAllievi.jsp");
-
+//        Entity e = new Entity();
+//        try {
+//            User us = (User) request.getSession().getAttribute("user");
+//            e.begin();
+//            com.github.javafaker.Faker faker = new com.github.javafaker.Faker(new Locale("it"));
+//
+//            String[] arr_sex = {"M", "F"};
+//
+//            AtomicInteger indice = new AtomicInteger(1);
+//            while (indice.get() < 6) {
+//                Allievi a = new Allievi();
+//
+//                a.setDocid("/mnt/mcn/gestione_neet/pdf-test.pdf");
+//                Nazioni_rc nazionenascita = (Nazioni_rc) e.getEm().find(Nazioni_rc.class,
+//                        99L);
+//
+//                a.setStato_nascita("100");
+//                a.setComune_nascita(e.getEm().find(Comuni.class,
+//                        5721L));
+//                a.setCittadinanza(nazionenascita);
+//
+//                String nome = faker.name().firstName().toUpperCase();
+//                String cognome = faker.name().lastName().toUpperCase();
+//                DateTime birtDate = new DateTime(faker.date().birthday().getTime());
+//                String sesso = arr_sex[new Random().nextInt(arr_sex.length)];
+//
+//                String codicefiscale = DataPanel.getCF(nome, cognome, sesso, birtDate, a.getComune_nascita().getIstat());
+//                if (e.getAllievoCF(codicefiscale) == null) {
+//                    indice.addAndGet(1);
+//                    a.setNome(nome);
+//                    a.setCognome(cognome);
+//                    a.setCodicefiscale(codicefiscale);
+//                    a.setTelefono("3520000000");
+//                    a.setDatanascita(birtDate.toDate());
+//                    String address = faker.address().streetAddress();
+//                    a.setIndirizzoresidenza(address);
+//                    a.setCivicoresidenza("1");
+//                    a.setCapresidenza("00001");
+//                    a.setComune_residenza(a.getComune_nascita());
+//                    a.setIndirizzodomicilio(address);
+//                    a.setCivicodomicilio("1");
+//                    a.setCapdomicilio("00001");
+//                    a.setComune_domicilio(a.getComune_nascita());
+//                    a.setScadenzadocid(new DateTime().plusYears(10).toDate());
+//                    a.setIscrizionegg(new DateTime().minusDays(20).toDate());
+//                    a.setTitoloStudio(e.getEm().find(TitoliStudio.class,
+//                            "07"));
+//                    a.setSoggetto(us.getSoggettoAttuatore());
+//                    a.setCpi(e.getEm().find(CPI.class,
+//                            "H501C000523"));
+//                    a.setMotivazione(e.getEm().find(Motivazione.class,
+//                            2));
+//                    a.setCanale(e.getEm().find(Canale.class,
+//                            1));
+//                    a.setCondizione_mercato(e.getEm().find(Condizione_Mercato.class,
+//                            "01"));
+//                    a.setDatacpi(new DateTime().minusDays(60).toDate());
+//
+//                    a.setCondizione_lavorativa(e.getEm().find(Condizione_Lavorativa.class,
+//                            1));
+//                    a.setNeet(e.getEm().find(Condizione_Lavorativa.class,
+//                            1).getDescrizione());
+//                    a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class,
+//                            "01"));
+//                    a.setEmail(faker.internet().emailAddress());
+//                    a.setSesso(sesso);
+//                    a.setData_up(new DateTime().toDate());
+//                    a.setData_anpal(new DateTime().withDayOfMonth(1).toString("dd/MM/yyyy"));
+//                    a.setStato("A");
+//                    e.merge(a);
+//
+//                } else {
+//                    insertTR("E", "SERVICE", codicefiscale + " rc.so.servlet.OperazioniSA.generaterandomAllievi() " + e.getAllievoCF(codicefiscale));
+//                }
+//            }
+//
+//        } catch (Exception ex1) {
+//            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex1));
+//        } finally {
+//            e.commit();
+//            e.close();
+//        }
+//
+//        redirect(request, response, request.getContextPath() + "/page/sa/searchAllievi.jsp");
     }
 
     protected void newAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -1073,7 +1072,7 @@ public class OperazioniSA extends HttpServlet {
             User us = (User) request.getSession().getAttribute("user");
             Entity e = new Entity();
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(getRequestValue(request, "idpr")));
+                    Long.valueOf(getRequestValue(request, "idpr")));
             List<StaffModelli> staff = p.getStaff_modelli().stream().filter(m -> m.getAttivo() == 1).collect(Collectors.toList());
             ModelliPrg m4 = Utility.filterModello4(p.getModelli());
             if (m4.getStato().equals("R")) {
@@ -1087,8 +1086,6 @@ public class OperazioniSA extends HttpServlet {
                         lezioni,
                         staff,
                         new DateTime(), true);
-
-                //}
             }
             e.close();
         } catch (Exception ex) {
@@ -2628,7 +2625,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             ProgettiFormativi p;
             DocumentiPrg registro = e.getEm().find(DocumentiPrg.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             p = registro.getProgetto();
 
             p.setOre(p.getOre() - registro.getOre());
@@ -2721,7 +2718,9 @@ public class OperazioniSA extends HttpServlet {
                 orariostart = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
                 orarioend = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
                 //Se modello m4, setto il ID del gruppo
-                lm = tipo_modello.equalsIgnoreCase("m3_single") ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, tipolez) : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")));
+                lm = tipo_modello.equalsIgnoreCase("m3_single")
+                        ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, tipolez)
+                        : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")), tipolez);
                 e.persist(lm);
             } else if (tipo_modello.equalsIgnoreCase("m3_double") || tipo_modello.equalsIgnoreCase("m4_double")) {
                 boolean unico_docente = request.getParameter("docente1").equalsIgnoreCase(request.getParameter("docente2"));
@@ -2734,7 +2733,9 @@ public class OperazioniSA extends HttpServlet {
                 orariostart = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
                 orarioend = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
                 //Se modello m4, setto il ID del gruppo
-                lm = tipo_modello.equalsIgnoreCase("m3_double") ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d) : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")));
+                lm = tipo_modello.equalsIgnoreCase("m3_double")
+                        ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d)
+                        : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")), tipolez);
 
                 //Parte 2 Lezione
                 d = unico_docente ? d : e.getEm().find(Docenti.class,
@@ -2743,8 +2744,9 @@ public class OperazioniSA extends HttpServlet {
                         Long.valueOf(request.getParameter("id_calendariolezione2")));
                 orariostart = request.getParameter("orario2_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
                 orarioend = request.getParameter("orario2_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
-                Lezioni_Modelli lm2 = tipo_modello.equalsIgnoreCase("m3_double") ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d) : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")));
-
+                Lezioni_Modelli lm2 = tipo_modello.equalsIgnoreCase("m3_double") ? 
+                        new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d) : 
+                        new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")), tipolez);
                 e.persist(lm);
                 e.persist(lm2);
             } else {
@@ -2767,9 +2769,7 @@ public class OperazioniSA extends HttpServlet {
                     e.merge(m);
                     msg = "Tutte le lezioni relative al modello 3 sono state caricate, puoi procedere al caricamento dell'intero modulo.";
                 }
-            }
-
-            //M4 controllo se tutti le lezioni sono caricate
+            } //M4 controllo se tutti le lezioni sono caricate
             if (modellotrovato && tipo_modello.startsWith("m4")) {
                 List<LezioneCalendario> listLezioneCalendario = e.getLezioniByModello(4);
                 List<Lezioni_Modelli> listLezioniCaricate = e.getLezioniByProgetto(m);
@@ -4514,8 +4514,8 @@ public class OperazioniSA extends HttpServlet {
                                 Date orariostart2 = new SimpleDateFormat("HH:mm").parse("16:00");
                                 Date orarioend2 = new SimpleDateFormat("HH:mm").parse(oraend2_v);
 
-                                Lezioni_Modelli lm1 = new Lezioni_Modelli(giorno, orariostart1, orarioend1, new Date(), m, lez, d, i);
-                                Lezioni_Modelli lm2 = new Lezioni_Modelli(giorno, orariostart2, orarioend2, new Date(), m, lez, d, i);
+                                Lezioni_Modelli lm1 = new Lezioni_Modelli(giorno, orariostart1, orarioend1, new Date(), m, lez, d, i, temp.getTipolez());
+                                Lezioni_Modelli lm2 = new Lezioni_Modelli(giorno, orariostart2, orarioend2, new Date(), m, lez, d, i, temp.getTipolez());
 
                                 e.persist(lm1);
                                 e.persist(lm2);
@@ -4528,7 +4528,7 @@ public class OperazioniSA extends HttpServlet {
                                 orariostart = new SimpleDateFormat("HH:mm").parse("09:00");
                                 orarioend = new SimpleDateFormat("HH:mm").parse("14:00");
                                 Lezioni_Modelli lm2 = new Lezioni_Modelli(giorno, orariostart, orarioend,
-                                        new Date(), m, lez, d, i);
+                                        new Date(), m, lez, d, i, temp.getTipolez());
                                 e.persist(lm2);
                             }
                         } else {
@@ -4712,7 +4712,7 @@ public class OperazioniSA extends HttpServlet {
 
     protected void SCARICAREGISTROCARTACEO(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         File downloadFile = null;
         try {
             Entity e = new Entity();
@@ -4722,7 +4722,7 @@ public class OperazioniSA extends HttpServlet {
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-        
+
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -4745,9 +4745,9 @@ public class OperazioniSA extends HttpServlet {
         } else {
             redirect(request, response, request.getContextPath() + "/404.jsp");
         }
-        
+
     }
-    
+
     protected void SCARICAREGISTROCARTACEOBASE(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 

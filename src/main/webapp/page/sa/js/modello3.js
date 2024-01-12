@@ -85,12 +85,10 @@ function changeLezione(idlezione, l) {
                     down: 'la la-angle-down'
                 }
             });
-
             var arrows = {
                 leftArrow: '<i class="la la-angle-left"></i>',
                 rightArrow: '<i class="la la-angle-right"></i>'
             };
-
             $('#giorno').datepicker({
                 orientation: "bottom left",
                 todayHighlight: false,
@@ -101,7 +99,6 @@ function changeLezione(idlezione, l) {
                 startDate: days[0],
                 daysOfWeekHighlighted: "0",
                 daysOfWeekDisabled: [0]
-//                datesDisabled: ['2/4/2021'],
             });
             $("#tot_hh").html('Totale ore di lezione da effettuare: <b>' + lez.lezione_calendario.ore + '</b>');
             $('#orario1_start').val(lez.orainizio);
@@ -374,16 +371,10 @@ function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
     } else {
         days = setRangeDatesDay(null, idl, 1);
     }
-//    alert(days);
-    //    
-//    if (firstLesson) {
-//        days[1] = days[0];
-//    }
-
     let orario_default_start = '9:00';
     let orario_default_end = sumHHMM(orario_default_start, doubletoHHmm(t.ore1 + t.ore2));
     swal.fire({
-        title: 'Carica Lezione ' + t.lezione + '<br>(Unità didattica ' + t.ud1 + ')',
+        title: 'Modulo ' + t.ud1 + '',
         html: getHtml("swalLezioneCalendarioSingle", context),
         animation: false,
         showCancelButton: true,
@@ -452,16 +443,6 @@ function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
                 $('#orario1_start').timepicker("setTime", orario_default_start);
                 $('#orario1_end').timepicker("setTime", orario_default_end);
             }
-
-
-
-
-
-
-
-
-
-
 
             $('#giorno').val(formattedDate(days[2]));
             $("#giorno").datepicker("update");
@@ -975,16 +956,16 @@ function lezioniDouble(idlezione1, idlezione2, l) {
     }
 }
 
-function lezioniSingle(idlezione, l) {
+function lezioniSingle(idlezione, l, ud,sedefisica) {
     let gg = new Date(new Date(mapDateLezioni.get(l)).toDateString());
     if (gg < today || $('#statoPrg').val() === "OK") {
-        showLezioneSingle(idlezione, l);
+        showLezioneSingle(idlezione, l, ud, sedefisica);
     } else {
         changeLezione(idlezione, l);
     }
 }
 
-function showLezioneSingle(idlezione, l) {
+function showLezioneSingle(idlezione, l, ud, sedefisica) {
     let lez = mapLezioni.get(idlezione);
     swal.fire({
         title: 'Visualizza Lezione ' + l + '<br>(Unità didattica ' + lez.codice_ud + ')',

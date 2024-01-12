@@ -26,6 +26,8 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import rc.so.db.Action;
 import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
@@ -114,7 +116,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.tika.parser.txt.CharsetDetector;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.sax.ToTextContentHandler;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -609,7 +613,7 @@ public class Utility {
     }
 
     public static int numberGroupsModello4(ProgettiFormativi ps) {
-        Set<Integer> statesAsSet = new HashSet<Integer>();
+        Set<Integer> statesAsSet = new HashSet<>();
         for (Allievi p : ps.getAllievi().stream().filter(a -> a.getGruppo_faseB() > 0).collect(Collectors.toList())) {
             statesAsSet.add(p.getGruppo_faseB());
         }
@@ -617,16 +621,18 @@ public class Utility {
     }
 
     public static int maxGroupsCreation(ProgettiFormativi ps) {
-        Long cnt = ps.getAllievi().stream().filter(a -> !a.getStatopartecipazione().getId().equalsIgnoreCase("03") && a.getGruppo_faseB() != -1).count();
+        Long cnt = ps.getAllievi().stream().filter(a -> a.getStatopartecipazione().getId().equalsIgnoreCase("15") && a.getGruppo_faseB() != -1).count();
         return cnt.intValue();
     }
 
     public static Lezioni_Modelli lezioneFilteredByGroup(List<Lezioni_Modelli> l, Long id, int gruppo) {
-        return l.stream().filter(o -> o.getLezione_calendario().getId() == id && o.getGruppo_faseB() == gruppo).findFirst().orElse(null);
+        Lezioni_Modelli lm = l.stream().filter(o -> o.getLezione_calendario().getId().equals(id)
+                && o.getGruppo_faseB() == gruppo).findFirst().orElse(null);
+        return lm;
     }
 
     public static boolean isPresent_LessonGroup(List<Lezioni_Modelli> l, Long id, int gruppo) {
-        return l.stream().anyMatch(lc -> lc.getLezione_calendario().getId() == id && lc.getGruppo_faseB() == gruppo);
+        return l.stream().anyMatch(lc -> lc.getLezione_calendario().getId().equals(id) && lc.getGruppo_faseB() == gruppo);
     }
 
     public static DocumentiPrg filterM2(ProgettiFormativi p) {
@@ -873,7 +879,6 @@ public class Utility {
 
     public static boolean isEditableModel(List<Lezioni_Modelli> list) throws ParseException {
         Date today = new Date();
-//solo per test        today = new SimpleDateFormat("yyyy-MM-dd").parse("2021-07-18");
         DateTimeComparator dateTimeComparator = DateTimeComparator.getDateOnlyInstance();
         for (Lezioni_Modelli l : list) {
             if (dateTimeComparator.compare(l.getGiorno(), today) > -1) {
@@ -1037,9 +1042,13 @@ public class Utility {
 
     public static String conversionText(String ing) {
         try {
-            CharsetDetector detector = new CharsetDetector();
-            detector.setText(ing.getBytes());
-            return new String(ing.getBytes(detector.detect().getName()), Charset.forName("utf-8"));
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ToTextContentHandler toTextContentHandler = new ToTextContentHandler(byteArrayOutputStream, "UTF-8");
+            AutoDetectParser parser = new AutoDetectParser();
+            Metadata metadata = new Metadata();
+            parser.parse(new ByteArrayInputStream(ing.getBytes()), toTextContentHandler, metadata);
+            return byteArrayOutputStream.toString().trim();
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
         }

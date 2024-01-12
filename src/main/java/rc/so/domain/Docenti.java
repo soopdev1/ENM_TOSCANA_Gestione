@@ -86,27 +86,27 @@ public class Docenti implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date datawebinair;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "fascia")
     private FasceDocenti fascia;
     
     
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "idsoggetti_attuatori")
     SoggettiAttuatori soggetto;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(name = "progetti_docenti",
             joinColumns = @JoinColumn(name = "iddocenti"),
             inverseJoinColumns = @JoinColumn(name = "idprogetti_formativi"))
     List<ProgettiFormativi> progetti;
 
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     List<DocumentiPrg> registri_aula;
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     List<Documenti_Allievi> registri_allievi;
 
-    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonIgnore
     List<Lezioni_Modelli> lezioni;
     
@@ -137,7 +137,7 @@ public class Docenti implements Serializable {
     private String tipo_inserimento;
     
     
-    @OneToMany(mappedBy = "docente",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "docente",fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonIgnore
     List<Attivita_Docente> attivita;
     

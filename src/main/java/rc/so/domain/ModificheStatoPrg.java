@@ -26,7 +26,7 @@ import javax.persistence.Table;
 public class ModificheStatoPrg implements Serializable {
 
     @Id
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "idstati_progetto", referencedColumnName = "idstati_progetto")
     private StatiPrg id;
 

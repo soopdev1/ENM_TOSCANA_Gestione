@@ -51,7 +51,6 @@ public class OperazioniGeneral extends HttpServlet {
             File f1 = new File(path);
             if (EmailValidator.getInstance().isValid(maildest)) {
                 Entity e = new Entity();
-
                 Email email_txt = (Email) e.getEmail("invio_modello0");
                 SendMailJet.sendMail(e.getPath("mailsender"), new String[]{maildest}, null,
                         email_txt.getTesto()

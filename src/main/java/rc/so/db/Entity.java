@@ -295,19 +295,17 @@ public class Entity {
     }
 
     public String getLAST_CIP() {
-        String annocorrente = new DateTime().year().getAsText();
         TypedQuery<ProgettiFormativi> q = em.createNamedQuery("progetti.cip", ProgettiFormativi.class);
-        q.setParameter("anno", annocorrente);
         String cipbase = q.getResultList().isEmpty() ? null : q.getSingleResult().getCip();
         if (cipbase == null) {
-            return annocorrente + "ENM0001";
+            return "2023ENM0001";
         } else {
-            String id = cipbase.replaceAll(annocorrente + "ENM", "").trim();
+            String id = cipbase.replaceAll("2023ENM", "").trim();
             try {
                 int id_1 = Utility.parseInt(id) + 1;
-                return annocorrente + "ENM" + StringUtils.leftPad(String.valueOf(id_1), 4, "0");
+                return "2023ENM" + StringUtils.leftPad(String.valueOf(id_1), 4, "0");
             } catch (Exception e) {
-                return annocorrente + "ENM0001";
+                return "2023ENM0001";
             }
         }
     }
@@ -886,6 +884,7 @@ public class Entity {
     public Documenti_Allievi getModello0Allievo(Allievi a) {
         TypedQuery<Documenti_Allievi> q = this.em.createNamedQuery("da.modello0", Documenti_Allievi.class)
                 .setParameter("allievo", a);
+        q.setMaxResults(1);
         return q.getResultList().isEmpty() ? null : q.getSingleResult();
     }
 
@@ -913,8 +912,8 @@ public class Entity {
     }
 
     public List<StatoPartecipazione> lista_StatoPartecipazioneMOD() {
-        TypedQuery<StatoPartecipazione> q = this.em.createNamedQuery("sp.Elencomod", StatoPartecipazione.class);
-        return q.getResultList().isEmpty() ? new ArrayList() : (List<StatoPartecipazione>) q.getResultList();
+        TypedQuery<StatoPartecipazione> q = this.em.createNamedQuery("sp.modificaincorso", StatoPartecipazione.class);
+        return q.getResultList().isEmpty() ? new ArrayList() : q.getResultList();
     }
 
     public Allievi getAllievoEmail(String email) {
@@ -949,6 +948,11 @@ public class Entity {
     public List<ProgettiFormativi> getProgettiDaRendicontare() {
         TypedQuery<ProgettiFormativi> q = this.em.createNamedQuery("progetti.toRend", ProgettiFormativi.class);
         return q.getResultList().size() > 0 ? (List<ProgettiFormativi>) q.getResultList() : new ArrayList();
+    }
+    public List<Presenze_Lezioni_Allievi> getPresenzeLezioniAllievi_PR(Allievi allievo) {
+        TypedQuery<Presenze_Lezioni_Allievi> q = this.em.createNamedQuery("presenzelezioni.allievo", Presenze_Lezioni_Allievi.class);
+        q.setParameter("allievo", allievo);
+        return !q.getResultList().isEmpty() ? q.getResultList() : new ArrayList();
     }
 
     public List<Estrazioni> getRendicontazioni() {
@@ -1231,36 +1235,38 @@ public class Entity {
 
     public List<UnitaDidattiche> getUD() {
         TypedQuery<UnitaDidattiche> q = em.createNamedQuery("unita_didattiche.Elenco", UnitaDidattiche.class);
-        return q.getResultList().size() > 0 ? (List<UnitaDidattiche>) q.getResultList() : new ArrayList();
+        return q.getResultList();
     }
 
     public List<String> getFasi_UD() {
         TypedQuery<String> q = em.createNamedQuery("unita_didattiche.Fasi", String.class);
-        return q.getResultList().size() > 0 ? (List<String>) q.getResultList() : new ArrayList();
+        return q.getResultList();
     }
 
     public List<LezioneCalendario> getLezioniByModello(int modello) {
         TypedQuery<LezioneCalendario> q = em.createNamedQuery(("lezioni.byModello"), LezioneCalendario.class)
                 .setParameter("modello", modello);
-        return q.getResultList().size() > 0 ? (List<LezioneCalendario>) q.getResultList() : new ArrayList();
+        return q.getResultList();
     }
 
     public List<Lezioni_Modelli> getLezioniByProgetto(ModelliPrg m) {
         TypedQuery<Lezioni_Modelli> q = em.createNamedQuery("lezmod.ByModello", Lezioni_Modelli.class)
                 .setParameter("modello", m);
-        return q.getResultList().size() > 0 ? (List<Lezioni_Modelli>) q.getResultList() : new ArrayList();
+        return q.getResultList();
     }
 
     public Docenti getDocenteByEmail(String email, SoggettiAttuatori s) {
-        TypedQuery q = this.em.createNamedQuery("d.byEmail", Docenti.class);
+        TypedQuery<Docenti> q = this.em.createNamedQuery("d.byEmail", Docenti.class);
         q.setParameter("email", email).setParameter("soggetto", s);
-        return q.getResultList().isEmpty() ? null : (Docenti) q.getSingleResult();
+        q.setMaxResults(1);
+        return q.getSingleResult();
     }
 
     public Docenti getDocenteByCF_SA(String cf, SoggettiAttuatori s) {
-        TypedQuery q = this.em.createNamedQuery("d.byCf_SA", Docenti.class);
+        TypedQuery<Docenti> q = this.em.createNamedQuery("d.byCf_SA", Docenti.class);
         q.setParameter("cf", cf).setParameter("soggetto", s);
-        return q.getResultList().isEmpty() ? null : (Docenti) q.getSingleResult();
+        q.setMaxResults(1);
+        return q.getSingleResult();
     }
 
     public List<Docenti> getActiveDocenti_bySA(SoggettiAttuatori s) {
@@ -1322,6 +1328,13 @@ public class Entity {
     public Presenze_Lezioni getPresenzeLezione(Lezioni_Modelli lezioneriferimento) {
         TypedQuery<Presenze_Lezioni> q = this.em.createNamedQuery("presenzelezioni.lezioni", Presenze_Lezioni.class);
         q.setParameter("lezioneriferimento", lezioneriferimento);
+        q.setMaxResults(1);
+        return q.getResultList().isEmpty() ? null : q.getSingleResult();
+    }
+    
+    public Presenze_Lezioni getPresenzeLezione(Long idcalendar) {
+        TypedQuery<Presenze_Lezioni> q = this.em.createNamedQuery("presenzelezioni.lezioni", Presenze_Lezioni.class);
+        q.setParameter("lezioneriferimento", this.em.find(Lezioni_Modelli.class, idcalendar));
         q.setMaxResults(1);
         return q.getResultList().isEmpty() ? null : q.getSingleResult();
     }

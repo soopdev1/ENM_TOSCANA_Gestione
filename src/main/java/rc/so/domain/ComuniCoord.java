@@ -24,7 +24,7 @@ import javax.persistence.Table;
 public class ComuniCoord implements Serializable {
 
     @Id
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "idcomune", referencedColumnName = "idcomune")
     private Comuni id;
     @Column(name = "nome")

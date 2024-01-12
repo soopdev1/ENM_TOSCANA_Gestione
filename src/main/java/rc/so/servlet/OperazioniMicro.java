@@ -77,6 +77,7 @@ import static rc.so.util.Utility.redirect;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import static java.lang.String.format;
 import static java.nio.file.Files.probeContentType;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,16 +91,21 @@ import static org.apache.commons.lang3.StringUtils.remove;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import static java.lang.String.format;
 import java.nio.file.Files;
+import static java.nio.file.Files.probeContentType;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
+import static rc.so.db.Action.insertTR;
 import rc.so.domain.Canale;
 import rc.so.domain.MaturazioneIdea;
 import rc.so.domain.Motivazione;
 import rc.so.domain.MotivazioneNO;
+import rc.so.domain.Presenze_Lezioni;
 import rc.so.domain.TipoDoc_Allievi;
+import static rc.so.util.Utility.estraiEccezione;
+import static rc.so.util.Utility.getRequestValue;
 import static rc.so.util.Utility.parseInt;
+import static rc.so.util.Utility.redirect;
 
 /**
  *
@@ -107,6 +113,43 @@ import static rc.so.util.Utility.parseInt;
  */
 public class OperazioniMicro extends HttpServlet {
 
+    protected void SCARICAREGISTROCARTACEO(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        File downloadFile = null;
+        try {
+            Entity e = new Entity();
+            String idpresenza = getRequestValue(request, "idpresenza");
+            Presenze_Lezioni pl1 = e.getEm().find(Presenze_Lezioni.class, Long.valueOf(idpresenza));
+            downloadFile = new File(pl1.getPathdocumento());
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        }
+        
+        if (downloadFile != null && downloadFile.exists()) {
+            OutputStream outStream;
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                String mimeType = probeContentType(downloadFile.toPath());
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                String headerKey = "Content-Disposition";
+                String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                response.setHeader(headerKey, headerValue);
+                outStream = response.getOutputStream();
+                byte[] buffer = new byte[4096 * 4096];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, bytesRead);
+                }
+            }
+            outStream.close();
+        } else {
+            redirect(request, response, request.getContextPath() + "/404.jsp");
+        }
+        
+    }
     protected void salvamodello0(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         Entity e = new Entity();
@@ -343,17 +386,9 @@ public class OperazioniMicro extends HttpServlet {
             stato_prec = p.getStato().getId();
             if (p.getStato().getId().equals("DC")) {
                 p.setCip(getRequestValue(request, "cip"));
-                //start fase a - 
-                //14 05 21 Escludere dalla FASE B gli alunni con ore rendicontate <= 36 durante la FASE A
-                Long hh36 = Long.valueOf(129600000);
-                Map<Long, Long> oreRendicontateFaseA = Action.OreRendicontabiliAlunni_faseA(p.getId().intValue());
                 for (Allievi a : p.getAllievi()) {
                     a.setStatopartecipazione(e.getEm().find(StatoPartecipazione.class, "15"));
-                    if (oreRendicontateFaseA.get(a.getId()) != null && oreRendicontateFaseA.get(a.getId()).compareTo(hh36) < 0) {
-                        a.setGruppo_faseB(-1);
-                    }
                     e.merge(a);
-
                 }
                 e.merge(p);
             } else if (p.getStato().getId().equalsIgnoreCase("DV")) {
@@ -2783,6 +2818,9 @@ public class OperazioniMicro extends HttpServlet {
                     break;
                 case "salvamodello0":
                     salvamodello0(request, response);
+                    break;
+                case "SCARICAREGISTROCARTACEO":
+                    SCARICAREGISTROCARTACEO(request, response);
                     break;
                 default:
                     break;

@@ -21,6 +21,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 /**
  *
@@ -54,7 +55,7 @@ public class Presenze_Lezioni_Allievi implements Serializable {
     @JoinColumn(name = "idallievi")
     private Allievi allievo;
     
-    @Column(name = "presente", columnDefinition = "tinyint(1) default 1")
+    @Column(name = "presente", columnDefinition = "tinyint(1) default 0")
     private boolean presente;
 
     @Column(name = "orainizio")
@@ -65,15 +66,77 @@ public class Presenze_Lezioni_Allievi implements Serializable {
 
     @Column(name = "durata")
     private Long durata;
+    
+    @Column(name = "convalidata", columnDefinition = "tinyint(1) default 0")
+    private boolean convalidata;
 
+    @Column(name = "durataconvalidata")
+    private Long durataconvalidata;
+    
     @Column(name = "datarealelezione")
     @Temporal(TemporalType.TIMESTAMP)
     private Date datainserimento;
 
+    
+    @Transient
+    private String tipolez;
+    @Transient
+    private String fase;
+    @Transient
+    private String modulo;
+    @Transient
+    private Date datalezione;
+            
     public Presenze_Lezioni_Allievi() {
     }
 
+    public String getFase() {
+        return fase;
+    }
+
+    public void setFase(String fase) {
+        this.fase = fase;
+    }
+
+    public String getTipolez() {
+        return tipolez;
+    }
+
+    public void setTipolez(String tipolez) {
+        this.tipolez = tipolez;
+    }
+
+    public String getModulo() {
+        return modulo;
+    }
+
+    public void setModulo(String modulo) {
+        this.modulo = modulo;
+    }
+
+    public Date getDatalezione() {
+        return datalezione;
+    }
+
+    public void setDatalezione(Date datalezione) {
+        this.datalezione = datalezione;
+    }
+
+    public Long getDurataconvalidata() {
+        return durataconvalidata;
+    }
+
+    public void setDurataconvalidata(Long durataconvalidata) {
+        this.durataconvalidata = durataconvalidata;
+    }
     
+    public boolean isConvalidata() {
+        return convalidata;
+    }
+
+    public void setConvalidata(boolean convalidata) {
+        this.convalidata = convalidata;
+    }
     
     public Long getIdpresenzelezioniallievi() {
         return idpresenzelezioniallievi;
@@ -166,8 +229,6 @@ public class Presenze_Lezioni_Allievi implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("Presenze_Lezioni_Allievi{");
         sb.append("idpresenzelezioniallievi=").append(idpresenzelezioniallievi);
-        sb.append(", presenzelezioni=").append(presenzelezioni);
-        sb.append(", allievo=").append(allievo);
         sb.append(", presente=").append(presente);
         sb.append(", orainizio=").append(orainizio);
         sb.append(", orafine=").append(orafine);

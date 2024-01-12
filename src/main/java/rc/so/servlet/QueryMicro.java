@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import rc.so.domain.LezioneCalendario;
+import rc.so.domain.Presenze_Lezioni;
+import rc.so.domain.Presenze_Lezioni_Allievi;
 
 /**
  *
@@ -383,10 +388,117 @@ public class QueryMicro extends HttpServlet {
         }
     }
 
+    protected void getPresenzeAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+
+        try {
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(request.getParameter("idallievo")));
+            DateTime oggi = new DateTime().withMillisOfDay(0);
+            List<Presenze_Lezioni_Allievi> presenze_t = new ArrayList<>();
+            List<Presenze_Lezioni_Allievi> presenze_pr = e.getPresenzeLezioniAllievi_PR(a);
+            Database db = new Database(false);
+            List<Presenze_Lezioni_Allievi> presenze_fad = db.presenze_fad(a.getId());
+            db.closeDB();
+
+            //MODELLO 3
+            List<LezioneCalendario> lezioniCalendario = e.getLezioniByModello(3);
+//            List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
+            ModelliPrg m3 = Utility.filterModello3(a.getProgetto().getModelli());
+            List<Lezioni_Modelli> lezioni = m3.getLezioni();
+            List<Date> fadgiàinserite = new ArrayList<>();
+            for (LezioneCalendario lez : lezioniCalendario) {
+                Lezioni_Modelli temp = Utility.lezioneFiltered(lezioni, lez.getId());
+                if (!temp.getTipolez().equals("F")) {
+                    Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
+                    if (pl1 == null) {
+                        Presenze_Lezioni_Allievi NONINSERITA = new Presenze_Lezioni_Allievi();
+                        NONINSERITA.setDatalezione(temp.getGiorno());
+                        NONINSERITA.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                        NONINSERITA.setDurata(-10000L);
+                        NONINSERITA.setDurataconvalidata(-10000L);
+                        NONINSERITA.setOrainizio(temp.getOrainizio());
+                        NONINSERITA.setOrafine(temp.getOrafine());
+                        NONINSERITA.setConvalidata(false);
+                        NONINSERITA.setTipolez("IN PRESENZA");
+                        NONINSERITA.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                        presenze_t.add(NONINSERITA);
+                    } else {
+                        Presenze_Lezioni_Allievi pla = presenze_pr.stream().filter(p1
+                                -> p1.getPresenzelezioni().getIdpresenzelezioni()
+                                        .equals(pl1.getIdpresenzelezioni())).findAny().orElse(null);
+                        if (pla == null) {
+                            Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
+                            ASSENTE.setDatalezione(pl1.getDatalezione());
+                            ASSENTE.setModulo(pl1.getLezioneriferimento().getLezione_calendario().getUnitadidattica().getCodice());
+                            ASSENTE.setDurata(0L);
+                            ASSENTE.setDurataconvalidata(0L);
+                            ASSENTE.setConvalidata(false);
+                            ASSENTE.setTipolez("IN PRESENZA");
+                            ASSENTE.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                            presenze_t.add(ASSENTE);
+                        } else {
+                            pla.setModulo(pl1.getLezioneriferimento().getLezione_calendario().getUnitadidattica().getCodice());
+                            pla.setDatalezione(pl1.getDatalezione());
+                            pla.setTipolez("IN PRESENZA");
+                            pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                            presenze_t.add(pla);
+                        }
+                    }
+                } else {
+                    if (!fadgiàinserite.contains(temp.getGiorno())) {
+                        if (temp.getGiorno().equals(oggi.toDate()) || temp.getGiorno().after(oggi.toDate())) {
+                            Presenze_Lezioni_Allievi FUTURE = new Presenze_Lezioni_Allievi();
+                            FUTURE.setDatalezione(temp.getGiorno());
+                            FUTURE.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                            FUTURE.setDurata(-10000L);
+                            FUTURE.setDurataconvalidata(-10000L);
+                            FUTURE.setOrainizio(temp.getOrainizio());
+                            FUTURE.setOrafine(temp.getOrafine());
+                            FUTURE.setConvalidata(false);
+                            FUTURE.setTipolez("IN FAD");
+                            FUTURE.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+
+                            presenze_t.add(FUTURE);
+                        } else {
+                            Presenze_Lezioni_Allievi pla = presenze_fad.stream().filter(p1 -> p1.getDatalezione().equals(temp.getGiorno())).findAny().orElse(null);
+                            if (pla == null) {
+                                Presenze_Lezioni_Allievi NONINSERITA = new Presenze_Lezioni_Allievi();
+                                NONINSERITA.setDatalezione(temp.getGiorno());
+                                NONINSERITA.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                NONINSERITA.setOrainizio(temp.getOrainizio());
+                                NONINSERITA.setOrafine(temp.getOrafine());
+                                NONINSERITA.setDurata(-10000L);
+                                NONINSERITA.setDurataconvalidata(-10000L);
+                                NONINSERITA.setConvalidata(false);
+                                NONINSERITA.setTipolez("IN FAD");
+                                NONINSERITA.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                presenze_t.add(NONINSERITA);
+                            } else {
+                                pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                pla.setTipolez("IN FAD");
+                                pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                presenze_t.add(pla);
+                            }
+                        }
+                        fadgiàinserite.add(temp.getGiorno());
+                        System.out.println("rc.so.servlet.QueryMicro.getPresenzeAllievo() " + temp.getGiorno());
+                    }
+                }
+            }
+
+            writeJsonResponse(response, presenze_t);
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        } finally {
+            e.close();
+        }
+
+    }
+
     protected void getDocAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
-            Allievi a = e.getEm().find(Allievi.class, Long.parseLong(request.getParameter("idallievo")));
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(request.getParameter("idallievo")));
             List<Documenti_Allievi> docs = e.getDocAllievo(a);
             MascheraM5 m5_allievo = e.getM5_byAllievo(a);
             if (m5_allievo != null && m5_allievo.getDomanda_ammissione() != null) {
@@ -634,7 +746,7 @@ public class QueryMicro extends HttpServlet {
     protected void getAllieviByPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
-            List<Allievi> a = e.getAllieviProgettiFormativi(e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("id"))));
+            List<Allievi> a = e.getAllieviProgettiFormativi(e.getEm().find(ProgettiFormativi.class, Long.valueOf(request.getParameter("id"))));
             List<Allievi> list = new ArrayList();
             for (Allievi al : a) {
                 list.add(new Allievi(al.getId(), al.getNome(), al.getCognome()));
@@ -761,6 +873,9 @@ public class QueryMicro extends HttpServlet {
         if (us != null && (us.getTipo() == 2 || us.getTipo() == 5)) {
             String type = request.getParameter("type");
             switch (type) {
+                case "getPresenzeAllievo":
+                    getPresenzeAllievo(request, response);
+                    break;
                 case "verificaassegnazione":
                     verificaassegnazione(request, response);
                     break;

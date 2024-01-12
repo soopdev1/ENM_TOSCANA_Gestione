@@ -27,8 +27,8 @@ function checkorariomax() {
         var date2 = new Date('1/1/2000 ' + oraf + ':00');
 
 
-        //    console.log(date1);
-        //    console.log(date2);
+            console.log(date1);
+            console.log(date2);
 
 
         $('.sel-presenza').each(function (i, obj) {
@@ -59,11 +59,8 @@ function checkorariomax() {
                     for (var i = 8; i < 21; i++) {
                         var v1 = new Date('1/1/2000 ' + i + ':00:00');
                         var v2 = new Date('1/1/2000 ' + i + ':30:00');
-
-
                         var newOption1 = null;
                         var newOption2 = null;
-
                         if (v1 >= date1 && v1 <= date2) {
                             var out1 = i + ":00";
                             if (i < 10) {
@@ -80,7 +77,6 @@ function checkorariomax() {
                             newOption2 = out1;
                             selectedind = out1;
                         }
-
                         if (newOption1 !== null) {
 //                        if (idoggetto.startsWith("oraf")) {
 //                            var no1 = new Option(newOption1, newOption1, false, false);
@@ -119,9 +115,9 @@ function checkorariomax() {
                 }
 
 
-             //   if (startoi !== "" && idoggetto.startsWith("orai")) {
-             //       $('#' + idoggetto).val(startoi).trigger('change');
-             //   }
+//                if (startoi !== "" && idoggetto.startsWith("orai")) {
+//                    $('#' + idoggetto).val(startoi).trigger('change');
+//                }
 //                if (startof !== "" && idoggetto.startsWith("oraf")) {
 //                    $('#' + idoggetto).val(startof).trigger('change');
 //                }
@@ -146,7 +142,6 @@ function checkdatisalvati() {
     var diff = (date2 - date1) / 3600000;
     var labelres = residue;
     var check = diff > residue;
-    alert(tipolez);
     if (tipolez === "FAD") {
         check = diff > residuefad;
         labelres = residuefad;

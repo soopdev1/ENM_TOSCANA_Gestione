@@ -57,6 +57,7 @@ import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.right;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 import org.joda.time.DateTime;
+import rc.so.domain.Presenze_Lezioni_Allievi;
 import static rc.so.util.Utility.conf;
 
 /**
@@ -67,7 +68,6 @@ public class Database {
 
     public Connection c = null;
 
-    
     public Database(boolean bando) {
         String driver = "com.mysql.cj.jdbc.Driver";
         String user = conf.getString("db.user");
@@ -144,7 +144,7 @@ public class Database {
         }
         return new DateTime().toString(timestampSQL);
     }
-    
+
     public void insertTR(String type, String user, String descr) {
         try {
             PreparedStatement ps = this.c.prepareStatement("INSERT INTO tracking (azione,iduser,timestamp) VALUES (?,?,?)");
@@ -155,12 +155,12 @@ public class Database {
         } catch (SQLException ex) {
         }
     }
-    
+
     public int countPregresso() {
         int count = 0;
         String sql = "SELECT COUNT(idallievi_pregresso) FROM allievi_pregresso";
         try {
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 if (rs.next()) {
                     count = rs.getInt(1);
                 }
@@ -176,7 +176,7 @@ public class Database {
         List<Fadroom> out = new ArrayList<>();
         try {
             String sql = "SELECT room,idprogetti_formativi FROM fad_access WHERE DATA LIKE CONCAT(CURDATE(),'%') GROUP BY idprogetti_formativi,room";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Fadroom(rs.getString(1), String.valueOf(rs.getInt(2)),
                             right(rs.getString(1), 1),
@@ -196,7 +196,7 @@ public class Database {
                     + "WHERE data LIKE CONCAT(CURDATE(),'%') AND idprogetti_formativi IN "
                     + "(SELECT idprogetti_formativi FROM progetti_formativi WHERE (stato = 'ATA' OR stato = 'ATB') AND idsoggetti_attuatori = " + idsa + ")"
                     + " GROUP BY idprogetti_formativi,room";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Fadroom(rs.getString(1), String.valueOf(rs.getInt(2)),
                             right(rs.getString(1), 1),
@@ -213,7 +213,7 @@ public class Database {
         List<Fadroom> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM fad_multi a WHERE stato='0'";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Fadroom(rs.getString(1), String.valueOf(rs.getInt(2)), rs.getString(3), rs.getString(5)));
                 }
@@ -228,7 +228,7 @@ public class Database {
         List<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM fad_report";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Item(rs.getString(1), rs.getString(2), ""));
                 }
@@ -244,7 +244,7 @@ public class Database {
         String out = null;
         try {
             String sql = "SELECT base64 FROM fad_report WHERE idprogetti_formativi = " + idpr;
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out = rs.getString(1);
                 }
@@ -260,7 +260,7 @@ public class Database {
         List<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT idprogetti_formativi,nomestanza FROM fad a WHERE stato='0'";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Item(String.valueOf(rs.getInt(1)), rs.getString(2), rs.getString(2)));
                 }
@@ -275,9 +275,9 @@ public class Database {
         String p1 = "/mnt/mcn/test/temp/";
         try {
             String sql = "SELECT url FROM path WHERE id = ?";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setString(1, id);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         p1 = rs.getString(1);
                     }
@@ -293,9 +293,9 @@ public class Database {
         String p1 = "Progetto Formativo";
         try {
             String sql = "SELECT descrizione FROM progetti_formativi WHERE idprogetti_formativi = ?";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setString(1, id);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         p1 = rs.getString(1);
                     }
@@ -311,9 +311,9 @@ public class Database {
         List<FadCalendar> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM fad_calendar f WHERE f.idprogetti_formativi = ? ORDER BY numerocorso,DATA";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setString(1, id);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         if (rs.getString("orainizio").contains(";")) {
                             List<String> orainizio = Splitter.on(";").splitToList(rs.getString("orainizio"));
@@ -345,11 +345,11 @@ public class Database {
         boolean out;
         try {
             String sql = "SELECT * FROM fad_calendar WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ?";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setString(1, idpr);
                 ps.setString(2, corso);
                 ps.setString(3, data);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         String orainizio_old = rs.getString("orainizio");
                         String orafine_old = rs.getString("orafine");
@@ -357,7 +357,7 @@ public class Database {
                         String orafine_new = orafine_old + ";" + orafine;
                         String update = "UPDATE fad_calendar SET orainizio = ?, orafine = ? "
                                 + "WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ? AND orainizio = ? AND orafine = ?";
-                        try ( PreparedStatement ps1 = this.c.prepareStatement(update)) {
+                        try (PreparedStatement ps1 = this.c.prepareStatement(update)) {
                             ps1.setString(1, orainizio_new);
                             ps1.setString(2, orafine_new);
                             ps1.setString(3, idpr);
@@ -371,7 +371,7 @@ public class Database {
 
                     } else {
                         String del = "INSERT INTO fad_calendar VALUES (?,?,?,?,?)";
-                        try ( PreparedStatement ps1 = this.c.prepareStatement(del)) {
+                        try (PreparedStatement ps1 = this.c.prepareStatement(del)) {
                             ps1.setString(1, idpr);
                             ps1.setString(2, corso);
                             ps1.setString(3, data);
@@ -395,12 +395,12 @@ public class Database {
         boolean out = false;
         try {
             String sql = "SELECT * FROM fad_calendar WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ? AND orainizio LIKE ?";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setString(1, idpr);
                 ps.setString(2, corso);
                 ps.setString(3, data);
                 ps.setString(4, "%" + inizio + "%");
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         String orainizio = rs.getString("orainizio");
                         String orafine = rs.getString("orafine");
@@ -417,7 +417,7 @@ public class Database {
                                 String orafine_new = String.join(";", orafine_list);
                                 String update = "UPDATE fad_calendar SET orainizio = ?, orafine = ? "
                                         + "WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ? AND orainizio = ? AND orafine = ?";
-                                try ( PreparedStatement ps1 = this.c.prepareStatement(update)) {
+                                try (PreparedStatement ps1 = this.c.prepareStatement(update)) {
                                     ps1.setString(1, orainizio_new);
                                     ps1.setString(2, orafine_new);
                                     ps1.setString(3, idpr);
@@ -431,7 +431,7 @@ public class Database {
                             }
                         } else {
                             String del = "DELETE FROM fad_calendar WHERE idprogetti_formativi = ? AND numerocorso = ? AND data = ? AND orainizio = ? AND orafine = ?";
-                            try ( PreparedStatement ps1 = this.c.prepareStatement(del)) {
+                            try (PreparedStatement ps1 = this.c.prepareStatement(del)) {
                                 ps1.setString(1, idpr);
                                 ps1.setString(2, corso);
                                 ps1.setString(3, data);
@@ -457,7 +457,7 @@ public class Database {
             String sql = "SELECT a.id,a.username,a.sedecap,a.cellulare,a.cf,a.cognome,a.data,a.datadecreto,a.mail,a.sedeindirizzo,a.nome,"
                     + "a.docric,a.pec,a.pivacf,a.protocollo,a.societa,a.scadenzadoc,a.cellulare,a.sedecomune,a.dataupconvenzionefinale,a.decreto,a.datadecreto,a.caricasoc"
                     + " FROM bando_toscana_mcn a WHERE id = " + id;
-            try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     sa = new SoggettiAttuatori();
                     sa.setId(rs.getLong("a.id"));
@@ -503,7 +503,7 @@ public class Database {
             String sql = "SELECT a.id,a.username,a.sedecap,a.cellulare,a.cf,a.cognome,a.`data`,a.datadecreto,a.mail,a.sedeindirizzo,a.nome,"
                     + "a.docric,a.pec,a.pivacf,a.protocollo,a.societa,a.scadenzadoc,a.cellulare,a.sedecomune"
                     + " FROM bando_toscana_mcn a WHERE stato_domanda='A' AND dataupconvenzionefinale<>'-'";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     SoggettiAttuatori sa = new SoggettiAttuatori();
                     sa.setId(rs.getLong("a.id"));
@@ -538,7 +538,7 @@ public class Database {
         FileDownload out = null;
         try {
             String sql = "SELECT path FROM docuserbandi WHERE username = '" + username + "' AND codicedoc = 'DOCR' AND stato='1' ORDER BY datacar DESC LIMIT 1";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     out = preparefilefordownload(rs.getString(1));
                 }
@@ -564,7 +564,7 @@ public class Database {
                     + "mailresponsabile5,indirizzo5,responsabile5,telresponsabile5,citta5 "
                     + "FROM allegato_a a WHERE username='" + username + "'";
 
-            try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     int numaule = Integer.parseInt(rs.getString("numaule"));
                     for (int i = 1; i <= numaule; i++) {
@@ -598,7 +598,7 @@ public class Database {
             String sql = "SELECT id,UPPER(nome),UPPER(cognome),UPPER(cf),datanascita,LOWER(mail) "
                     + "FROM allegato_b WHERE username = '" + username + "' GROUP BY cf ORDER BY id";
 
-            try ( PreparedStatement ps = this.c.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String id = rs.getString(1);
                     String nome = rs.getString(2);
@@ -614,7 +614,7 @@ public class Database {
 
                     String sql1 = "SELECT allegatocv,allegatodr FROM allegato_b1 WHERE username='" + username + "' AND idallegato_b1 = '" + id + "'";
 
-                    try ( PreparedStatement ps1 = this.c.prepareStatement(sql1);  ResultSet rs1 = ps1.executeQuery()) {
+                    try (PreparedStatement ps1 = this.c.prepareStatement(sql1); ResultSet rs1 = ps1.executeQuery()) {
                         if (rs1.next()) {
                             String path = en.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
                             createDir(path);
@@ -666,9 +666,9 @@ public class Database {
                         + "FROM registro_completo WHERE fase = 'A' "
                         + "AND idprogetti_formativi = ? "
                         + "AND ruolo = 'DOCENTE') GROUP BY idutente,data";
-                try ( PreparedStatement ps = this.c.prepareStatement(sql1)) {
+                try (PreparedStatement ps = this.c.prepareStatement(sql1)) {
                     ps.setInt(1, pf);
-                    try ( ResultSet rs = ps.executeQuery()) {
+                    try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             if (result.get(rs.getLong("idutente")) == null) {
                                 result.put(rs.getLong("idutente"), rs.getLong("totOre"));
@@ -685,9 +685,9 @@ public class Database {
 
                 String sql = "SELECT sum(totaleorerendicontabili) as totOre,idutente FROM registro_completo WHERE ruolo = 'DOCENTE' "
                         + "AND fase='A' AND idprogetti_formativi = ? GROUP BY idutente";
-                try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+                try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                     ps.setInt(1, pf);
-                    try ( ResultSet rs = ps.executeQuery()) {
+                    try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             result.put(rs.getLong("idutente"), rs.getLong("totOre"));
                         }
@@ -705,9 +705,9 @@ public class Database {
         Map result = new HashMap();
         try {
             String sql = "SELECT sum(totaleorerendicontabili) as totOre,idutente FROM registro_completo WHERE ruolo = 'DOCENTE' AND idprogetti_formativi = ? GROUP BY idutente";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setInt(1, pf);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         result.put(rs.getLong("idutente"), rs.getLong("totOre"));
                     }
@@ -725,9 +725,9 @@ public class Database {
         Map<Long, Long> result = new HashMap<>();
         try {
             String sql = "SELECT sum(totaleorerendicontabili) as totOre,idutente FROM registro_completo WHERE idprogetti_formativi = ? AND ruolo like 'ALLIEVO%' GROUP BY idutente";
-            try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                 ps.setInt(1, pf);
-                try ( ResultSet rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         result.put(rs.getLong("idutente"), rs.getLong("totOre"));
                     }
@@ -752,9 +752,9 @@ public class Database {
                         + "FROM registro_completo WHERE fase = 'B' "
                         + "AND idprogetti_formativi = ? "
                         + "AND ruolo LIKE 'ALLIEVO%') GROUP BY idutente,data";
-                try ( PreparedStatement ps = this.c.prepareStatement(sql1)) {
+                try (PreparedStatement ps = this.c.prepareStatement(sql1)) {
                     ps.setInt(1, pf);
-                    try ( ResultSet rs = ps.executeQuery()) {
+                    try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             if (result.get(rs.getLong("idutente")) == null) {
                                 result.put(rs.getLong("idutente"), rs.getLong("totOre"));
@@ -768,9 +768,9 @@ public class Database {
                 }
             } else {
                 String sql = "SELECT sum(totaleorerendicontabili) as totOre,idutente FROM registro_completo WHERE fase = 'B' AND ruolo LIKE 'ALLIEVO%' AND  idprogetti_formativi = ? GROUP BY idutente;";
-                try ( PreparedStatement ps = this.c.prepareStatement(sql)) {
+                try (PreparedStatement ps = this.c.prepareStatement(sql)) {
                     ps.setInt(1, pf);
-                    try ( ResultSet rs = ps.executeQuery()) {
+                    try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             result.put(rs.getLong("idutente"), rs.getLong("totOre"));
                         }
@@ -796,9 +796,9 @@ public class Database {
                         + "FROM registro_completo WHERE fase = 'A' "
                         + "AND idprogetti_formativi = ? "
                         + "AND ruolo LIKE 'ALLIEVO%') GROUP BY idutente,data";
-                try ( PreparedStatement ps = this.c.prepareStatement(sql1)) {
+                try (PreparedStatement ps = this.c.prepareStatement(sql1)) {
                     ps.setInt(1, pf);
-                    try ( ResultSet rs = ps.executeQuery()) {
+                    try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             if (result.get(rs.getLong("idutente")) == null) {
                                 result.put(rs.getLong("idutente"), rs.getLong("totOre"));
@@ -836,7 +836,7 @@ public class Database {
             String sql = "SELECT * FROM registro_completo "
                     + "WHERE idutente = " + idneet + " AND idprogetti_formativi = " + pf + " AND idsoggetti_attuatori = " + idsa
                     + " AND ruolo = 'ALLIEVO NEET' ORDER BY data";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     datafinepercorso = Utility.sdfITA.format(rs.getDate("data"));
                     orefrequenza.addAndGet(rs.getLong("totaleorerendicontabili"));
@@ -858,7 +858,7 @@ public class Database {
             p.getAllievi().forEach(al1 -> {
                 if (al1.getStatopartecipazione().getId().equals("01") && al1.getGruppo_faseB() == lm.getGruppo_faseB()) {
                     try {
-                        try ( PreparedStatement ps = this.c.prepareStatement(ins)) {
+                        try (PreparedStatement ps = this.c.prepareStatement(ins)) {
                             ps.setLong(1, p.getId());
                             ps.setLong(2, p.getSoggetto().getId());
                             ps.setString(3, p.getCip());
@@ -888,7 +888,7 @@ public class Database {
                 }
             });
 
-            try ( PreparedStatement ps = this.c.prepareStatement(ins)) {
+            try (PreparedStatement ps = this.c.prepareStatement(ins)) {
                 ps.setLong(1, p.getId());
                 ps.setLong(2, p.getSoggetto().getId());
                 ps.setString(3, p.getCip());
@@ -927,7 +927,7 @@ public class Database {
             p.getAllievi().forEach(al1 -> {
                 if (al1.getStatopartecipazione().getId().equals("01")) {
                     try {
-                        try ( PreparedStatement ps = this.c.prepareStatement(ins)) {
+                        try (PreparedStatement ps = this.c.prepareStatement(ins)) {
                             ps.setLong(1, p.getId());
                             ps.setLong(2, p.getSoggetto().getId());
                             ps.setString(3, p.getCip());
@@ -957,7 +957,7 @@ public class Database {
                 }
             });
 
-            try ( PreparedStatement ps = this.c.prepareStatement(ins)) {
+            try (PreparedStatement ps = this.c.prepareStatement(ins)) {
                 ps.setLong(1, p.getId());
                 ps.setLong(2, p.getSoggetto().getId());
                 ps.setString(3, p.getCip());
@@ -991,7 +991,7 @@ public class Database {
         try {
             if (test) {
                 String del = "DELETE FROM registro_completo WHERE fase = 'B' AND idprogetti_formativi = " + idpr;
-                try ( Statement st = this.c.createStatement()) {
+                try (Statement st = this.c.createStatement()) {
                     st.execute(del);
                 }
             }
@@ -1004,7 +1004,7 @@ public class Database {
         try {
             if (test) {
                 String del = "DELETE FROM registro_completo WHERE idprogetti_formativi = " + idpr;
-                try ( Statement st = this.c.createStatement()) {
+                try (Statement st = this.c.createStatement()) {
                     st.execute(del);
                 }
             }
@@ -1017,7 +1017,7 @@ public class Database {
         List<Registro_completo> registro = new ArrayList<>();
         try {
             String sql = "SELECT * FROM registro_completo WHERE idprogetti_formativi = " + idpr + " GROUP BY ruolo,idutente,data ORDER BY data";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
 
                     long orerend = rs.getLong(21);
@@ -1058,7 +1058,7 @@ public class Database {
         List<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM qualificazione_rc";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 while (rs1.next()) {
                     out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
@@ -1073,7 +1073,7 @@ public class Database {
         List<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM inquadramento_rc";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 while (rs1.next()) {
                     out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
@@ -1088,7 +1088,7 @@ public class Database {
         ArrayList<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM attivita_docenti_rc";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 while (rs1.next()) {
                     out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
@@ -1103,7 +1103,7 @@ public class Database {
         ArrayList<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM disponibilita_rc";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 while (rs1.next()) {
                     out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
@@ -1118,7 +1118,7 @@ public class Database {
 
         try {
             String sql = "SELECT permessi FROM pagina WHERE nome='" + page + "' AND permessi LIKE'%" + gruppo + "%'";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 return rs1.next();
             }
         } catch (Exception ex) {
@@ -1131,7 +1131,7 @@ public class Database {
         ArrayList<Item> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM fontifin_rc";
-            try ( PreparedStatement ps1 = this.c.prepareStatement(sql);  ResultSet rs1 = ps1.executeQuery()) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql); ResultSet rs1 = ps1.executeQuery()) {
                 while (rs1.next()) {
                     out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
@@ -1146,11 +1146,11 @@ public class Database {
         try {
 
             String sql0 = "SELECT cip,idsoggetti_attuatori FROM progetti_formativi WHERE idprogetti_formativi = " + idpr;
-            try ( Statement st0 = this.c.createStatement();  ResultSet rs0 = st0.executeQuery(sql0)) {
+            try (Statement st0 = this.c.createStatement(); ResultSet rs0 = st0.executeQuery(sql0)) {
                 if (rs0.next()) {
                     String cip = rs0.getString(1);
                     String sql1 = "SELECT ragionesociale FROM soggetti_attuatori WHERE idsoggetti_attuatori = " + rs0.getInt(2);
-                    try ( Statement st1 = this.c.createStatement();  ResultSet rs1 = st1.executeQuery(sql1)) {
+                    try (Statement st1 = this.c.createStatement(); ResultSet rs1 = st1.executeQuery(sql1)) {
                         if (rs1.next()) {
                             String[] out = {rs1.getString(1).trim().toUpperCase(), cip, rs0.getString(2)};
                             return out;
@@ -1169,7 +1169,7 @@ public class Database {
         List<Utenti> out = new ArrayList<>();
         try {
             String sql = "SELECT idallievi,nome,cognome,codicefiscale,email FROM allievi WHERE id_statopartecipazione='01' AND idprogetti_formativi = " + idpr;
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     Utenti u = new Utenti(rs.getInt("idallievi"),
                             stripAccents(rs.getString("cognome").toUpperCase().trim()),
@@ -1189,7 +1189,7 @@ public class Database {
         List<Utenti> out = new ArrayList<>();
         try {
             String sql = "SELECT idallievi,nome,cognome,codicefiscale,email FROM allievi WHERE id_statopartecipazione='01' AND idprogetti_formativi = " + idpr + " AND gruppo_faseB = " + gruppo;
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     Utenti u = new Utenti(rs.getInt("idallievi"),
                             stripAccents(rs.getString("cognome").toUpperCase().trim()),
@@ -1209,7 +1209,7 @@ public class Database {
         List<Utenti> out = new ArrayList<>();
         try {
             String sql = "SELECT idallievi,nome,cognome,codicefiscale,email FROM allievi WHERE id_statopartecipazione='01' AND idprogetti_formativi = " + idpr;
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     Utenti u = new Utenti(rs.getInt("idallievi"),
                             (rs.getString("cognome").toUpperCase().trim()),
@@ -1230,7 +1230,7 @@ public class Database {
         try {
             String sql = "SELECT iddocenti,nome,cognome,codicefiscale,email FROM docenti WHERE iddocenti IN "
                     + "(SELECT iddocenti FROM progetti_docenti WHERE idprogetti_formativi = " + idpr + ")";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     Utenti u = new Utenti(rs.getInt("iddocenti"),
                             (rs.getString("cognome").toUpperCase().trim()),
@@ -1251,7 +1251,7 @@ public class Database {
         try {
             String sql = "SELECT iddocenti,nome,cognome,codicefiscale,email FROM docenti WHERE iddocenti IN "
                     + "(SELECT iddocenti FROM progetti_docenti WHERE idprogetti_formativi = " + idpr + ")";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     Utenti u = new Utenti(rs.getInt("iddocenti"),
                             stripAccents(rs.getString("cognome").toUpperCase().trim()),
@@ -1273,20 +1273,20 @@ public class Database {
                     + "idriunione,numpartecipanti,orainizio,orafine,durata,nud,"
                     + "fase,gruppofaseb,ruolo,cognome,nome,email,orelogin,orelogout,"
                     + "totaleore,totaleorerendicontabili,idutente) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            
+
             try (PreparedStatement ps = this.c.prepareStatement(insert)) {
                 ps.setInt(1, rc.getIdprogetti_formativi());
                 ps.setInt(2, rc.getIdsoggetti_attuatori());
                 ps.setString(3, rc.getCip());
                 ps.setString(4, rc.getData().toString(Utility.patternSql));
-                
+
                 ps.setString(5, rc.getIdriunione());
                 ps.setInt(6, rc.getNumpartecipanti());
                 ps.setString(7, rc.getOrainizio());
                 ps.setString(8, rc.getOrafine());
                 ps.setLong(9, rc.getDurata());
                 ps.setString(10, rc.getNud());
-                
+
                 ps.setString(11, rc.getFase());
                 ps.setInt(12, rc.getGruppofaseb());
                 ps.setString(13, rc.getRuolo());
@@ -1295,11 +1295,11 @@ public class Database {
                 ps.setString(16, rc.getEmail());
                 ps.setString(17, rc.getOrelogin());
                 ps.setString(18, rc.getOrelogout());
-                
+
                 ps.setLong(19, rc.getTotaleore());
                 ps.setLong(20, rc.getTotaleorerendicontabili());
                 ps.setInt(21, rc.getIdutente());
-                
+
                 ps.execute();
                 return true;
             }
@@ -1308,4 +1308,30 @@ public class Database {
         }
         return false;
     }
+
+    public List<Presenze_Lezioni_Allievi> presenze_fad(Long idallievo) {
+        List<Presenze_Lezioni_Allievi> pla = new ArrayList<>();
+        try {
+
+            String sql = "SELECT * FROM registro_completo r WHERE r.idutente='" + idallievo + "' AND r.ruolo='ALLIEVO'";
+
+            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+                while (rs.next()) {
+                    Presenze_Lezioni_Allievi pl1 = new Presenze_Lezioni_Allievi();
+                    pl1.setDatalezione(new java.util.Date(rs.getDate("data").getTime()));
+                    pl1.setConvalidata(true);
+                    pl1.setDurata(rs.getLong("totaleore"));
+                    pl1.setDurataconvalidata(rs.getLong("totaleorerendicontabili"));
+                    pl1.setOrainizio(rs.getString("orelogin"));
+                    pl1.setOrafine(rs.getString("orelogout"));
+                    pla.add(pl1);
+                }
+            }
+
+        } catch (Exception ex) {
+            LOGAPP.log(Level.SEVERE, estraiEccezione(ex));
+        }
+        return pla;
+    }
+
 }

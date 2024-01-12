@@ -39,6 +39,7 @@
             List<Lezioni_Modelli> lezioni = m4.getLezioni();
             List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
             boolean isEditable = Utility.isEditableModel(lezioni);
+            String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
             e.close();
 %>
 <html>
@@ -150,13 +151,7 @@
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-4">
-                                                    <h5>Modello 4 - Gruppi <i id="neet_excluded" style="display:none;" class="fa fa-exclamation-circle kt-font-warning" 
-                                                                              data-container="body" 
-                                                                              data-toggle="kt-popover" 
-                                                                              data-html="true"
-                                                                              data-placement="bottom"
-                                                                              data-original-title="NEET Esclusi"
-                                                                              data-content=""></i></h5>                                                
+                                                    <h5>Modello 4 - Gruppi</h5>                                                
                                                 </div>                                               
                                                 <div class="col-8">
                                                     <%if (!m4.getStato().equalsIgnoreCase("OK")) {%>
@@ -244,29 +239,37 @@
                                             <div class="form-row">
                                                 <%for (LezioneCalendario lez : grouppedByLezione) {
                                                         temp = Utility.lezioneFilteredByGroup(lezioni, lez.getId(), i);%>
-                                                <div class='col-lg-2 col-md-4 col-sm-6'>
+                                                
+                                                        <div class='col-lg-2 col-md-4 col-sm-6'>
                                                     <div class='row'>
                                                         <%if (lez.isDoppia()) {%>
                                                         <div class="col-6 paddig_0_r" id="msgItem_<%=lez.getLezione()%>_<%=i%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
                                                             <%if (temp == null) {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" onclick="uploadLezioneDouble(<%=p.getId()%>,<%=m4.getId()%>,<%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink' >
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" 
+                                                               onclick="uploadLezioneDouble(<%=p.getId()%>,<%=m4.getId()%>,<%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink' >
                                                                 <i id="mainIcon_<%=lez.getLezione()%>_<%=i%>" class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%} else {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" onclick="lezioniDouble(<%=lez.getId_cal1()%>,<%=lez.getId_cal2()%>, <%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink'>
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" 
+                                                               onclick="lezioniDouble(<%=lez.getId_cal1()%>,<%=lez.getId_cal2()%>, <%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink'>
                                                                 <i class='fa fa-file-invoice' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%}%>
                                                         </div>
 
                                                         <%} else {%>
-                                                        <div class='col-6 paddig_0_r' id="msgItem_<%=lez.getLezione()%>_<%=i%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
+                                                        <div class='col-6 paddig_0_r' id="msgItem_<%=lez.getLezione()%>_<%=i%>" data-container="body" data-html="true" 
+                                                             data-toggle="kt-tooltip" title="" style="text-align: center;">
                                                             <%if (temp == null) {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" onclick="uploadLezione(<%=p.getId()%>, <%=m4.getId()%>, <%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink' >
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" 
+                                                               onclick="uploadLezione(<%=p.getId()%>, <%=m4.getId()%>, <%=lez.getLezione()%>, <%=i%>, '<%=lez.getUd1()%>', '<%=idsedefisica%>')"
+                                                               class='btn-icon kt-font-io document disablelink' >
                                                                 <i id="mainIcon_<%=lez.getLezione()%>_<%=i%>" class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%} else {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" onclick="lezioniSingle(<%=lez.getId()%>, <%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document disablelink'>
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" 
+                                                               onclick="lezioniSingle(<%=lez.getId()%>, <%=lez.getLezione()%>, <%=i%>, '<%=lez.getUd1()%>', '<%=idsedefisica%>')" 
+                                                               class='btn-icon kt-font-io document disablelink'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%}%>
@@ -274,13 +277,14 @@
 
                                                         <%}%> 
                                                         <div class='col-6 paddig_0_l' style='text-align: left;'>
-                                                            <a class="btn btn-icon btn-sm" id="icon_<%=lez.getLezione()%>_<%=i%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="">
+                                                            <a class="btn btn-icon btn-sm" id="icon_<%=lez.getLezione()%>_<%=i%>" 
+                                                               data-container="body" data-html="true" data-toggle="kt-tooltip" title="">
                                                                 <i id="c_icon<%=lez.getLezione()%>_<%=i%>" class="fa fa-check" style="display:none;"></i>
                                                                 <i id="q_icon<%=lez.getLezione()%>_<%=i%>" class="fa fa-question" style="display:none;"></i>
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%></h5>
+                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%></h5>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -289,13 +293,6 @@
                                             <%if (i != gruppi) {%><div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
                                             <%}
                                                 }%>
-
-                                            <%if (Utility.demoversion) {%>
-                                            <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>   
-                                            <a href="<%=request.getContextPath()%>/OperazioniSA?type=simulacalendario&modello=4&idpr=<%=p.getId()%>&idmodello=<%=m4.getId()%>" class="btn btn-dark kt-font-bold"><i class="fa fa-user"></i> SIMULA INSERIMENTO CALENDARIO</a>
-                                            <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
-                                            <%}%>
-
                                             <%if (m4.getStato().equals("R")) {%>
                                             <div class="kt-portlet__foot" style="padding-left: 10px;">
                                                 <div class="kt-form__actions">

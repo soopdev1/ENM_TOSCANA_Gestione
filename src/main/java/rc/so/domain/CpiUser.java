@@ -26,7 +26,7 @@ import javax.persistence.Table;
 public class CpiUser implements Serializable {
 
     @Id
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "id_cpiuser", referencedColumnName = "iduser")
     private User id;
     @Column(name = "nome")
@@ -36,7 +36,7 @@ public class CpiUser implements Serializable {
     @Column(name = "email")
     private String email;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "id_cpi")
     CPI cpi;
 

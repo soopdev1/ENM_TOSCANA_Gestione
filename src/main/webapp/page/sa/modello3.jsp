@@ -1,3 +1,4 @@
+<%@page import="rc.so.domain.Presenze_Lezioni"%>
 <%@page import="rc.so.domain.TipoDoc"%>
 <%@page import="rc.so.domain.Lezioni_Modelli"%>
 <%@page import="rc.so.domain.ModelliPrg"%>
@@ -34,8 +35,6 @@
             List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
             boolean isEditable = Utility.isEditableModel(lezioni);
             String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
-
-            e.close();
 %>
 <html>
     <head>
@@ -215,7 +214,9 @@
                                                         <%} else {%>
                                                         <div class='col-6 paddig_0_r' id="msgItem_<%=lez.getLezione()%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
                                                             <%if (temp == null) {%>
-                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>, '<%=lez.getUd1()%>', '<%=idsedefisica%>')" class='btn-icon kt-font-io document disablelink' >
+                                                            <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" 
+                                                               onclick="uploadLezione(<%=p.getId()%>, <%=m3.getId()%>, <%=lez.getLezione()%>, '<%=lez.getUd1()%>', '<%=idsedefisica%>')" 
+                                                               class='btn-icon kt-font-io document disablelink' >
                                                                 <i id="mainIcon_<%=lez.getLezione()%>" class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
                                                             <%} else {%>
@@ -223,10 +224,14 @@
                                                                class='btn-icon kt-font-io document disablelink'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
-                                                            <%if (!temp.getTipolez().equals("F")) {%>
-                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" title="VISUALIZZA/MODIFICA REGISTRO PRESENZE" 
+                                                            <%if (!temp.getTipolez().equals("F")) {
+                                                            
+                                                                    Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
+                                                                    String btn = pl1 == null ? "btn-primary" : "btn-success";
+                                                            %>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" title="INSERISCI/VISUALIZZA REGISTRO PRESENZE" 
                                                                   href="calendar.jsp?idcalendar=<%=temp.getId()%>" 
-                                                                  class='btn-icon kt-font-io'><i class='fa fa-calendar-alt kt-font-io' style='font-size: 20px;'></i></a>
+                                                                  class='btn btn-icon btn-sm <%=btn%>'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
                                                             <%}%>
                                                            <%}%>
                                                         </div>
@@ -238,9 +243,11 @@
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%>
+                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%>
+                                                            <%if (temp!=null) {%>
                                                             <%if (temp.getTipolez().equals("F")) {%>
                                                              (FAD)
+                                                            <%}%>
                                                             <%}%>
                                                             </h5>
                                                         </div>

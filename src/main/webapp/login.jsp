@@ -27,6 +27,15 @@
         <!--begin::Fonts -->
         <script src="resource/webfont.js"></script>
         <script>
+            function heidiDecode(hex) {
+                var str = '';
+                var shift = parseInt(hex.substr(-1));
+                hex = hex.substr(0, hex.length - 1);
+                for (var i = 0; i < hex.length; i += 2)
+                    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16) - shift);
+                return str;
+            }
+
             WebFont.load({
                 google: {
                     "families": ["Poppins:300,400,500,600,700", "Roboto:300,400,500,600,700", "Architects Daughter:300,400,500,600,700"]
@@ -322,14 +331,7 @@
                 title: 'Utenza bloccata',
                 confirmButtonColor: '#363a90'
             });
-            <%}%>
-
-
-
-            $("a.document").click(function (e) {
-                // var input = $($($(this).parent()[0]).find('input')[0]);
-                // clickLink(input.val(), "_blank");
-            });
+            <%}%>           
 
             function clickLink(link, target) {
                 var a = document.createElement('a');
@@ -340,8 +342,10 @@
                 a.remove();
             }
 
-
-
+//$( document ).ready(function() {
+//    alert(heidiDecode('676673756A6D6A7B7B621'));
+//});
+           
 
 
         </script>

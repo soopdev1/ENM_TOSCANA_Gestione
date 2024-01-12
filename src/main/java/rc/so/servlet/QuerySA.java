@@ -262,6 +262,7 @@ public class QuerySA extends HttpServlet {
             e.close();
         }
     }
+
     protected void getSedeById(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
@@ -274,6 +275,7 @@ public class QuerySA extends HttpServlet {
             e.close();
         }
     }
+
     protected void getDocentiByPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
@@ -385,7 +387,7 @@ public class QuerySA extends HttpServlet {
     protected void getLezioniByProgetto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
-            ModelliPrg m = e.getEm().find(ModelliPrg.class, Long.parseLong(request.getParameter("idmodello")));
+            ModelliPrg m = e.getEm().find(ModelliPrg.class, Long.valueOf(request.getParameter("idmodello")));
             List<Lezioni_Modelli> list = e.getLezioniByProgetto(m);
             for (Lezioni_Modelli lm : list) {
                 lm.setCodice_ud(lm.getLezione_calendario().getUnitadidattica().getCodice());
@@ -395,6 +397,7 @@ public class QuerySA extends HttpServlet {
                 lm.getLezione_calendario().setUnitadidattica(null);
                 lm.getModello().setProgetto(null);
             }
+            System.out.println("rc.so.servlet.QuerySA.getLezioniByProgetto() "+list.size());
             ObjectMapper mapper = new ObjectMapper();
             mapper.setSerializationInclusion(Include.NON_NULL);
             response.getWriter().write(mapper.writeValueAsString(list));
@@ -420,7 +423,7 @@ public class QuerySA extends HttpServlet {
         }
     }
 
-    protected void getAllieviByProgetto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void getAllieviByProgetto2(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         e.begin();
         try {
@@ -480,6 +483,40 @@ public class QuerySA extends HttpServlet {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         } finally {
             e.close();
+        }
+    }
+
+    protected void getAllieviByProgetto(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        try {
+            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.valueOf(request.getParameter("id")));
+            List<Allievi> a = e.getAllieviProgettiFormativi(p);
+
+            if (request.getParameter("load").equalsIgnoreCase("si")) {
+                List<String[]> list = new ArrayList();
+                String[] lneet;
+                Map<Integer, List<Allievi>> byGruppi = a.stream().collect(Collectors.groupingBy(t -> t.getGruppo_faseB()));
+                for (Map.Entry<Integer, List<Allievi>> it : byGruppi.entrySet()) {
+                    lneet = new String[it.getValue().size()];
+                    for (int j = 0; j < it.getValue().size(); j++) {
+                        lneet[j] = it.getValue().get(j).getNome() + " " + it.getValue().get(j).getCognome();
+                    }
+                    list.add(new String[]{String.valueOf(it.getKey()), String.join(", ", lneet)});
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.setSerializationInclusion(Include.NON_NULL);
+                response.getWriter().write(mapper.writeValueAsString(list));
+            } else {
+                List<Allievi> list = new ArrayList();
+                for (Allievi al : a) {
+                    list.add(new Allievi(al.getId(), al.getNome(), al.getCognome(), al.getGruppo_faseB()));
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.setSerializationInclusion(Include.NON_NULL);
+                response.getWriter().write(mapper.writeValueAsString(list));
+            }
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
     }
 

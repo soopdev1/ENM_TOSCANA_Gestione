@@ -1,3 +1,4 @@
+<%@page import="rc.so.domain.Presenze_Lezioni"%>
 <%@page import="java.util.Date"%>
 <%@page import="rc.so.domain.TipoDoc"%>
 <%@page import="rc.so.domain.Lezioni_Modelli"%>
@@ -36,7 +37,6 @@
             List<Lezioni_Modelli> lezionim4 = m4.getLezioni();
             List<LezioneCalendario> grouppedByLezionem4 = Utility.grouppedByLezione(lezioniCalendariom4);
             int gruppi = Utility.numberGroupsModello4(p);
-            e.close();
             boolean noloaded = true;
 %>
 <html>
@@ -161,7 +161,8 @@
                                             <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
                                             <div class="form-row">
                                                 <%for (LezioneCalendario lez : grouppedByLezionem3) {
-                                                        if (Utility.lezioneFiltered(lezionim3, lez.getId()) != null) {
+                                                        Lezioni_Modelli temp = Utility.lezioneFiltered(lezionim3, lez.getId());
+                                                        if (temp != null) {
                                                             noloaded = false;%>
                                                 <div class='col-lg-2 col-md-4 col-sm-6'>
                                                     <div class='row'>
@@ -176,6 +177,24 @@
                                                             <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>" onclick="showLezioneSingleM3(<%=lez.getId()%>, <%=lez.getLezione()%>)" class='btn-icon kt-font-io document lezioni'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
+                                                            <%if (!temp.getTipolez().equals("F")) {
+
+                                                                    Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
+                                                                    if (pl1 != null) {
+                                                                        String btn = "btn-success";
+                                                            %>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
+                                                                  title="VISUALIZZA REGISTRO PRESENZE" 
+                                                                  href="calendar.jsp?idcalendar=<%=temp.getId()%>" 
+                                                                  class='btn btn-icon btn-sm <%=btn%>'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
+                                                                <%}else{%>
+                                                                | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
+                                                                  title="REGISTRO PRESENZE DA CARICARE" 
+                                                                  href=""
+                                                                  onclick="return false;"
+                                                                  class='btn btn-icon btn-sm btn-danger'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
+                                                                <%}%>
+                                                                <%}%>
                                                         </div>
 
                                                         <%}%> 
@@ -210,12 +229,12 @@
                                     <div class="form-group form-group-sm row">
                                         <div class="col-12">
                                             <h5>Modello 4 <%if (!m4.getStato().equalsIgnoreCase("S") && !m3.getStato().equalsIgnoreCase("OK")) {%>- Gruppi <i id="neet_excluded" style="display:none;" class="fa fa-exclamation-circle kt-font-warning" 
-                                                                      data-container="body" 
-                                                                      data-toggle="kt-popover" 
-                                                                      data-html="true"
-                                                                      data-placement="bottom"
-                                                                      data-original-title="NEET Esclusi"
-                                                                      data-content=""></i><%}%></h5>
+                                                                                                                                                              data-container="body" 
+                                                                                                                                                              data-toggle="kt-popover" 
+                                                                                                                                                              data-html="true"
+                                                                                                                                                              data-placement="bottom"
+                                                                                                                                                              data-original-title="NEET Esclusi"
+                                                                                                                                                              data-content=""></i><%}%></h5>
                                             <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
                                             <div class="progress">
                                                 <div id="progressM4" class="progress-bar progress-bar-striped progress-bar-animated  bg-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" data-original-title="" style="width: 0%"></div>
@@ -234,9 +253,9 @@
                                                 <%}%>
                                             </div>
                                             <br>
-                                            <%} else if(!m3.getStato().equalsIgnoreCase("OK")){%>
+                                            <%} else if (!m3.getStato().equalsIgnoreCase("OK")) {%>
                                             <h5 class='kt-font-io-n' >In attesa di completamento del modello 3</h5>
-                                            <%}else{%>
+                                            <%} else {%>
                                             <h5 class='kt-font-io-n' >In attesa della creazione dei gruppi</h5>
                                             <%}%>
                                         </div> 
@@ -286,7 +305,7 @@
                                             <%}
                                                 }%>
                                         </div>
-                                       <%}%> 
+                                        <%}%> 
                                     </div>
                                 </div>
                             </div>

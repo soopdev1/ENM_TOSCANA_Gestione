@@ -57,7 +57,7 @@ public class StatiPrg implements Serializable {
     @Column(name = "ordine_processo")
     private int ordine_processo;
 
-    @OneToOne(mappedBy = "id", cascade = CascadeType.ALL,
+    @OneToOne(mappedBy = "id", cascade = CascadeType.MERGE,
             fetch = FetchType.LAZY, optional = false)
     private ModificheStatoPrg modifiche;
 

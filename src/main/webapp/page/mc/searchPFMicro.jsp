@@ -257,17 +257,15 @@
                     </div>
                     <div class="modal-body">
                         <div class="kt-scroll" style="max-height: 750px; min-height: 750px;">
-                            <table class="table table-bordered" id="kt_table_allievi" style="width: 100%;">
-                                <thead style="width: 100%;">
+                            <table class="table table-bordered" id="kt_table_allievi">
+                                <thead>
                                     <tr>
                                         <th class="text-uppercase text-center">Azioni</th>
                                         <th class="text-uppercase text-center">Nome</th>
                                         <th class="text-uppercase text-center">Cognome</th>
                                         <th class="text-uppercase text-center">Codice Fiscale</th>
                                         <th class="text-uppercase text-center">Stato</th>
-                                        <th class="text-uppercase text-center">Motivazione</th>
-                                        <th class="text-uppercase text-center">Questionari</th>
-                                        <th class="text-uppercase text-center">Documento Id.</th>
+                                        <th class="text-uppercase text-center">Ore convalidate</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -342,6 +340,22 @@
             </div>
         </div>
 
+        <div class="modal fade" id="presenze_modal" tabindex="-1" role="dialog" aria-labelledby="PRESENZE" aria-hidden="true"> 
+            <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel1">Presenze Allievo</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body kt-scroll" style="max-height: 750px;">
+                        <div style="text-align: center;">
+                            <div class="row col-12" id="presenze_all"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="modal fade" id="doc_modal" tabindex="-1" role="dialog" aria-labelledby="Documenti" aria-hidden="true"> 
             <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                 <div class="modal-content">

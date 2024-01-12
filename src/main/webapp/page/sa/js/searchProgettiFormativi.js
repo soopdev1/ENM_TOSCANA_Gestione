@@ -97,11 +97,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
 
                             //TEST modello 4
                             if (row.stato.id === "ATA" || row.stato.id === "SOB") {
-                                if (demoversion === 'true') {
-                                    option += '<a class="dropdown-item kt-font-dark" href="javascript:void(0);" onclick="simulafaseA(' + row.id +
-                                            ')"> SIMULA lezioni Fase A &nbsp;<i class="fa fa-angle-double-right kt-font-dark" style="margin-top:-2px"></i></a>';
-                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
-                                } else if (mapM4_start.has(row.id) && (today >= moment(new Date(mapM4_start.get(row.id))).format('YYYY-MM-DD'))) {
+                                if (mapM4_start.has(row.id) && (today >= moment(new Date(mapM4_start.get(row.id))).format('YYYY-MM-DD'))) {
                                     option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
                                 } else {
                                     option += '<a class="dropdown-item kt-font-danger" href="#" style="cursor:not-allowed!important" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Il caricamento del Modello 4 sarà disponibile una volta completata la fase A ('

@@ -332,10 +332,6 @@
 
                                     }
 
-                                    //if (row.data_anpal === '' || row.data_anpal === '-') {
-                                    //     option += '<a class="dropdown-item fancyBoxFullReload" href="editANPAL.jsp?id=' +
-                                    //            row.id + '"><i class="fa fa-calendar"></i> Inserisci Data ANPAL</a>';
-                                    // }
                                     option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMail(' + row.id + ',\'' + row.email + '\')"><i class="fa fa-envelope"></i> Modifica Email</a>';
                                     option += '<a class="fancyBoxFullReload dropdown-item" href="modello0.jsp?id=' +
                                             row.id + '"><i class="fa fa-file"></i> Modello 0</a>';
