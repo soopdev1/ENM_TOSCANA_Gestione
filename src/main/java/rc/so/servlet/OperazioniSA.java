@@ -2744,9 +2744,9 @@ public class OperazioniSA extends HttpServlet {
                         Long.valueOf(request.getParameter("id_calendariolezione2")));
                 orariostart = request.getParameter("orario2_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
                 orarioend = request.getParameter("orario2_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
-                Lezioni_Modelli lm2 = tipo_modello.equalsIgnoreCase("m3_double") ? 
-                        new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d) : 
-                        new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")), tipolez);
+                Lezioni_Modelli lm2 = tipo_modello.equalsIgnoreCase("m3_double")
+                        ? new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d)
+                        : new Lezioni_Modelli(giorno, orariostart, orarioend, new Date(), m, l, d, Integer.parseInt(request.getParameter("idgruppo")), tipolez);
                 e.persist(lm);
                 e.persist(lm2);
             } else {
@@ -4846,7 +4846,8 @@ public class OperazioniSA extends HttpServlet {
 
                         e.commit();
                         e.close();
-
+                        Entity ep2 = new Entity();
+                        ep2.begin();
                         for (Allievi a1 : estraiAllieviOK(pr)) {
 
                             Long allievo_durata = 0L;
@@ -4861,8 +4862,6 @@ public class OperazioniSA extends HttpServlet {
                             } else {
                                 allievo_durata = calcolaMillis(orai, oraf);
                             }
-                            Entity ep2 = new Entity();
-                            ep2.begin();
                             //PERSIST
                             Presenze_Lezioni_Allievi pla = new Presenze_Lezioni_Allievi();
                             pla.setDatainserimento(new DateTime().toDate());
@@ -4873,10 +4872,11 @@ public class OperazioniSA extends HttpServlet {
                             pla.setPresenzelezioni(pl1);
                             pla.setPresente(allievo_presente);
                             ep2.persist(pla);
-                            ep2.commit();
-                            ep2.close();
-                            redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=OK");
+
                         }
+                        ep2.commit();
+                        ep2.close();
+                        redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=OK");
                     }
                 } else {
                     redirect(request, response, request.getContextPath() + "/page/sa/calendar.jsp?idcalendar=" + idcalendar + "&esito=KO2");

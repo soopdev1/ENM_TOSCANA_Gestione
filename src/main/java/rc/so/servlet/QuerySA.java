@@ -397,7 +397,6 @@ public class QuerySA extends HttpServlet {
                 lm.getLezione_calendario().setUnitadidattica(null);
                 lm.getModello().setProgetto(null);
             }
-            System.out.println("rc.so.servlet.QuerySA.getLezioniByProgetto() "+list.size());
             ObjectMapper mapper = new ObjectMapper();
             mapper.setSerializationInclusion(Include.NON_NULL);
             response.getWriter().write(mapper.writeValueAsString(list));

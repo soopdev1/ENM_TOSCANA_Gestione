@@ -1348,7 +1348,8 @@ public class Utility {
 
     public static List<Allievi> estraiAllieviOK(ProgettiFormativi p) {
         try {
-            List<Allievi> a = p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
+            List<Allievi> a = p.getAllievi().stream().filter(al -> 
+                    al.getStatopartecipazione().getId()
                     .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
                     .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
                     .equalsIgnoreCase("15")
