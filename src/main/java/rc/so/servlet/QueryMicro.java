@@ -256,7 +256,7 @@ public class QueryMicro extends HttpServlet {
     protected void searchAllieviProgetti(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
-            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("idprogetto")));
+            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.valueOf(request.getParameter("idprogetto")));
             List<Allievi> list = e.getAllieviProgettiFormativiAll(p);
             writeJsonResponse(response, list);
 

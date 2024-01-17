@@ -270,11 +270,11 @@ var DatatablesAllievi = function () {
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ');"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPresenzeAllievo(' + row.id + ');"><i class="fa fa-calendar-alt"></i> Visualizza Presenze</a>';
 
-                        if (row.statopartecipazione.id === "15") {
+//                        if (row.statopartecipazione.id === "15") {
                             option += '<a class="dropdown-item " href="javascript:void(0);" onclick="swalSigma(' + row.id + ',\'' + row.statopartecipazione.id +
                                     '\')"><i class="fa fa-user-check" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Stato '
                                     + row.statopartecipazione.descrizione + '"></i>Cambia stato di partecipazione</a>';
-                        }
+  //                      }
 
                         option += '</div></div>';
                         return option;

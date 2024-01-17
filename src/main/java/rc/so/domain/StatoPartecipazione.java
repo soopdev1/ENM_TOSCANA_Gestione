@@ -22,7 +22,7 @@ import javax.persistence.Table;
 @NamedQueries(value = {
     @NamedQuery(name = "sp.Elenco", query = "select sp from StatoPartecipazione sp ORDER BY sp.id"),
     @NamedQuery(name = "sp.Elencomod", query = "select sp from StatoPartecipazione sp WHERE sp.id<>'01'"),
-    @NamedQuery(name = "sp.modificaincorso", query = "select sp from StatoPartecipazione sp WHERE sp.id IN ('15','16','17')"),
+    @NamedQuery(name = "sp.modificaincorso", query = "select sp from StatoPartecipazione sp WHERE sp.id IN ('15','11','16','17')"),
 })
 
 public class StatoPartecipazione implements Serializable {

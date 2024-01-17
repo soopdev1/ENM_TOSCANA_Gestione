@@ -658,9 +658,9 @@ public class Entity {
     }
 
     public List<Allievi> getAllieviProgettiFormativiAll(ProgettiFormativi p) {
-        TypedQuery q = em.createNamedQuery("a.byProgettoAll", Allievi.class);
+        TypedQuery<Allievi> q = em.createNamedQuery("a.byProgettoAll", Allievi.class);
         q.setParameter("progetto", p);
-        return q.getResultList().size() > 0 ? (List<Allievi>) q.getResultList() : new ArrayList();
+        return q.getResultList();
     }
 
     public List<StatiPrg> getStatiPrg() {
