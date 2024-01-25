@@ -8,7 +8,6 @@ package rc.so.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonObject;
-import rc.so.cf.DataPanel;
 import rc.so.db.Action;
 import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
@@ -20,7 +19,6 @@ import rc.so.domain.CPI;
 import rc.so.domain.Canale;
 import rc.so.domain.Comuni;
 import rc.so.domain.Condizione_Lavorativa;
-import rc.so.domain.Condizione_Mercato;
 import rc.so.domain.Docenti;
 import rc.so.domain.DocumentiPrg;
 import rc.so.domain.Documenti_Allievi;
@@ -83,9 +81,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -4756,8 +4752,9 @@ public class OperazioniSA extends HttpServlet {
             User us = (User) request.getSession().getAttribute("user");
             Entity e = new Entity();
             String idcalendar = getRequestValue(request, "idcalendar");
+            String idgruppo = getRequestValue(request, "idgruppo");
             Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, Long.valueOf(idcalendar));
-            downloadFile = Pdf_new.REGISTROCARTACEO(e, us.getUsername(), lm, new DateTime());
+            downloadFile = Pdf_new.REGISTROCARTACEO(e, us.getUsername(), lm,idgruppo, new DateTime());
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }

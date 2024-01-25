@@ -88,7 +88,7 @@ public class Database {
         }
 
         try {
-            forName(driver).newInstance();
+            forName(driver);
             Properties p = new Properties();
             p.put("user", user);
             p.put("password", password);

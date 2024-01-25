@@ -1,6 +1,3 @@
-
-
-
 <%@page import="rc.so.domain.TipoDoc"%>
 <%@page import="rc.so.util.Utility"%>
 <%@page import="rc.so.db.Database"%>

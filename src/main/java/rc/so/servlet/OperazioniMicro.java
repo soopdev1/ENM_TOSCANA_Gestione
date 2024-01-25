@@ -8,8 +8,6 @@ package rc.so.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.gson.JsonObject;
-import rc.so.db.Action;
-import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
 import rc.so.db.Entity;
 import rc.so.db.FileDownload;
@@ -46,7 +44,6 @@ import rc.so.domain.UnitaDidattiche;
 import rc.so.domain.User;
 import rc.so.domain.checklist_finale;
 import rc.so.entity.Presenti;
-import rc.so.util.CompilePdf;
 import static rc.so.util.MakeTarGz.createTarArchive;
 import rc.so.util.Pdf_new;
 import static rc.so.util.Pdf_new.checkFirmaQRpdfA;
@@ -68,17 +65,13 @@ import javax.servlet.http.Part;
 import rc.so.util.Utility;
 import static rc.so.util.Utility.checkPDF;
 import static rc.so.util.Utility.createDir;
-import static rc.so.util.Utility.estraiEccezione;
-import static rc.so.util.Utility.getRequestValue;
 import static rc.so.util.Utility.getstatoannullato;
 import static rc.so.util.Utility.patternITA;
 import static rc.so.util.Utility.patternSql;
-import static rc.so.util.Utility.redirect;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import static java.lang.String.format;
-import static java.nio.file.Files.probeContentType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -797,9 +790,6 @@ public class OperazioniMicro extends HttpServlet {
                 doc.setTipo(tipo);
                 doc.setProgetto(prg);
                 e.persist(doc);
-                if (tipo.getId() == 25) {//se sta caricando la check2
-                    CompilePdf.compileValutazione(prg);
-                }
             }
             //se caricato tutti i doc obbligatori setto il progetto come idoneo per la prossima fase
             if (tipo_obb.isEmpty()) {

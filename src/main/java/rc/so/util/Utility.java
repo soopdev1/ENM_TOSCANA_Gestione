@@ -830,15 +830,24 @@ public class Utility {
             } else {
                 return out;
             }
-
-//            BigDecimal bigDecimal = new BigDecimal(Double.toString(f));
-//            bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
-//            return numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
         }
         return "0";
-
+    }
+    public static String formatDouble(String f) {
+        try {
+            String out = new DecimalFormat("###,###.#", DecimalFormatSymbols.getInstance(Locale.ITALIAN))
+                    .format(BigDecimal.valueOf(parseDouble(f)).setScale(2, ROUND_HALF_DOWN).doubleValue());
+            if (out.startsWith(",0")) {
+                return "0";
+            } else {
+                return out;
+            }
+        } catch (Exception ex) {
+            insertTR("E", "SERVICE", estraiEccezione(ex));
+        }
+        return "0";
     }
 
     //cscrfl86e19c3520

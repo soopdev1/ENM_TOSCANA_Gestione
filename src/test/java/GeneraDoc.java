@@ -40,11 +40,11 @@ public class GeneraDoc {
 //                Long.valueOf(idall));
     
             Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, 2L);
-            File f1 = Pdf_new.REGISTROCARTACEO(e, "rcc", lm, new DateTime());
+//            File f1 = Pdf_new.REGISTROCARTACEO(e, "rcc", lm, new DateTime());
 //        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
 //        ModelliPrg m4 = Utility.filterModello4(prg.getModelli());
 //        File f1 = Pdf_new.MODELLO0(e, "30", al);
-        System.out.println(f1.getPath());
+//        System.out.println(f1.getPath());
 //        File f2 = Pdf_new.MODELLO2(e,
 //                            "1",
 //                            usernameSA, prg.getSoggetto(),

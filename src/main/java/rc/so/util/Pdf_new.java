@@ -182,8 +182,9 @@ public class Pdf_new {
     public static File REGISTROCARTACEO(Entity e,
             String username,
             Lezioni_Modelli lm,
+            String idgruppo,
             DateTime dataconsegna) {
-        File out1 = REGISTROCARTACEO_BASE(null, e, username, lm, dataconsegna);
+        File out1 = REGISTROCARTACEO_BASE(null, e, username, lm, idgruppo, dataconsegna);
         if (out1 != null) {
             File out2 = convertPDFA(out1, "REGISTROCARTACEO", e);
             if (out2 != null) {
@@ -338,6 +339,7 @@ public class Pdf_new {
             Entity e,
             String username,
             Lezioni_Modelli lm,
+            String idgruppo,
             DateTime dataconsegna) {
 
         try {
@@ -385,9 +387,21 @@ public class Pdf_new {
                 }
 
                 setFieldsValue(form, fields, "DATALEZ", sdfITA.format(lm.getGiorno()));
+                setFieldsValue(form, fields, "FASE", lm.getLezione_calendario().getUnitadidattica().getFase().toUpperCase());
                 setFieldsValue(form, fields, "UDLEZ", lm.getLezione_calendario().getUnitadidattica().getDescrizione());
                 setFieldsValue(form, fields, "MODLEZ", lm.getLezione_calendario().getUnitadidattica().getCodice());
                 setFieldsValue(form, fields, "ORELEZ", roundDoubleAndFormat(lm.getLezione_calendario().getUnitadidattica().getOre()));
+
+                if (lm.getLezione_calendario().getUnitadidattica().getFase().endsWith("A") && idgruppo.equals("")) {
+                    setFieldsValue(form, fields, "DESCRFASE", lm.getLezione_calendario().getUnitadidattica().getFase().toUpperCase()
+                            + ", UD N° " + lm.getLezione_calendario().getUnitadidattica().getDescrizione()
+                            + ", MODULO " + lm.getLezione_calendario().getUnitadidattica().getCodice());
+                } else {
+                    setFieldsValue(form, fields, "DESCRFASE", lm.getLezione_calendario().getUnitadidattica().getFase().toUpperCase()
+                            + ", UD N° " + lm.getLezione_calendario().getUnitadidattica().getDescrizione()
+                            + ", MODULO " + lm.getLezione_calendario().getUnitadidattica().getCodice()
+                            + ", GRUPPO " + idgruppo);
+                }
 
                 setFieldsValue(form, fields, "DOC_COGN", lm.getDocente().getCognome().toUpperCase());
                 setFieldsValue(form, fields, "DOC_NOM", lm.getDocente().getNome().toUpperCase());
@@ -399,6 +413,10 @@ public class Pdf_new {
                         .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
                         .equalsIgnoreCase("15")
                 ).collect(Collectors.toList());
+
+                if (!idgruppo.equals("")) {
+                    allievi = allievi.stream().filter(a1 -> a1.getGruppo_faseB() == Utility.parseIntR(idgruppo)).collect(Collectors.toList());
+                }
 
                 AtomicInteger in = new AtomicInteger(1);
                 allievi.forEach(a1 -> {

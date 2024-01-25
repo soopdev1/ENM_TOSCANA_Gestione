@@ -194,7 +194,6 @@
                                             <div class="form-row">
                                                 <%
 
-                                                    String dataprec = "";
                                                     for (LezioneCalendario lez : grouppedByLezione) {
                                                         temp = Utility.lezioneFiltered(lezioni, lez.getId());%>
                                                 <div class='col-lg-2 col-md-4 col-sm-6'>
