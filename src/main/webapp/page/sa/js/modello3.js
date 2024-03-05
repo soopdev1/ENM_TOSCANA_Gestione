@@ -366,7 +366,7 @@ function changeLezioneDouble(idlezione1, idlezione2, l) {
 function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
     let t = mapCalendario.get(idl);
     let days;
-    if (ud.endsWith('B')) {
+    if (ud.endsWith("B")||ud.endsWith("D")) {
         days = setRangeDatesDay(null, idl, 0);
     } else {
         days = setRangeDatesDay(null, idl, 1);
@@ -421,7 +421,7 @@ function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
 
 
 
-            if (ud.endsWith("B")) {
+            if (ud.endsWith("B") ||ud.endsWith("D")) {
 
                 if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
                     var lez_prima = mapLezioni.get(idl - 1);
@@ -458,7 +458,7 @@ function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
                 var json = JSON.parse(resp);
                 for (var i = 0; i < json.length; i++) {
 
-                    if (ud.endsWith("B")) {
+                    if (ud.endsWith("B")||ud.endsWith("D")) {
 
                         if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
                             var lez_prima = mapLezioni.get(idl - 1);
@@ -514,7 +514,7 @@ function uploadLezione(idprogetto, idm, idl, ud, sedefisica) {
                     $("#sedefisica").append('<option selected value="' + json.id + '">' + json.denominazione + " : " + json.indirizzo + " - " + json.comune.nome + '</option>');
                 });
             }
-            if (ud.endsWith("B")) {
+            if (ud.endsWith("B")||ud.endsWith("D")) {
                 if (typeof (mapLezioni.get(idl - 1)) !== 'undefined') {
                     var lez_prima = mapLezioni.get(idl - 1);
                     if (lez_prima.tipolez === "P") {

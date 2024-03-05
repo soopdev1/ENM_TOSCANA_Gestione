@@ -41,7 +41,7 @@
             List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
             boolean isEditable = Utility.isEditableModel(lezioni);
             String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
-            
+
 %>
 <html>
     <head>
@@ -240,8 +240,8 @@
                                             <div class="form-row">
                                                 <%for (LezioneCalendario lez : grouppedByLezione) {
                                                         temp = Utility.lezioneFilteredByGroup(lezioni, lez.getId(), i);%>
-                                                
-                                                        <div class='col-lg-2 col-md-4 col-sm-6'>
+
+                                                <div class='col-lg-2 col-md-4 col-sm-6'>
                                                     <div class='row'>
                                                         <%if (lez.isDoppia()) {%>
                                                         <div class="col-6 paddig_0_r" id="msgItem_<%=lez.getLezione()%>_<%=i%>" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" style="text-align: center;">
@@ -273,16 +273,17 @@
                                                                class='btn-icon kt-font-io document disablelink'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
-                                                            <%}%>
+
                                                             <%if (!temp.getTipolez().equals("F")) {
-                                                            
+
                                                                     Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
                                                                     String btn = pl1 == null ? "btn-primary" : "btn-success";
                                                             %>
                                                             | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" title="INSERISCI/VISUALIZZA REGISTRO PRESENZE" 
                                                                   href="calendar.jsp?idcalendar=<%=temp.getId()%>&idgruppo=<%=i%>" 
                                                                   class='btn btn-icon btn-sm <%=btn%>'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
-                                                            <%}%>
+                                                                <%}%>
+                                                                <%}%>
                                                         </div>
 
                                                         <%}%> 
@@ -294,7 +295,13 @@
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%></h5>
+                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%>
+                                                                <%if (temp != null) {%>
+                                                                <%if (temp.getTipolez().equals("F")) {%>
+                                                                (FAD)
+                                                                <%}%>
+                                                                <%}%>
+                                                            </h5>
                                                         </div>
                                                     </div>
                                                 </div>

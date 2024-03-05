@@ -54,6 +54,7 @@ import java.util.logging.Level;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.right;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 import org.joda.time.DateTime;
@@ -1332,6 +1333,54 @@ public class Database {
             LOGAPP.log(Level.SEVERE, estraiEccezione(ex));
         }
         return pla;
+    }
+
+    public List<String> ore_convalidateAllievi(String idallievo) {
+        List<String> report = new ArrayList<>();
+        String sql1 = (idallievo == null) ? "SELECT a.idallievi FROM allievi a WHERE a.id_statopartecipazione='15'" : "SELECT a.idallievi FROM allievi a WHERE a.idallievi=" + idallievo;
+
+        try (Statement st1 = this.c.createStatement(); ResultSet rs1 = st1.executeQuery(sql1)) {
+            while (rs1.next()) {
+                int idallievi = rs1.getInt(1);
+                String sql2 = "SELECT r.totaleorerendicontabili,r.fase FROM registro_completo r WHERE r.idutente='" + idallievi + "' AND r.ruolo='ALLIEVO'";
+//                String sql3 = "SELECT a.durataconvalidata FROM presenzelezioniallievi a WHERE a.idallievi = '" + idallievi + "' AND a.convalidata=1";
+                String sql3 = "SELECT p.durataconvalidata,z.codice_ud FROM presenzelezioniallievi p, presenzelezioni l, lezione_calendario z "
+                        + "WHERE p.idallievi = '" + idallievi + "' AND p.convalidata=1 AND l.idpresenzelezioni=p.idpresenzelezioni "
+                        + "AND l.idlezioneriferimento=z.id_lezionecalendario ";
+
+                Long presenze = 0L;
+
+                try (Statement st2 = this.c.createStatement(); ResultSet rs2 = st2.executeQuery(sql2)) {
+
+                    while (rs2.next()) {
+                        report.add(idallievi + ";" + rs2.getString(2) + ";" + rs2.getLong(1));
+                        presenze += rs2.getLong(1);
+                    }
+                }
+
+                try (Statement st3 = this.c.createStatement(); ResultSet rs3 = st3.executeQuery(sql3)) {
+                    while (rs3.next()) {
+                        Long conv = rs3.getString(1) == null ? 0L : rs3.getLong(1);
+                        report.add(idallievi + ";" + StringUtils.substring(rs3.getString(2), 0, 1) + ";" + conv);
+                        presenze += conv;
+                    }
+                }
+
+                double res = presenze / 3600000.00;
+
+                String upd4 = "UPDATE allievi SET importo = '" + res + "' WHERE idallievi='" + idallievi + "'";
+
+                try (Statement st4 = this.c.createStatement()) {
+                    st4.executeUpdate(upd4);
+                }
+
+            }
+
+        } catch (Exception ex1) {
+            LOGAPP.log(Level.SEVERE, estraiEccezione(ex1));
+        }
+
+        return report;
     }
 
 }

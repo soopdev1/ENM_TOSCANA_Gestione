@@ -233,12 +233,12 @@ public class QuerySA extends HttpServlet {
             Allievi a = e.getEm().find(Allievi.class, Long.parseLong(request.getParameter("idallievo")));
             List<Documenti_Allievi> docs = e.getDocAllievo(a);
             MascheraM5 m5_allievo = e.getM5_byAllievo(a);
-            if (m5_allievo != null && m5_allievo.getDomanda_ammissione() != null) {
+            if (m5_allievo != null) {
                 TipoDoc_Allievi dA = new TipoDoc_Allievi();
                 dA.setDescrizione("DOMANDA AMMISSIONE");
                 dA.setEstensione("pdf");
                 dA.setMimetype("application/pdf");
-                Documenti_Allievi domandaAmmissione = new Documenti_Allievi(m5_allievo.getDomanda_ammissione(), dA, null, a);
+                Documenti_Allievi domandaAmmissione = new Documenti_Allievi("", dA, null, a);
                 docs.add(domandaAmmissione);
             }
             ObjectMapper mapper = new ObjectMapper();

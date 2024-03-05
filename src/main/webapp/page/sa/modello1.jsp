@@ -33,7 +33,7 @@
         } else {
             String src = session.getAttribute("src").toString();
             Entity e = new Entity();
-            List<Allievi> list_allievi = e.getAllieviSoggettoNoPrgAttivi(us.getSoggettoAttuatore());
+            List<Allievi> list_allievi = e.getAllieviNuovoModello1(us.getSoggettoAttuatore());
             List<TipoDoc_Allievi> tipo_doc = e.getTipoDocAllievi(e.getEm().find(StatiPrg.class, "DV"));
             TipoDoc_Allievi mod_1 = e.getEm().find(TipoDoc_Allievi.class, 3L);
             String prv1 = e.getPath("privacy1");

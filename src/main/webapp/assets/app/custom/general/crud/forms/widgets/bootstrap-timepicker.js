@@ -7,11 +7,27 @@ var KTBootstrapTimepicker = function () {
         // minimum setup
         $('.kt_timepicker_r').timepicker(
                 {
-                    minuteStep: 15,
-                    showMeridian: false,
+                    defaultTime: 'current',
+                    disableFocus: false,
+                    disableMousewheel: false,
+                    isOpen: false,
+                    minuteStep: 30,
+                    modalBackdrop: false,
+                    orientation: {x: 'auto', y: 'auto'},
+                    secondStep: 15,
+                    snapToStep: true,
                     showSeconds: false,
-                    explicitMode: true,
-                    defaultTime: ''
+                    showInputs: false,
+                    showMeridian: false,
+                    template: 'dropdown',
+                    appendWidgetTo: 'body',
+                    showWidgetOnAddonClick: true,
+                    icons: {
+                        up: 'la la-angle-up',
+                        down: 'la la-angle-down'
+                    },
+                    maxHours: 21,
+                    explicitMode: false
                 }
         );
 

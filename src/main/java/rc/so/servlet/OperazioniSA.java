@@ -102,6 +102,7 @@ import rc.so.domain.Presenze_Lezioni;
 import rc.so.domain.Presenze_Lezioni_Allievi;
 import static rc.so.util.Utility.calcolaMillis;
 import static rc.so.util.Utility.estraiAllieviOK;
+import static rc.so.util.Utility.parseIntR;
 import static rc.so.util.Utility.parseLong;
 
 /**
@@ -1224,32 +1225,23 @@ public class OperazioniSA extends HttpServlet {
             Entity e = new Entity();
 
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(idallievo));
+                    Long.valueOf(idallievo));
             MascheraM5 m5 = e.getEm().find(MascheraM5.class,
-                    Long.parseLong(idmodello));
+                    Long.valueOf(idmodello));
 
             if (a.getId().equals(m5.getAllievo().getId())) {
                 TipoDoc_Allievi tipodoc_m5;
-                if (m5.isTabella_premialita()) {
-                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
-                            21L);
-                } else {
-                    tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
-                            20L);
-                }
+
+                tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
+                        20L);
 
                 User us = (User) request.getSession().getAttribute("user");
-                String[] datifrequenza = Action.dati_modello5_neet(
-                        String.valueOf(a.getId()),
-                        String.valueOf(us.getSoggettoAttuatore().getId()),
-                        String.valueOf(m5.getProgetto_formativo().getId()));
-
+                
                 downloadFile = Pdf_new.MODELLO5(e,
                         tipodoc_m5.getModello(),
                         us.getUsername(),
                         us.getSoggettoAttuatore(),
                         a,
-                        datifrequenza,
                         m5,
                         new DateTime(), true);
 
@@ -3345,9 +3337,12 @@ public class OperazioniSA extends HttpServlet {
 
     }
 
-    protected void rendicontaAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void salvamodello5(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
         Entity e = new Entity();
-        String qrcrop = e.getPath("qr_crop");
+//        String qrcrop = e.getPath("qr_crop");
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
         e.begin();
@@ -3355,193 +3350,71 @@ public class OperazioniSA extends HttpServlet {
 
         try {
 
-            boolean domanda = Boolean.parseBoolean(request.getParameter("domanda_ammissione"));
+            MascheraM5 datimodello = new MascheraM5();
 
-            MascheraM5 mask = new MascheraM5();
-            Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("id_allievo")));
-            mask.setAllievo(a);
-            mask.setProgetto_formativo(a.getProgetto());
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(getRequestValue(request, "id_allievo")));
+            datimodello.setAllievo(a);
+            datimodello.setProgetto_formativo(a.getProgetto());
+            datimodello.setGrado_completezza(getRequestValue(request, "grado_completezza"));
+            datimodello.setProbabilita(getRequestValue(request, "probabilita"));
 
-            if (domanda) {
-                mask.setForma_giuridica(e.getEm().find(Formagiuridica.class,
-                        Integer.parseInt(request.getParameter("formaGiuridica"))));
-                mask.setComune_localizzazione(e.getEm().find(Comuni.class,
-                        Long.parseLong(request.getParameter("comune"))));
-                mask.setSede(request.getParameter("sede").equalsIgnoreCase("SI"));
-                mask.setColloquio(request.getParameter("colloquio").equalsIgnoreCase("SI"));
-                mask.setFabbisogno_finanziario(parseDouble(request.getParameter(("tff"))));
-                mask.setFinanziamento_richiesto_agevolazione(parseDouble(request.getParameter(("tfra"))));
-                mask.setRagione_sociale(conversionText(request.getParameter("ragioneSociale")));
-                mask.setIdea_impresa((request.getParameter("ideaImpresa")));
-                mask.setMotivazione((request.getParameter("motivazione")));
-                mask.setAteco(e.getEm().find(Ateco.class,
-                        request.getParameter("ateco")));
-                Part p = request.getPart("doc");
-                if (p != null
-                        && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
-                    try {
-                        String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", a.getCodicefiscale());
-                        File dir = new File(path);
-                        createDir(path);
-                        String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                        path += "domanda_ammissione_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
-                        File damm = new File(dir.getAbsolutePath() + File.separator + "domanda_ammissione_"
-                                + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
-                        p.write(damm.getPath());
-                        mask.setDomanda_ammissione_presente(true);
-                        mask.setDomanda_ammissione(path.replace("\\", "/"));
+            datimodello.setForma_giuridica(e.getEm().find(Formagiuridica.class,
+                    parseIntR(getRequestValue(request, "forma_giuridica"))));
+            datimodello.setAteco(e.getEm().find(Ateco.class,
+                    getRequestValue(request, "ateco")));
 
-                        Email email_txt = (Email) e.getEmail("domanda_amm");
-                        String testomail = StringUtils.replace(email_txt.getTesto(), "@nomecognome", a.getNome().toUpperCase() + " "
-                                + a.getCognome().toUpperCase());
-                        testomail = StringUtils.replace(testomail, "@nomeprogetto", "YES I START UP NEET");
-                        testomail = StringUtils.replace(testomail, "@nomesa", a.getSoggetto().getRagionesociale().toUpperCase());
-                        SendMailJet.sendMail(e.getPath("mailsender"), new String[]{a.getEmail()}, new String[]{a.getSoggetto().getEmail()},
-                                testomail, email_txt.getOggetto(), damm);
-                        if (Boolean.parseBoolean(request.getParameter("no_agevolazione"))) {
-                            mask.setNo_agevolazione(true);
-                            mask.setNo_agevolazione_opzione(request.getParameter("no_agevolazione_option"));
-                            mask.setBando_reg(false);
-                            mask.setBando_se(false);
-                            mask.setBando_sud(false);
-                        } else {
-                            mask.setNo_agevolazione(false);
+            datimodello.setSede(getRequestValue(request, "sede").equals("SI"));
 
-                            if (Boolean.parseBoolean(request.getParameter("bando_se"))) {
-                                mask.setBando_se(true);
-                                mask.setBando_se_opzione(request.getParameter("bando_se_option"));
-                            } else {
-                                mask.setBando_se(false);
-                            }
-                            if (Boolean.parseBoolean(request.getParameter("bando_sud"))) {
-                                mask.setBando_sud(true);
-                                mask.setBando_sud_opzione(request.getParameter("bando_sud_options"));
-                            } else {
-                                mask.setBando_sud(false);
-                            }
-                            if (Boolean.parseBoolean(request.getParameter("bando_reg"))) {
-                                mask.setBando_reg(true);
-                                mask.setBando_reg_nome(request.getParameter("bando_reg_option"));
-                            } else {
-                                mask.setBando_reg(false);
-                            }
+            datimodello.setComune_localizzazione(e.getEm().find(Comuni.class,
+                    Utility.parseLongR(getRequestValue(request, "comune"))));
 
-                        }
-                        mask.setTabella_valutazionefinale_val(request.getParameter("tab1"));
-                        mask.setTabella_valutazionefinale_punteggio(parseDouble(request.getParameter("punteggio_tab1")));
-                        mask.setTabella_valutazionefinale_totale(parseDouble(request.getParameter("valfinale_tab1")));
-                    } catch (Exception ex1) {
-                        ok = false;
-                        resp.addProperty("result", false);
-                        resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
-                        e.insertTracking("System", "ERROR DOMANDA AMMISSIONE: " + Utility.estraiEccezione(ex1));
-                    }
+            datimodello.setTotale_fabbisogno(parseDouble(getRequestValue(request, "totale_fabbisogno")));
 
-                } else {
+            datimodello.setMisura_individuata(getRequestValue(request, "misura_individuata").equals("SI"));
+            System.out.println("rc.so.servlet.OperazioniSA.salvamodello5() "+(getRequestValue(request, "misura_si_nome")));
+            datimodello.setMisura_no_motivazione(getRequestValue(request, "misura_no_motivazione"));
+            datimodello.setMisura_si_nome((getRequestValue(request, "misura_si_nome")));
+            datimodello.setMisura_si_tipo(getRequestValue(request, "misura_si_tipo"));
+            datimodello.setMisura_si_motivazione(getRequestValue(request, "misura_si_motivazione"));
+
+            Part p = request.getPart("doc");
+            if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
+                try {
+
+                    String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", a.getCodicefiscale());
+                    File dir = new File(path);
+                    createDir(path);
+                    String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
+                    path += "domanda_ammissione_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
+                    File damm = new File(dir.getAbsolutePath() + File.separator + "domanda_ammissione_"
+                            + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
+                    p.write(damm.getPath());
+
+//                    Email email_txt = (Email) e.getEmail("domanda_amm");
+//                    String testomail = StringUtils.replace(email_txt.getTesto(), "@nomecognome", a.getNome().toUpperCase() + " "
+//                            + a.getCognome().toUpperCase());
+//                    testomail = StringUtils.replace(testomail, "@nomeprogetto", "YES I START UP NEET");
+//                    testomail = StringUtils.replace(testomail, "@nomesa", a.getSoggetto().getRagionesociale().toUpperCase());
+//                    SendMailJet.sendMail(e.getPath("mailsender"), new String[]{a.getEmail()}, new String[]{a.getSoggetto().getEmail()},
+//                            testomail, email_txt.getOggetto(), damm);                    
+                } catch (Exception ex1) {
                     ok = false;
                     resp.addProperty("result", false);
                     resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
+                    e.insertTracking("System", "ERROR DOMANDA AMMISSIONE: " + Utility.estraiEccezione(ex1));
                 }
+
             } else {
-                mask.setForma_giuridica(null);
-                mask.setComune_localizzazione(null);
-                mask.setSede(false);
-                mask.setColloquio(false);
-                mask.setFabbisogno_finanziario(0.0);
-                mask.setFinanziamento_richiesto_agevolazione(0.0);
-                mask.setRagione_sociale("-");
-                mask.setIdea_impresa("-");
-                mask.setMotivazione("-");
-                mask.setAteco(null);
-                mask.setDomanda_ammissione_presente(false);
-                mask.setDomanda_ammissione(null);
-                mask.setNo_agevolazione(false);
-                mask.setBando_reg(false);
-                mask.setBando_se(false);
-                mask.setBando_sud(false);
-                mask.setTabella_valutazionefinale_val(";");
-                mask.setTabella_valutazionefinale_punteggio(0.0);
-                mask.setTabella_valutazionefinale_totale(0.0);
+                ok = false;
+                resp.addProperty("result", false);
+                resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
             }
 
-            boolean modello7OK;
-            String erroremodello7OK = "MODELLO 7 ERRATO. CONTROLLARE.";
-
             if (ok) {
-                //Modello 7 - Attestato di frequenza, necessario per la tabella della premialità            
-                Part p7 = request.getPart("doc_modello7");
-                if (p7 != null && p7.getSubmittedFileName() != null && p7.getSubmittedFileName().length() > 0) {
-                    //Modifica 28/05/21
-                    //Se il modello 7 è stato caricato ed il numero delle ore effettuate tra fase A e fase B è minimo 64, allora la tabella di premialità si popola con i dati della tabella finale
-                    if (domanda && Boolean.parseBoolean(request.getParameter("hh64"))) {
-                        mask.setTabella_premialita(true);
-                        mask.setTabella_premialita_val(request.getParameter("tab1"));
-                        mask.setTabella_premialita_punteggio(Double.parseDouble(request.getParameter("punteggio_tab1")));
-                        mask.setTabella_premialita_totale(Double.parseDouble(request.getParameter("valfinale_tab1")));
-                    } else {
-                        mask.setTabella_premialita(false);
-                    }
 
-                    TipoDoc_Allievi tipodoc_m7 = e.getEm().find(TipoDoc_Allievi.class,
-                            22L);
-                    Documenti_Allievi modello7_allievo = a.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0
-                            && dc.getTipo().getId().equals(tipodoc_m7.getId())).findFirst().orElse(null);
-                    if (modello7_allievo != null) {
-                        File dir = new File(modello7_allievo.getPath());
-                        p7.write(dir.getAbsolutePath());
-
-                        File pdfdest = new File(dir.getAbsolutePath());
-
-                        String res = checkFirmaQRpdfA("MODELLO7", us.getUsername(),
-                                pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
-                        if (!res.equals("OK")) {
-                            modello7OK = false;
-                            erroremodello7OK = res;
-                        } else {
-                            modello7OK = true;
-                        }
-
-                    } else {
-
-                        String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", Utility.correctName(a.getCodicefiscale()));
-                        File dir = new File(path);
-                        createDir(path);
-                        String ext = p7.getSubmittedFileName().substring(p7.getSubmittedFileName().lastIndexOf("."));
-                        String namefile = "Modello7_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
-                        path += namefile;
-                        String destpath = dir.getAbsolutePath() + File.separator + namefile;
-                        p7.write(destpath);
-
-                        File pdfdest = new File(destpath);
-
-                        String res = checkFirmaQRpdfA("MODELLO7", us.getUsername(),
-                                pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
-                        if (!res.equals("OK")) {
-                            modello7OK = false;
-                            erroremodello7OK = res;
-                        } else {
-                            modello7OK = true;
-                        }
-
-                        Documenti_Allievi m7 = new Documenti_Allievi(path.replace("\\", "/"), tipodoc_m7, null, a);
-                        e.persist(m7);
-                        a.getDocumenti().add(m7);
-                    }
-                    e.merge(a);
-                } else {
-                    modello7OK = false;
-                }
-
-                if (modello7OK) {
-                    e.persist(mask);
-                    e.commit();
-                    resp.addProperty("result", true);
-                } else {
-                    e.rollBack();
-                    resp.addProperty("result", false);
-                    resp.addProperty("message", erroremodello7OK);
-                }
+                e.persist(datimodello);
+                e.commit();
+                resp.addProperty("result", true);
             } else {
                 e.rollBack();
             }
@@ -3786,27 +3659,32 @@ public class OperazioniSA extends HttpServlet {
         User us = (User) request.getSession().getAttribute("user");
 
         String idallievo = getRequestValue(request, "iduser");
-        String orerendicontabili = Utility.roundFloatAndFormat(Long.parseLong(getRequestValue(request, "orerendicontabili")), true);
-
-        if (Utility.demoversion) {
-            orerendicontabili = "80";
-        }
 
         File downloadFile = null;
         try {
 
             Entity e = new Entity();
-            e.begin();
             Allievi a = e.getEm().find(Allievi.class,
                     Long.valueOf(idallievo));
-            downloadFile = Pdf_new.MODELLO7(e, us.getUsername(), a, orerendicontabili,
-                    new DateTime(), true);
-            e.close();
+//            downloadFile = Pdf_new.MODELLO7(e, us.getUsername(), a, orerendicontabili,
+//                    new DateTime(), true);
+
+            System.out.println("rc.so.servlet.OperazioniSA.scaricaModello7() " + a.getId());
+            System.out.println("rc.so.servlet.OperazioniSA.scaricaModello7() " + a.getImporto());
+
+            if (a.getImporto() >= Utility.parseDouble(e.getPath("soglia.allegato7"))) {
+                System.out.println("rc.so.servlet.OperazioniSA.scaricaModello7(OK superato)");
+                downloadFile = Pdf_new.MODELLO7_COMPLETO(e, us.getUsername(), a, "FAD/PRESENZA",
+                        new DateTime(), true);
+            } else {
+                System.out.println("rc.so.servlet.OperazioniSA.scaricaModello7(KO SOLO ELENCO UD COMPLETATE)");
+
+            }
 
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
-
+//
         if (downloadFile != null && downloadFile.exists()) {
             OutputStream outStream;
             try (FileInputStream inStream = new FileInputStream(downloadFile)) {
@@ -4166,91 +4044,6 @@ public class OperazioniSA extends HttpServlet {
 
     protected void simulaconcludi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        Entity e = new Entity();
-
-        String idpr = getRequestValue(request, "idpr");
-        String fase = getRequestValue(request, "fase");
-
-        try {
-            e.begin();
-            Long hh36 = Long.valueOf(129600000);
-//            Long hh64 = new Long(230400000);
-            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.valueOf(idpr));
-            List<Allievi> al = e.getAllieviProgettiFormativi(p);
-            List<MascheraM5> rendicontati = e.getM5Loaded_byPF(p);
-            Map<Long, Long> allievi_m5 = Utility.allieviM5_loaded(rendicontati);
-
-//            Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) p.getId());
-            Map<Long, Long> oreRendicontabili_faseA = Action.OreRendicontabiliAlunni_faseA((int) (long) p.getId());
-
-            if (fase.equals("1")) {
-
-                for (Allievi a : al) {
-                    if (oreRendicontabili_faseA.get(a.getId()) == null || (oreRendicontabili_faseA.get(a.getId())
-                            != null && oreRendicontabili_faseA.get(a.getId()).compareTo(hh36) < 0)) {
-
-                    } else {
-                        if (allievi_m5.get(a.getId()) == null) {
-//                            System.out.println("INSERIRE () " + a.getCognome());
-
-                            MascheraM5 mask = new MascheraM5();
-                            mask.setAllievo(a);
-                            mask.setProgetto_formativo(a.getProgetto());
-                            mask.setForma_giuridica(e.getEm().find(Formagiuridica.class,
-                                    2));
-                            mask.setComune_localizzazione(e.getEm().find(Comuni.class,
-                                    5721L));
-                            mask.setSede(true);
-                            mask.setColloquio(true);
-                            mask.setFabbisogno_finanziario(1000.00);
-                            mask.setFinanziamento_richiesto_agevolazione(800.00);
-                            mask.setRagione_sociale("AZIENDA PERSONALE " + a.getCognome());
-                            mask.setIdea_impresa("esempio di descrizione idea d'impresa");
-                            mask.setMotivazione("motivazione di creazione nuova impresa");
-                            mask.setAteco(e.getEm().find(Ateco.class,
-                                    "62.02.00"));
-                            mask.setDomanda_ammissione_presente(true);
-                            mask.setDomanda_ammissione("/mnt/mcn/gestione_neet/pdf-test.pdf");
-                            mask.setNo_agevolazione(false);
-                            mask.setBando_se(true);
-                            mask.setBando_se_opzione("1");
-                            mask.setBando_sud(false);
-                            mask.setBando_reg(false);
-                            mask.setTabella_valutazionefinale_val("1=5=1.5;2=6=1.8;3=7=1.4;4=8=1.6;");
-                            mask.setTabella_valutazionefinale_punteggio(6.30);
-                            mask.setTabella_valutazionefinale_totale(9.00);
-                            mask.setTabella_premialita(true);
-                            mask.setTabella_premialita_val("1=7=2.1;2=7=2.1;3=7=1.4;4=7=1.4;");
-                            mask.setTabella_premialita_punteggio(7.00);
-                            mask.setTabella_premialita_totale(9.00);
-                            TipoDoc_Allievi tipodoc_m7 = e.getEm().find(TipoDoc_Allievi.class,
-                                    22L);
-                            Documenti_Allievi m7 = new Documenti_Allievi("/mnt/mcn/gestione_neet/pdf-test.pdf", tipodoc_m7, null, a);
-                            e.persist(m7);
-                            a.getDocumenti().add(m7);
-                            e.persist(mask);
-                            TipoDoc_Allievi tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
-                                    20L);
-                            Documenti_Allievi m5 = new Documenti_Allievi("/mnt/mcn/gestione_neet/pdf-test.pdf", tipodoc_m5, null, a);
-                            e.persist(m5);
-                            a.getDocumenti().add(m5);
-                            e.merge(a);
-
-                        }
-                    }
-                }
-
-            }
-            e.commit();
-        } catch (Exception ex) {
-            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
-        } finally {
-            e.close();
-        }
-
-        redirect(request, response, request.getContextPath() + "/page/sa/concludiPrg.jsp?id=" + idpr);
     }
 
     protected void simulafaseb(HttpServletRequest request, HttpServletResponse response)
@@ -4754,7 +4547,7 @@ public class OperazioniSA extends HttpServlet {
             String idcalendar = getRequestValue(request, "idcalendar");
             String idgruppo = getRequestValue(request, "idgruppo");
             Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, Long.valueOf(idcalendar));
-            downloadFile = Pdf_new.REGISTROCARTACEO(e, us.getUsername(), lm,idgruppo, new DateTime());
+            downloadFile = Pdf_new.REGISTROCARTACEO(e, us.getUsername(), lm, idgruppo, new DateTime());
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
@@ -5088,8 +4881,8 @@ public class OperazioniSA extends HttpServlet {
                 case "deleteMembroStaff":
                     deleteMembroStaff(request, response);
                     break;
-                case "rendicontaAllievo":
-                    rendicontaAllievo(request, response);
+                case "salvamodello5":
+                    salvamodello5(request, response);
                     break;
                 case "concludiPrg":
                     concludiPrg(request, response);

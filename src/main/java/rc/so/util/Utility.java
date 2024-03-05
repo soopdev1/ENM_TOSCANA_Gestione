@@ -118,6 +118,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.sax.ToTextContentHandler;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeZone;
@@ -718,9 +719,9 @@ public class Utility {
         int i = 1;
         for (MascheraM5 m : m5) {
             if (oreRendicontabili.get(m.getAllievo().getId()) != null && oreRendicontabili.get(m.getAllievo().getId()).compareTo(hh64) > 0) {
-                if (m.isTabella_premialita() && m.getTabella_premialita_punteggio() > 0) {
+//                if (m.isTabella_premialita() && m.getTabella_premialita_punteggio() > 0) {
                     ids.put(m.getAllievo().getId(), true);
-                }
+//                }
             }
             i++;
         }
@@ -1051,13 +1052,9 @@ public class Utility {
 
     public static String conversionText(String ing) {
         try {
-
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ToTextContentHandler toTextContentHandler = new ToTextContentHandler(byteArrayOutputStream, "UTF-8");
-            AutoDetectParser parser = new AutoDetectParser();
-            Metadata metadata = new Metadata();
-            parser.parse(new ByteArrayInputStream(ing.getBytes()), toTextContentHandler, metadata);
-            return byteArrayOutputStream.toString().trim();
+            CharsetDetector detector = new CharsetDetector();
+            detector.setText(ing.getBytes());
+            return new String(ing.getBytes(detector.detect().getName()), Charset.forName("utf-8"));
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
         }
@@ -1065,17 +1062,12 @@ public class Utility {
     }
 
     public static String getstatoannullato(String stato_prec) {
-        switch (stato_prec) {
-            case "ATA":
-            case "ATB":
-                return stato_prec + "E";
-            case "SOA":
-                return "ATAE";
-            case "SOB":
-                return "ATBE";
-            default:
-                return "DVBE";
-        }
+        return switch (stato_prec) {
+            case "ATA", "ATB" -> stato_prec + "E";
+            case "SOA" -> "ATAE";
+            case "SOB" -> "ATBE";
+            default -> "DVBE";
+        };
     }
 
     public static DateTime format(String ing, String pattern) {
@@ -1352,7 +1344,6 @@ public class Utility {
         } catch (Exception e) {
             return 0L;
         }
-
     }
 
     public static List<Allievi> estraiAllieviOK(ProgettiFormativi p) {

@@ -33,17 +33,18 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = "allievi")
 @NamedQueries(value = {
-    @NamedQuery(name = "a.byCF", query = "SELECT a FROM Allievi a WHERE a.codicefiscale=:codicefiscale AND a.statopartecipazione.id='01'"),
-    @NamedQuery(name = "a.bySoggettoAttuatore", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto"),
-    @NamedQuery(name = "a.bySoggettoAttuatoreNoProgettoAttivi", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto and a.progetto=null AND a.statopartecipazione.id='01' AND a.stato='A'"),
-    @NamedQuery(name = "a.byProgetto", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto AND a.statopartecipazione.id IN ('13','14','15','18','19')"),
-    @NamedQuery(name = "a.byProgettoAll", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto"),
-    @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01'"),
-    @NamedQuery(name = "allievi.daassegnare", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='10'"),
-    @NamedQuery(name = "allievi.assegnatisoggetto", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id IN ('12','13') AND a.soggetto=:soggetto and a.progetto=null"),
-    @NamedQuery(name = "allievi.modello1", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='13' AND a.soggetto=:soggetto and a.progetto=null"),
-    @NamedQuery(name = "allievi.attivi", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='13' AND a.progetto=:progetto"),
-})
+    @NamedQuery(name = "a.byCF", query = "SELECT a FROM Allievi a WHERE a.codicefiscale=:codicefiscale AND a.statopartecipazione.id='01' ORDER BY a.cognome"),
+    @NamedQuery(name = "a.bySoggettoAttuatore", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto ORDER BY a.cognome"),
+    @NamedQuery(name = "a.bySoggettoAttuatoreNoProgettoAttivi", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto and a.progetto=null AND a.statopartecipazione.id='01' AND a.stato='A' ORDER BY a.cognome"),
+    @NamedQuery(name = "a.byProgetto", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto AND a.statopartecipazione.id IN ('13','14','15','18','19') ORDER BY a.cognome"),
+    @NamedQuery(name = "a.byProgettoAll", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto ORDER BY a.cognome"),
+    @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01' ORDER BY a.cognome"),
+    @NamedQuery(name = "allievi.daassegnare", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='10' ORDER BY a.cognome"),
+    @NamedQuery(name = "allievi.assegnatisoggetto", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id IN ('12','13')"
+            + " AND a.soggetto=:soggetto and a.progetto=null ORDER BY a.cognome"),
+    @NamedQuery(name = "allievi.nuovomodello1", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id = '12' AND a.soggetto=:soggetto ORDER BY a.cognome"),
+    @NamedQuery(name = "allievi.modello1", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='13' AND a.soggetto=:soggetto and a.progetto=null ORDER BY a.cognome"),
+    @NamedQuery(name = "allievi.attivi", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='13' AND a.progetto=:progetto ORDER BY a.cognome"),})
 @JsonIgnoreProperties(value = {"documenti"})
 public class Allievi implements Serializable {
 
@@ -150,8 +151,7 @@ public class Allievi implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_statopartecipazione")
     StatoPartecipazione statopartecipazione;
-    
-    
+
     @ManyToOne
     @JoinColumn(name = "idcondizione_lavorativa")
     Condizione_Lavorativa condizione_lavorativa;
@@ -174,103 +174,188 @@ public class Allievi implements Serializable {
     @Transient
     private double ore_fb = 0.0;
     @Transient
-    private String orerendicontabili  = "";
+    private String orerendicontabili = "";
 
     //Gruppo modello 4
     @Column(name = "gruppo_faseB")
     private int gruppo_faseB;
 
-     // 0 - DA SALVARE (NO) - 1 SI
+    // 0 - DA SALVARE (NO) - 1 SI
     @Column(name = "mappatura")
     private int mappatura;
-    
+
     @Column(name = "mappatura_note")
     private String mappatura_note;
-    
+
     @Column(name = "surveyin", columnDefinition = "TINYINT", length = 1)
     private boolean surveyin;
-    
+
     @Column(name = "surveyout", columnDefinition = "TINYINT", length = 1)
     private boolean surveyout;
-    
-    
-    @Column(name = "tos_tipofinanziamento") 
+
+    @Column(name = "tos_tipofinanziamento")
     private String tos_tipofinanziamento; //GOL - PATTO PER IL LAVORO
-        
-    @Column(name = "tos_dirittoindennita") 
-    private String tos_dirittoindennita; 
+
+    @Column(name = "tos_dirittoindennita")
+    private String tos_dirittoindennita;
 
     @ManyToOne
     @JoinColumn(name = "tos_gruppovulnerabile")
     GruppoVulnerabile tos_gruppovulnerabile;
-    
-    @Column(name = "tos_request", columnDefinition = "LONGTEXT") 
+
+    @Column(name = "tos_request", columnDefinition = "LONGTEXT")
     private String tos_request;
-    
-    
-    
+
     //MODELLO 0
     @Temporal(TemporalType.DATE)
     @Column(name = "tos_m0_datacolloquio")
     private Date tos_m0_datacolloquio;
-    
-     @Column(name = "tos_m0_siglaoperatore") 
+
+    @Column(name = "tos_m0_siglaoperatore")
     private String tos_m0_siglaoperatore;
-     
-    @Column(name = "tos_m0_modalitacolloquio") 
+
+    @Column(name = "tos_m0_modalitacolloquio")
     private int tos_m0_modalitacolloquio;
-    
-    @Column(name = "tos_m0_gradoconoscenza") 
+
+    @Column(name = "tos_m0_gradoconoscenza")
     private int tos_m0_gradoconoscenza;
-    
+
     @ManyToOne
     @JoinColumn(name = "tos_m0_canaleconoscenza")
     private Canale tos_m0_canaleconoscenza;
-    
+
     @ManyToOne
     @JoinColumn(name = "tos_m0_motivazione")
     private Motivazione tos_m0_motivazione;
-    
-    @Column(name = "tos_m0_utilita") 
+
+    @Column(name = "tos_m0_utilita")
     private int tos_m0_utilita;
-    
-    @Column(name = "tos_m0_aspettative") 
+
+    @Column(name = "tos_m0_aspettative")
     private int tos_m0_aspettative;
-    
+
     @ManyToOne
-    @JoinColumn(name = "tos_m0_maturazione") 
+    @JoinColumn(name = "tos_m0_maturazione")
     private MaturazioneIdea tos_m0_maturazione;
-    
-    @Column(name = "tos_m0_volonta") 
+
+    @Column(name = "tos_m0_volonta")
     private int tos_m0_volonta;
-    
+
     @ManyToOne
-    @JoinColumn(name = "tos_m0_noperche") 
+    @JoinColumn(name = "tos_m0_noperche")
     private MotivazioneNO tos_m0_noperche;
-    
-    @Column(name = "tos_m0_noperchealtro") 
+
+    @Column(name = "tos_m0_noperchealtro")
     private String tos_m0_noperchealtro;
-    
-    @Column(name = "tos_m0_consapevole") 
+
+    @Column(name = "tos_m0_consapevole")
     private int tos_m0_consapevole;
-    
-    
-    
-    
-    
-    @Column(name = "tos_mailoriginale") 
+
+    @Column(name = "tos_mailoriginale")
     private String tos_mailoriginale;
-    
+
     //  NEW
-    @Column(name = "tos_operatore") 
+    @Column(name = "tos_operatore")
     private String tos_operatore;
 
-    @Column(name = "tos_noteenm", columnDefinition = "LONGTEXT") 
+    @Column(name = "tos_noteenm", columnDefinition = "LONGTEXT")
     private String tos_noteenm;
-    
-    
+
+    //FREQUENZA
+    @Column(name = "orec_totali")
+    private double orec_totali;
+    @Column(name = "orec_fasea")
+    private double orec_fasea;
+    @Column(name = "orec_faseb")
+    private double orec_faseb;
+
+    @Column(name = "ud_ok_A")
+    private int ud_ok_A;
+    @Column(name = "ud_ok_B")
+    private int ud_ok_B;
+    @Column(name = "codudok_A")
+    String codudok_A;
+    @Column(name = "codudok_B")
+    String codudok_B;
+    @Column(name = "assenzeOK")
+    private int assenzeOK;
+    @Column(name = "assenzeKO")
+    private int assenzeKO;
+
     public Allievi() {
         this.pregresso = false;
+    }
+
+    public int getAssenzeOK() {
+        return assenzeOK;
+    }
+
+    public void setAssenzeOK(int assenzeOK) {
+        this.assenzeOK = assenzeOK;
+    }
+
+    public int getAssenzeKO() {
+        return assenzeKO;
+    }
+
+    public void setAssenzeKO(int assenzeKO) {
+        this.assenzeKO = assenzeKO;
+    }
+
+    public int getUd_ok_A() {
+        return ud_ok_A;
+    }
+
+    public void setUd_ok_A(int ud_ok_A) {
+        this.ud_ok_A = ud_ok_A;
+    }
+
+    public int getUd_ok_B() {
+        return ud_ok_B;
+    }
+
+    public void setUd_ok_B(int ud_ok_B) {
+        this.ud_ok_B = ud_ok_B;
+    }
+
+    public String getCodudok_A() {
+        return codudok_A;
+    }
+
+    public void setCodudok_A(String codudok_A) {
+        this.codudok_A = codudok_A;
+    }
+
+    public String getCodudok_B() {
+        return codudok_B;
+    }
+
+    public void setCodudok_B(String codudok_B) {
+        this.codudok_B = codudok_B;
+    }
+
+    public double getOrec_totali() {
+        return orec_totali;
+    }
+
+    public void setOrec_totali(double orec_totali) {
+        this.orec_totali = orec_totali;
+    }
+
+    public double getOrec_fasea() {
+        return orec_fasea;
+    }
+
+    public void setOrec_fasea(double orec_fasea) {
+        this.orec_fasea = orec_fasea;
+    }
+
+    public double getOrec_faseb() {
+        return orec_faseb;
+    }
+
+    public void setOrec_faseb(double orec_faseb) {
+        this.orec_faseb = orec_faseb;
     }
 
     public String getTos_noteenm() {
@@ -280,7 +365,7 @@ public class Allievi implements Serializable {
     public void setTos_noteenm(String tos_noteenm) {
         this.tos_noteenm = tos_noteenm;
     }
-    
+
     public int getTos_m0_consapevole() {
         return tos_m0_consapevole;
     }
@@ -448,7 +533,7 @@ public class Allievi implements Serializable {
     public void setSurveyout(boolean surveyout) {
         this.surveyout = surveyout;
     }
-    
+
     public String getMappatura_note() {
         return mappatura_note;
     }

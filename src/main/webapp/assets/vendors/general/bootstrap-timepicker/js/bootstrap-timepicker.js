@@ -1136,26 +1136,26 @@
 
   $.fn.timepicker.defaults = {
     defaultTime: 'current',
-    disableFocus: false,
-    disableMousewheel: false,
-    isOpen: false,
-    minuteStep: 15,
-    modalBackdrop: false,
-    orientation: { x: 'auto', y: 'auto'},
-    secondStep: 15,
-    snapToStep: false,
-    showSeconds: false,
-    showInputs: true,
-    showMeridian: true,
-    template: 'dropdown',
-    appendWidgetTo: 'body',
-    showWidgetOnAddonClick: true,
-    icons: {
-      up: 'fa fa-arrow-circle-up',
-      down: 'fa fa-arrow-circle-down'
-    },
-    maxHours: 24,
-    explicitMode: false
+                    disableFocus: false,
+                    disableMousewheel: false,
+                    isOpen: false,
+                    minuteStep: 30,
+                    modalBackdrop: false,
+                    orientation: {x: 'auto', y: 'auto'},
+                    secondStep: 15,
+                    snapToStep: true,
+                    showSeconds: false,
+                    showInputs: false,
+                    showMeridian: false,
+                    template: 'dropdown',
+                    appendWidgetTo: 'body',
+                    showWidgetOnAddonClick: true,
+                    icons: {
+                        up: 'la la-angle-up',
+                        down: 'la la-angle-down'
+                    },
+                    maxHours: 21,
+                    explicitMode: false
   };
 
   $.fn.timepicker.Constructor = Timepicker;

@@ -247,6 +247,8 @@
         <!--start:Modal-->
 
 
+        
+        
         <div class="modal fade" id="allievi_table" tabindex="-1" role="dialog" aria-labelledby="Allievi Progetto Formativo" aria-hidden="true" style="padding: 0!important;">
             <div class="modal-dialog modal-full modal-dialog-centered" role="document">
                 <div class="modal-content center">
@@ -266,6 +268,34 @@
                                         <th class="text-uppercase text-center">Codice Fiscale</th>
                                         <th class="text-uppercase text-center">Stato</th>
                                         <th class="text-uppercase text-center">Ore convalidate</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="allievi_presenze_table" tabindex="-1" role="dialog" aria-labelledby="Allievi Progetto Formativo" aria-hidden="true" style="padding: 0!important;">
+            <div class="modal-dialog modal-full modal-dialog-centered" role="document">
+                <div class="modal-content center">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Presenze Allievo/a</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="kt-scroll" style="max-height: 750px; min-height: 750px;">
+                            <table class="table table-bordered" id="kt_table_presenzaallievi">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-center">FASE</th>
+                                        <th class="text-uppercase text-center">DATA</th>
+                                        <th class="text-uppercase text-center">TIPO LEZIONE</th>
+                                        <th class="text-uppercase text-center">ORARIO PRESENZA</th>
+                                        <th class="text-uppercase text-center">ORE</th>
+                                        <th class="text-uppercase text-center">ORE CONVALIDATE</th>
                                     </tr>
                                 </thead>
                             </table>

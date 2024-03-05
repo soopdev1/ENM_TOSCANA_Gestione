@@ -30,11 +30,13 @@ import javax.persistence.Transient;
 @NamedQueries(value = {
     @NamedQuery(name = "presenzelezioni.allievo_corso",
             query = "SELECT u FROM Presenze_Lezioni_Allievi u WHERE u.presenzelezioni.progetto=:progetto "
-                    + "ORDER BY u.presenzelezioni.datalezione,u.orainizio"),
+            + "ORDER BY u.presenzelezioni.datalezione,u.orainizio"),
     @NamedQuery(name = "presenzelezioni.giornata",
             query = "SELECT u FROM Presenze_Lezioni_Allievi u WHERE u.presenzelezioni=:presenzelezioni ORDER BY u.orainizio,u.allievo.cognome"),
     @NamedQuery(name = "presenzelezioni.allievo",
             query = "SELECT u FROM Presenze_Lezioni_Allievi u WHERE u.allievo=:allievo ORDER BY u.presenzelezioni.datalezione,u.orainizio"),
+    @NamedQuery(name = "presenzelezioni.allievototal",
+            query = "SELECT u FROM Presenze_Lezioni_Allievi u WHERE u.allievo=:allievo"),
     @NamedQuery(name = "presenzelezioni.allievo_giornata",
             query = "SELECT u FROM Presenze_Lezioni_Allievi u WHERE u.presenzelezioni=:presenzelezioni AND u.allievo=:allievo"),})
 @Entity
@@ -54,7 +56,7 @@ public class Presenze_Lezioni_Allievi implements Serializable {
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "idallievi")
     private Allievi allievo;
-    
+
     @Column(name = "presente", columnDefinition = "tinyint(1) default 0")
     private boolean presente;
 
@@ -66,18 +68,20 @@ public class Presenze_Lezioni_Allievi implements Serializable {
 
     @Column(name = "durata")
     private Long durata;
-    
+
     @Column(name = "convalidata", columnDefinition = "tinyint(1) default 0")
     private boolean convalidata;
 
     @Column(name = "durataconvalidata")
     private Long durataconvalidata;
-    
+
     @Column(name = "datarealelezione")
     @Temporal(TemporalType.TIMESTAMP)
     private Date datainserimento;
 
-    
+    @Column(name = "assenzagiustificata", columnDefinition = "tinyint(1) default 1")
+    private boolean assenzagiustificata;
+
     @Transient
     private String tipolez;
     @Transient
@@ -86,8 +90,18 @@ public class Presenze_Lezioni_Allievi implements Serializable {
     private String modulo;
     @Transient
     private Date datalezione;
-            
+
+    
+    
     public Presenze_Lezioni_Allievi() {
+    }
+
+    public boolean isAssenzagiustificata() {
+        return assenzagiustificata;
+    }
+
+    public void setAssenzagiustificata(boolean assenzagiustificata) {
+        this.assenzagiustificata = assenzagiustificata;
     }
 
     public String getFase() {
@@ -129,7 +143,7 @@ public class Presenze_Lezioni_Allievi implements Serializable {
     public void setDurataconvalidata(Long durataconvalidata) {
         this.durataconvalidata = durataconvalidata;
     }
-    
+
     public boolean isConvalidata() {
         return convalidata;
     }
@@ -137,7 +151,7 @@ public class Presenze_Lezioni_Allievi implements Serializable {
     public void setConvalidata(boolean convalidata) {
         this.convalidata = convalidata;
     }
-    
+
     public Long getIdpresenzelezioniallievi() {
         return idpresenzelezioniallievi;
     }
@@ -237,8 +251,5 @@ public class Presenze_Lezioni_Allievi implements Serializable {
         sb.append('}');
         return sb.toString();
     }
-    
-    
-    
-    
+
 }

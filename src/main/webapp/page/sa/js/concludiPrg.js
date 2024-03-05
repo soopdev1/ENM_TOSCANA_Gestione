@@ -89,97 +89,6 @@ function deleteConfirmedM5(id) {
 }
 
 
-function domAmm_check(id) {
-    $('#doc_' + id).removeClass("is-invalid");
-    $('#doc_' + id).removeClass("is-valid");
-    if ($('#domanda_a_' + id).is(":checked")) {
-        $('#doc_' + id).removeAttr('disabled');
-        $('#doc_' + id).attr('tipo', 'obbligatory');
-        $('#cont_daok_' + id).toggle(true);
-        $('#file_daok_' + id).toggle(true);
-    } else {
-        $('#doc_' + id).removeAttr('tipo');
-        $('#doc_' + id).attr('disabled', 'disabled');
-        $('#cont_daok_' + id).toggle(false);
-        $('#file_daok_' + id).toggle(false);
-    }
-}
-
-function disableRadioGroup(nome, val) {
-    if (val) {
-        $('label.' + nome).removeClass("kt-radio--disabled");
-        $('input.' + nome).removeAttr('disabled');
-    } else {
-        $('label.' + nome).addClass("kt-radio--disabled");
-        $('input.' + nome).attr('disabled', 'disabled');
-    }
-}
-
-function disableBandi(nome, val) {
-    if (val) {
-        $('label.' + nome).removeClass("kt-radio--disabled");
-        $('input[name=' + nome + ']').removeAttr('disabled');
-    } else {
-        $('label.' + nome).addClass("kt-radio--disabled");
-        $('input[name=' + nome + ']').attr('disabled', 'disabled');
-    }
-}
-
-function initRadioButtons() {
-    $('input[type=radio]').each(function () {
-        $(this).prop('checked', false);
-        this.checked = false;
-    });
-}
-
-$('input[type=radio][name^=bando]').click(function () {
-    if (this.previous) {
-        this.checked = false;
-    }
-    disableRadioGroup(this.name, this.checked);
-    this.previous = this.checked;
-
-});
-
-//$('input[type=button][id^=loadM5_]').click(function () {
-//
-//});
-
-$('input[type=radio][name^=sud_option_]').click(function () {
-    if (this.previous) {
-        this.checked = false;
-    }
-    this.previous = this.checked;
-
-});
-
-$('input[type=radio][class^=bandosud]').click(function () {
-    let allievo_id = this.name.split("_")[3];
-    $('input[name^="sud_option_"][name$="' + allievo_id + '"]:checked').length === 3 ? $('input[name^="sud_option_"][name$="' + allievo_id + '"]').not(':checked').attr('disabled', true) : $('input[name^="sud_option_"][name$="' + allievo_id + '"]').not(':checked').attr('disabled', false);
-});
-
-$('input[type=radio][name^=noagevolazione]').click(function () {
-    if (this.previous) {
-        this.checked = false;
-    }
-    let isDisabled = false;
-    disableRadioGroup(this.name, this.checked);
-    this.previous = this.checked;
-    let a_id = this.name.split("_")[1];
-    if ($('input[type=radio][name^=bandoreg_' + a_id + ']:checked').length === 0) {
-        isDisabled = true;
-    }
-    disableBandi("bandose_" + a_id, !this.checked);
-    disableRadioGroup("bandose_" + a_id, !this.checked);
-    disableBandi("bandosud_" + a_id, !this.checked);
-    disableRadioGroup("bandosud_" + a_id, !this.checked);
-    disableBandi("bandoreg_" + a_id, !this.checked);
-    disableRadioGroup("bandoreg_" + a_id, !this.checked);
-    if (isDisabled) {
-        $('input[type=text][name^=bando_reg_nome_' + a_id + ']').attr('disabled', 'disabled');
-    }
-});
-
 $('.decimal_custom.ctrl').on('change', function () {
     let val;
     if (this.value.startsWith("9.")) {
@@ -259,11 +168,6 @@ jQuery(document).ready(function () {
         'rightAlign': true
     });
     resetForm();
-    initRadioButtons();
-    disableRadioGroup("bandose", false);
-    disableRadioGroup("bandosud", false);
-    disableRadioGroup("bandoreg", false);
-    disableRadioGroup("noagevolazione", false);
     setTotals();
     setStep3();
 });
@@ -318,16 +222,6 @@ function checkObblFields_Allievo(id) {
             $(this).removeClass("is-valid").removeClass("is-invalid");
         }
     });
-//    $('textarea.obbligatory[id$=' + id + ']').each(function () {
-//        var testo1 = tinymce.get($(this).attr('id')).getContent({format: 'text'});
-//        if (testo1 === '') {
-//            err = true;
-//            alert("VERIFICARE TUTTI I CAMPI DI TESTO.")
-//            $(this).removeClass("is-valid").addClass("is-invalid");
-//        } else {
-//            $(this).removeClass("is-invalid").addClass("is-valid");
-//        }
-//    });
     $('select.obbligatory[id$=' + id + ']').each(function () {
         if ($(this).val() === '' || $(this).val() === '-' || $(this).val() === null) {
             err = true;
@@ -353,38 +247,6 @@ function checkObblFields_Allievo(id) {
             err = true;
         }
     });
-    //Check opzione radio Bandi
-    let countOpzioniSel = $('input[type=radio].optionsRadio' + id + ':checked').length;
-    if (countOpzioniSel === 0) {
-        $('#alert_radio' + id).show();
-        $('#alert_noagevolazione' + id).hide();
-        $('#alert_bandosud' + id).hide();
-        $('#alert_bandose' + id).hide();
-        err = true;
-    } else {
-        $('#alert_radio' + id).hide();
-        if ($('input[type=radio][name=noagevolazione_' + id + '].optionsRadio' + id + ':checked').length === 1 && $('input[type=radio][name=noagevolazione_' + id + '].optionsRadio' + id + ':enabled').length === 1 && $('input[type=radio][name=no_option_' + id + ']:enabled:checked').length === 0) {
-            $('#alert_noagevolazione' + id).show();
-            $('#alert_bandose' + id).hide();
-            $('#alert_bandosud' + id).hide();
-            $('#bando_reg_nome_' + id).removeClass("is-invalid").removeClass("is-valid");
-            err = true;
-        } else {
-            $('#alert_noagevolazione' + id).hide();
-        }
-        if ($('input[type=radio][name=bandose_' + id + '].optionsRadio' + id + ':checked').length === 1 && $('input[type=radio][name=bandose_' + id + '].optionsRadio' + id + ':enabled').length === 1 && $('input[type=radio][name=se_option_' + id + ']:enabled:checked').length === 0) {
-            $('#alert_bandose' + id).show();
-            err = true;
-        } else {
-            $('#alert_bandose' + id).hide();
-        }
-        if ($('input[type=radio][name=bandosud_' + id + '].optionsRadio' + id + ':checked').length === 1 && $('input[type=radio][name=bandosud_' + id + '].optionsRadio' + id + ':enabled').length === 1 && $('input[type=radio][name^=sud_option_][name$=_' + id + ']:enabled:checked').length === 0) {
-            $('#alert_bandosud' + id).show();
-            err = true;
-        } else {
-            $('#alert_bandosud' + id).hide();
-        }
-    }
 
     return err;
 }
@@ -429,8 +291,8 @@ $('a[id^=rendiconta_]').on('click', function () {
     if (ctrlForm(idal)) {
 
         swal.fire({
-            title: '<h3 class="kt-font-io-n"><b>Rendiconta Allievo</b></h3><br>',
-            html: "<h5>Attenzione, dopo la conferma non sarà più possibile modificare il modello 5 creato.<br>" +
+            title: '<h3 class="kt-font-io-n"><b>Completa Modello 5 Allievo</b></h3><br>',
+            html: "<h5>Attenzione, dopo la conferma non sarà più possibile modificare il Modello 5 creato.<br>" +
                     "In caso di errore sarà necessario eliminare il modello in questione e ricompilare l'intera sezione.</h5>",
             animation: false,
             showCancelButton: true,
@@ -443,100 +305,44 @@ $('a[id^=rendiconta_]').on('click', function () {
             }
         }).then((result) => {
             if (result.value) {
-                let ragioneSociale = $('#rs_' + idal).val();
-                let formaGiuridica = $('#fg_' + idal).val();
-                let comune = $('#comune_' + idal).val();
+
+                let grado_completezza = $('#gcbp_' + idal).val();
+                let probabilita = $('#prob_' + idal).val();
+                let forma_giuridica = $('#fg_' + idal).val();
                 let ateco = $('#ateco_' + idal).val();
-
-
-
-
-                let motivazione2 = $('#motivazione_' + idal).val();
-
-//                let motivazione2 = tinymce.get('motivazione_' + idal).getContent({format: 'text'});
-
-                let ideaImpresa2 = $('#ideaimpresa_' + idal).val();
-//                let ideaImpresa2 = tinymce.get('ideaimpresa_' + idal).getContent({format: 'text'});
-
-
-                let tff = cleanCurrency($('#tff_' + idal).val());
-                let tfra = cleanCurrency($('#tfra_' + idal).val());
-
                 let sede = $('input[type=radio][name=check_sede_' + idal + ']:checked').val();
-                let colloquio = $('input[type=radio][name=check_colloquio_' + idal + ']:checked').val();
-
-                let bando_se = false;
-                let bando_se_option = "";
-                let bando_sud = false;
-                let bando_sud_options = "";
-                let bando_reg = false;
-                let bando_reg_option = "";
-
-                let no_agevolazione = $('input[type=radio][name=noagevolazione_' + idal + ']').is(":checked");
-                let no_agevolazione_option = "";
-                if (no_agevolazione) {
-                    no_agevolazione_option = $('input[type=radio][name=no_option_' + idal + ']:checked').val();
-                } else {
-                    bando_se = $('input[type=radio][name=bandose_' + idal + ']').is(":checked");
-                    if (bando_se) {
-                        bando_se_option = $('input[type=radio][name=se_option_' + idal + ']:checked').val();
-                    }
-                    bando_sud = $('input[type=radio][name=bandosud_' + idal + ']').is(":checked");
-                    if (bando_sud) {
-                        $('input[type=radio][name^=sud_option_][name$=_' + idal + ']:checked').each(function () {
-                            bando_sud_options += $(this).val() + ";";
-                        });
-                    }
-                    bando_reg = $('input[type=radio][name=bandoreg_' + idal + ']').is(":checked");
-                    if (bando_reg) {
-                        bando_reg_option = $('#bando_reg_nome_' + idal).val();
-                    }
-
-                }
-
-                let tab1 = "";
-                let temp_multi = "";
-                $('div#val_finale' + idal + ' :input.ctrl').each(function () {
-                    temp_multi = $(this).attr("id").replace("B_", "C_");
-                    tab1 += $(this).attr("id").split("_")[1] + "=" + $(this).val() + "=" + $('#' + temp_multi).val() + ";";
-                });
-                let punteggio_tab1 = $('div#val_finale' + idal + ' :input#totalB_' + idal).val();
-                let valfinale_tab1 = $('div#val_finale' + idal + ' :input#final_' + idal).val();
-
-                let hh64 = $("div.hh64_" + idal).length > 0;
+                let regione = $('#regione_' + idal).val();
+                let provincia = $('#provincia_' + idal).val();
+                let comune = $('#comune_' + idal).val();
+                let totale_fabbisogno = cleanCurrency($('#tff_' + idal).val());
+                let misura_individuata = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
+                let misura_no_motivazione = $('#no_mot_misura_' + idal).val();
+                let misura_si_nome = $('#den_misura_si_' + idal).val();
+                let misura_si_tipo = $('#tipo_misura_' + idal).val();
+                let misura_si_motivazione = $('#si_mot_misura_' + idal).val();
 
                 showLoad();
                 let fdata = new FormData();
 
                 fdata.append("id_allievo", idal);
-                fdata.append("tab1", tab1);
-                fdata.append("punteggio_tab1", punteggio_tab1);
-                fdata.append("valfinale_tab1", valfinale_tab1);
-                fdata.append("hh64", hh64);
-                fdata.append("no_agevolazione", no_agevolazione);
-                fdata.append("no_agevolazione_option", no_agevolazione_option);
-                fdata.append("bando_se", bando_se);
-                fdata.append("bando_se_option", bando_se_option);
-                fdata.append("bando_sud", bando_sud);
-                fdata.append("bando_sud_options", bando_sud_options);
-                fdata.append("bando_reg", bando_reg);
-                fdata.append("bando_reg_option", bando_reg_option);
-                fdata.append("ragioneSociale", ragioneSociale);
-                fdata.append("formaGiuridica", formaGiuridica);
-                fdata.append("ideaImpresa", ideaImpresa2);
-                fdata.append("comune", comune);
+                fdata.append("grado_completezza", grado_completezza);
+                fdata.append("probabilita", probabilita);
+                fdata.append("forma_giuridica", forma_giuridica);
                 fdata.append("ateco", ateco);
-                fdata.append("motivazione", motivazione2);
-                fdata.append("tff", tff);
-                fdata.append("tfra", tfra);
                 fdata.append("sede", sede);
-                fdata.append("colloquio", colloquio);
+                fdata.append("regione", regione);
+                fdata.append("provincia", provincia);
+                fdata.append("comune", comune);
+                fdata.append("totale_fabbisogno", totale_fabbisogno);
+                fdata.append("misura_individuata", misura_individuata);
+                fdata.append("misura_no_motivazione", misura_no_motivazione);
+                fdata.append("misura_si_nome", misura_si_nome);
+                fdata.append("misura_si_tipo", misura_si_tipo);
+                fdata.append("misura_si_motivazione", misura_si_motivazione);
                 fdata.append("doc", $('#doc_' + idal)[0].files[0]);
-                fdata.append("domanda_ammissione", $('#domanda_a_' + idal).is(":checked"));
-                fdata.append("doc_modello7", $('#m7_' + idal)[0].files[0]);
                 $.ajax({
                     type: "POST",
-                    url: context + '/OperazioniSA?type=rendicontaAllievo',
+                    url: context + '/OperazioniSA?type=salvamodello5',
                     data: fdata,
                     processData: false,
                     contentType: false,
@@ -544,13 +350,13 @@ $('a[id^=rendiconta_]').on('click', function () {
                         closeSwal();
                         var json = JSON.parse(data);
                         if (json.result) {
-                            swalSuccessReload("Rendicontazione allievo", "Operazione effettuata con successo");
+                            swalSuccessReload("Completato Modello 5 Allievo", "Operazione effettuata con successo");
                         } else {
                             swalError("Errore", json.message);
                         }
                     },
                     error: function () {
-                        swalError("Errore", "Non è stato possibile rendicontare l'allievo");
+                        swalError("Errore", "Non è stato possibile salvare il modello 5 dell'allievo");
                     }
                 });
             } else {
@@ -847,3 +653,16 @@ $('button[id^=dichiarazione_]').click(function () {
 });
 
 
+function misuraindividuata(idal) {
+    var misura = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
+    alert(misura);
+
+    if (misura === "NO") {
+        $('#MISURANO_' + idal).toggle(true);
+        $('#MISURASI_' + idal).toggle(false);
+    } else {
+        $('#MISURASI_' + idal).toggle(true);
+        $('#MISURANO_' + idal).toggle(false);
+
+    }
+}

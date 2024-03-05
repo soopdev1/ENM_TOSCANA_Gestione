@@ -152,7 +152,7 @@ public class Entity {
     }
 
     public TipoDoc_Allievi getTipoDoc_Allievi(String id) {
-        return this.em.find(TipoDoc_Allievi.class, Long.parseLong(id));
+        return this.em.find(TipoDoc_Allievi.class, Long.valueOf(id));
     }
 
     public String getPath(String id) {
@@ -463,6 +463,12 @@ public class Entity {
 
     public List<Allievi> getAllieviSoggettoNoPrgAttivi(SoggettiAttuatori sa) {
         TypedQuery<Allievi> q = em.createNamedQuery("allievi.assegnatisoggetto", Allievi.class)
+                .setParameter("soggetto", sa);
+        return q.getResultList();
+    }
+
+    public List<Allievi> getAllieviNuovoModello1(SoggettiAttuatori sa) {
+        TypedQuery<Allievi> q = em.createNamedQuery("allievi.nuovomodello1", Allievi.class)
                 .setParameter("soggetto", sa);
         return q.getResultList();
     }
@@ -1012,6 +1018,12 @@ public class Entity {
         return q.getResultList();
     }
 
+    public List<Presenze_Lezioni_Allievi> getPresenzeLezioniAllievi(Allievi allievo) {
+        TypedQuery<Presenze_Lezioni_Allievi> q = this.em.createNamedQuery("presenzelezioni.allievototal", Presenze_Lezioni_Allievi.class);
+        q.setParameter("allievo", allievo);
+        return q.getResultList();
+    }
+
     public List<Estrazioni> getRendicontazioni() {
         TypedQuery<Estrazioni> q = this.em.createNamedQuery("estrazioni.rendicontazione", Estrazioni.class).setMaxResults(maxQueryResult);
         return q.getResultList();
@@ -1341,6 +1353,7 @@ public class Entity {
         try {
             return q.getResultList().isEmpty() ? null : q.getSingleResult();
         } catch (NoResultException re) {
+            re.printStackTrace();
             return null;
         }
     }

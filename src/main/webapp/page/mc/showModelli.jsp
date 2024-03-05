@@ -187,8 +187,8 @@
                                                                   title="VISUALIZZA REGISTRO PRESENZE" 
                                                                   href="calendar.jsp?idcalendar=<%=temp.getId()%>" 
                                                                   class='btn btn-icon btn-sm <%=btn%>'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
-                                                                <%}else{%>
-                                                                | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
+                                                                <%} else {%>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
                                                                   title="REGISTRO PRESENZE DA CARICARE" 
                                                                   href=""
                                                                   onclick="return false;"
@@ -204,7 +204,13 @@
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%></h5>
+                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%>
+                                                                <%if (temp != null) {%>
+                                                                <%if (temp.getTipolez().equals("F")) {%>
+                                                                (FAD)
+                                                                <%}%>
+                                                                <%}%>
+                                                            </h5>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -228,13 +234,8 @@
                                 <div class="kt-section kt-section--space-md">
                                     <div class="form-group form-group-sm row">
                                         <div class="col-12">
-                                            <h5>Modello 4 <%if (!m4.getStato().equalsIgnoreCase("S") && !m3.getStato().equalsIgnoreCase("OK")) {%>- Gruppi <i id="neet_excluded" style="display:none;" class="fa fa-exclamation-circle kt-font-warning" 
-                                                                                                                                                              data-container="body" 
-                                                                                                                                                              data-toggle="kt-popover" 
-                                                                                                                                                              data-html="true"
-                                                                                                                                                              data-placement="bottom"
-                                                                                                                                                              data-original-title="NEET Esclusi"
-                                                                                                                                                              data-content=""></i><%}%></h5>
+                                            <h5>Modello 4 <%if (!m4.getStato().equalsIgnoreCase("S") && !m3.getStato().equalsIgnoreCase("OK")) {%>- Gruppi 
+                                                <%}%></h5>
                                             <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
                                             <div class="progress">
                                                 <div id="progressM4" class="progress-bar progress-bar-striped progress-bar-animated  bg-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" data-container="body" data-html="true" data-toggle="kt-tooltip" title="" data-original-title="" style="width: 0%"></div>
@@ -268,7 +269,8 @@
                                             <h5 class="kt-font-io"><i class="fa fa-users kt-font-io"></i> Gruppo <%=i%></h5>
                                             <div class="form-row">
                                                 <%for (LezioneCalendario lez : grouppedByLezionem4) {
-                                                        if (Utility.lezioneFilteredByGroup(lezionim4, lez.getId(), i) != null) {
+                                                        Lezioni_Modelli temp = Utility.lezioneFilteredByGroup(lezionim4, lez.getId(), i);
+                                                        if (temp != null) {
                                                             noloaded = false;%>
                                                 <div class='col-lg-2 col-md-4 col-sm-6'>
                                                     <div class='row'>
@@ -283,6 +285,24 @@
                                                             <a href="javascript:void(0)" id="a_lez<%=lez.getLezione()%>_<%=i%>" onclick="showLezioneSingleM4(<%=lez.getId()%>, <%=lez.getLezione()%>, <%=i%>)" class='btn-icon kt-font-io document gruppi'>
                                                                 <i class='fa fa-file-invoice kt-font-io' style='font-size: 100px;'></i>
                                                             </a>
+                                                            <%if (!temp.getTipolez().equals("F")) {
+
+                                                                    Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
+                                                                    if (pl1 != null) {
+                                                                        String btn = "btn-success";
+                                                            %>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
+                                                                  title="VISUALIZZA REGISTRO PRESENZE" 
+                                                                  href="calendar.jsp?idcalendar=<%=temp.getId()%>&idgruppo=<%=i%>" 
+                                                                  class='btn btn-icon btn-sm <%=btn%>'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
+                                                                <%} else {%>
+                                                            | <a  data-container="body" data-html="true" data-toggle="kt-tooltip" 
+                                                                  title="REGISTRO PRESENZE DA CARICARE" 
+                                                                  href=""
+                                                                  onclick="return false;"
+                                                                  class='btn btn-icon btn-sm btn-danger'><i class='fa fa-calendar-alt' style='font-size: 20px;'></i></a>
+                                                                <%}%>
+                                                                <%}%>   
                                                         </div>
                                                         <%}%> 
                                                         <div class='col-6 paddig_0_l' style='text-align: left;'>
@@ -291,7 +311,13 @@
                                                             </a>
                                                         </div>
                                                         <div class='offset-1 row'>
-                                                            <h5 class='kt-font-io-n'>Lezione <%=lez.getLezione()%></h5>
+                                                            <h5 class='kt-font-io-n'>Modulo <%=lez.getUd1()%>
+                                                                <%if (temp != null) {%>
+                                                                <%if (temp.getTipolez().equals("F")) {%>
+                                                                (FAD)
+                                                                <%}%>
+                                                                <%}%>
+                                                            </h5>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -347,23 +373,23 @@
 <script id="showModelli" defer src="<%=src%>/page/mc/js/showModelli.js<%="?dummy=" + String.valueOf(new Date().getTime())%>" 
 data-context="<%=request.getContextPath()%>" type="text/javascript"></script>
 <script type="text/javascript">
-                                                                var KTAppOptions = {
-                                                                    "colors": {
-                                                                        "state": {
-                                                                            "brand": "#5d78ff",
-                                                                            "dark": "#282a3c",
-                                                                            "light": "#ffffff",
-                                                                            "primary": "#5867dd",
-                                                                            "success": "#34bfa3",
-                                                                            "info": "#36a3f7",
-                                                                            "warning": "#ffb822"
-                                                                        },
-                                                                        "base": {
-                                                                            "label": ["#c5cbe3", "#a1a8c3", "#3d4465", "#3e4466"],
-                                                                            "shape": ["#f0f3ff", "#d9dffa", "#afb4d4", "#646c9a"]
-                                                                        }
-                                                                    }
-                                                                };
+                                                                      var KTAppOptions = {
+                                                                          "colors": {
+                                                                              "state": {
+                                                                                  "brand": "#5d78ff",
+                                                                                  "dark": "#282a3c",
+                                                                                  "light": "#ffffff",
+                                                                                  "primary": "#5867dd",
+                                                                                  "success": "#34bfa3",
+                                                                                  "info": "#36a3f7",
+                                                                                  "warning": "#ffb822"
+                                                                              },
+                                                                              "base": {
+                                                                                  "label": ["#c5cbe3", "#a1a8c3", "#3d4465", "#3e4466"],
+                                                                                  "shape": ["#f0f3ff", "#d9dffa", "#afb4d4", "#646c9a"]
+                                                                              }
+                                                                          }
+                                                                      };
 </script>
 </body>
 </html>

@@ -42,7 +42,7 @@ var KTWizard1 = function () {
                 KTUtil.scrollTop();
             }, 300);
         });
-    }
+    };
 
     var initSubmit = function () {
         var btn = formEl.find('[data-ktwizard-type="action-submit"]');
@@ -71,7 +71,7 @@ var KTWizard1 = function () {
                 });
             }
         });
-    }
+    };
 
     return {
         init: function () {
@@ -92,11 +92,11 @@ function checkStep1(wizardObj) {
     let cond_m5Caricati = m5modules_alunni > 0 ? true : false;
     if (cond_allieviRendicontati || cond_m5Caricati) {
         if (cond_allieviRendicontati && cond_m5Caricati) {
-            fastSwalShow("<h5>Per poter procedere rendiconta tutti gli allievi e carica i rispetti modelli 5.<br>Si ricorda che i modelli 5 generati per ogni singolo alunno, vanno firmati digitalmente e caricati nuovamente.</h5>", "wobble");
+            fastSwalShow("<h5>Per poter procedere verifica tutti gli allievi e carica i rispetti modelli 5.<br>Si ricorda che i modelli 5 generati per ogni singolo allievo, vanno firmati digitalmente e caricati nuovamente.</h5>", "wobble");
         } else if (cond_allieviRendicontati) {
-            fastSwalShow("<h5>Per poter procedere rendiconta tutti gli allievi e successivamente carica i rispettivi modelli 5.</h5>", "wobble");
+            fastSwalShow("<h5>Per poter procedere veriica tutti gli allievi e successivamente carica i rispettivi modelli 5.</h5>", "wobble");
         } else {
-            fastSwalShow("<h5>Per poter procedere caricare, per ogni NEET, i modelli 5.<br>Si ricorda che tali modelli vanno scaricati, firmati digitalmente e caricati nuovamente.</h5>", "wobble");
+            fastSwalShow("<h5>Per poter procedere caricare, per ogni allievo, i modelli 5.<br>Si ricorda che tali modelli vanno scaricati, firmati digitalmente e caricati nuovamente.</h5>", "wobble");
         }
         wizardObj.stop(); // don't go to the next step
         $('html, body').animate({scrollTop: $('body').offset().top}, 300);

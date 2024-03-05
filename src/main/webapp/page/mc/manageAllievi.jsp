@@ -39,6 +39,8 @@
             });
         </script>
         <!-- this page -->
+                        <link href="<%=src%>/assets/vendors/general/bootstrap-select/dist/css/bootstrap-select.css" rel="stylesheet" type="text/css" />
+        <link href="<%=src%>/assets/vendors/general/select2/dist/css/select2.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/owl.carousel/dist/assets/owl.carousel.css" rel="stylesheet" type="text/css" />
         <link href="<%=src%>/assets/vendors/general/owl.carousel/dist/assets/owl.theme.default.css" rel="stylesheet" type="text/css" />
@@ -154,6 +156,8 @@
         <!-- this page -->
         <script src="<%=src%>/assets/vendors/custom/datatables/datatables.bundle.js" type="text/javascript"></script>
         <script src="<%=src%>/assets/soop/js/loadTable.js" type="text/javascript"></script>
+         <script src="<%=src%>/assets/vendors/general/select2/dist/js/select2.full.js" type="text/javascript"></script>
+        <script src="<%=src%>/assets/app/custom/general/crud/forms/widgets/select2.js" type="text/javascript"></script>
         <script type="text/javascript">
             var KTAppOptions = {
                 "colors": {
@@ -231,6 +235,13 @@
                                             + '   <i class="flaticon-more-1"></i>'
                                             + '</button>'
                                             + '<div class="dropdown-menu dropdown-menu-left">';
+
+                                    option += '<a class="dropdown-item " href="javascript:void(0);" onclick="swalSigma(' + row.id + ',\'' + row.statopartecipazione.id +
+                                            '\')"><i class="fa fa-user-check" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Stato '
+                                            + row.statopartecipazione.descrizione + '"></i>Cambia stato di partecipazione</a>';
+
+
+
                                     if (row.tos_operatore === null || row.tos_operatore === 'null') {
                                         option += '<a class="fancyBoxFullReload dropdown-item" href="assegnaENM.jsp?id=' +
                                                 row.id + '"><i class="fa fa-user"></i> Assegna ad Operatore</a>';
@@ -246,7 +257,7 @@
                                     option += '<a class="fancyBoxFullReload dropdown-item" href="modello0anagr.jsp?id=' +
                                             row.id + '"><i class="fa fa-user"></i> Anagrafica Allievo</a>';
                                     option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAgg(' + row.id + ')"><i class="fa fa-file-alt"></i> Visualizza Documentazione Integrativa</a>';
-                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadDoc('+ row.id + ')"><i class="fa fa-upload"></i> Carica Documentazione Integrativa</a>';
+                                    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadDoc(' + row.id + ')"><i class="fa fa-upload"></i> Carica Documentazione Integrativa</a>';
 
                                     option += '</div></div>';
                                     return option;
@@ -284,6 +295,87 @@
                     const ps = new PerfectScrollbar($(this)[0], {suppressScrollY: true});
                 });
             });
+
+            function swalSigma(id, idsp) {
+                swal.fire({
+                    title: 'Stato di partecipazione',
+                    html: '<div id="swalModificaStato">'
+                            + '<div id="warning_sp" class="form-group kt-font-io-n row col" style="margin-left: 0px;margin-right: 0px; display: none;" ><div class="col-1"><i class="fa fa-exclamation-triangle" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);font-size:20px;" ></i></div><div id="warningmsg" class="col-10" ></div><div class="col-1"><i class="fa fa-exclamation-triangle" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);font-size:20px;"></i></div></div>'
+                            + '<div class="select-div" id="sigma_div">'
+                            + '<select class="form-control kt-select2-general obbligatory" id="sigma" name="sigma"  style="width: 100%" >'
+                            + '<option value="-">Seleziona stato di partecipazione</option>'
+                            + '</select></div><br>'
+                            + '</div>',
+                    animation: false,
+                    showCancelButton: true,
+                    confirmButtonText: '&nbsp;<i class="la la-check"></i>',
+                    cancelButtonText: '&nbsp;<i class="la la-close"></i>',
+                    customClass: {
+                        popup: 'animated bounceInUp',
+                        cancelButton: "btn btn-io-n",
+                        confirmButton: "btn btn-io"
+                    },
+                    onOpen: function () {
+                        $('#sigma').select2({
+                            dropdownCssClass: "select2-on-top",
+                            minimumResultsForSearch: -1
+                        });
+                        $.get(context + "/QueryMicro?type=getSIGMA", function (resp) {
+                            var json = JSON.parse(resp);
+                            for (var i = 0; i < json.length; i++) {
+                                if (json[i].id === idsp) {
+                                    $("#sigma").append('<option selected value="' + json[i].id + '">' + json[i].descrizione + '</option>');
+                                } else {
+                                    $("#sigma").append('<option value="' + json[i].id + '">' + json[i].descrizione + '</option>');
+                                }
+                            }
+                        });
+                    },
+                    preConfirm: function () {
+                        var err = false;
+                        err = checkObblFieldsContent($('#swalModificaStato')) ? true : err;
+                        if (!err) {
+                            return new Promise(function (resolve) {
+                                resolve({
+                                    "sigma": $('#sigma').val()
+                                });
+                            });
+                        } else {
+                            return false;
+                        }
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        setValueStato(id, result.value.sigma);
+                    } else {
+                        swal.close();
+                    }
+                }
+                );
+            }
+
+            function setValueStato(id, sigma) {
+                showLoad();
+                $.ajax({
+                    type: "POST",
+                    url: context + '/OperazioniMicro?type=setSIGMA&id=' + id + '&sigma=' + sigma,
+                    success: function (data) {
+                        closeSwal();
+                        console.log(data);
+                        var json = JSON.parse(data);
+                        if (json.result) {
+                            swalSuccess("Modifica Stato Allievo", "Stato di partecipazione impostato correttamente");
+                            reload_table($('#kt_table_1'));
+                        } else {
+                            swalError("Errore", json.message);
+                        }
+                    },
+                    error: function () {
+                        swalError("Errore", "Non è stato possibile impostare lo stato di partecipazione");
+                    }
+                });
+            }
+            
             function refresh() {
                 $('html, body').animate({scrollTop: $('#offsetresult').offset().top}, 500);
                 load_table($('#kt_table_1'), context + '/QueryMicro?type=searchdaAssegnare');
