@@ -89,25 +89,23 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTableStory(' + row.id + ')"><i class="fa fa-clipboard-list"></i> Visualizza Storico Progetto</a>';
 
                         if (typeuser === "2") {
-                            if (row.pdfunico !== null) {
-                                option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPdfUnicoAllievi(' + row.id + ')"><i class="fa fa-file-pdf" style="margin-top:-2px"></i> Scarica PDF per ANPAL</a>';
-                            }
-                            if (row.stato.id === "MA") {
-                                option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check kt-font-success" style="margin-top:-2px"></i> Mappatura</a>';
-                            } else if (row.stato.id === "IV") {
-                                option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
+                            //if (row.pdfunico !== null) {
+                            //    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPdfUnicoAllievi(' + row.id + ')"><i class="fa fa-file-pdf" style="margin-top:-2px"></i> Scarica PDF per ANPAL</a>';
+                            //}
+                            if (row.stato.id === "IV") {
+                                //option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
                                 option += '<a class="dropdown-item kt-font-success" href="compileCL.jsp?id=' + row.id + '" ><i class="fa fa-file-excel kt-font-success"></i> Compila Checklist Finale</a>';
                             } else if (row.stato.id === "CK") {
-                                option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
+                                //option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
                                 option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="sendMailEsito(' + row.id + ')"><i class="flaticon2-envelope kt-font-success" style="margin-top:-2px"></i> Invia Esito a ENM</a>';
                             } else if (row.stato.id === "EVI") {
-                                option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
+                                //option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
                                 option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="uploadEsito(' + row.id + ')"><i class="fa fa-upload kt-font-success" style="margin-top:-2px"></i> Upload Esito Firmato</a>';
                             } else if (row.stato.controllare === 1) {
                                 option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="valitdatePrg(' + row.id + ',&quot;' + row.stato.id + '&quot;)"><i class="fa fa-check kt-font-success" style="margin-top:-2px"></i> Convalida Progetto</a>';
                                 option += '<a class="dropdown-item kt-font-danger" href="javascript:void(0);" onclick="rejectPrg(' + row.id + ')"><i class="flaticon2-delete kt-font-danger" style="margin-top:-2px"></i> Rigetta Progetto</a>';
                             } else if (row.stato.id === "CO") {
-                                option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
+                                //option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
                             }
 
 
@@ -115,7 +113,6 @@ var KTDatatablesDataSourceAjaxServer = function () {
                                     row.stato.id === "ATA" ||
                                     row.stato.id === "ATB" ||
                                     row.stato.id === "F" ||
-                                    row.stato.id === "MA" ||
                                     row.stato.id === "IV" ||
                                     row.stato.id === "CK" ||
                                     row.stato.id === "EVI" ||
@@ -409,13 +406,20 @@ var DatatablesAllievi = function () {
                                 + '<div class="dropdown-menu dropdown-menu-left">';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ');"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPresenzeAllievo(' + row.id + ');"><i class="fa fa-calendar-alt"></i> Visualizza Presenze</a>';
-
-//                        if (row.statopartecipazione.id === "15") {
                         option += '<a class="dropdown-item " href="javascript:void(0);" onclick="swalSigma(' + row.id + ',\'' + row.statopartecipazione.id +
                                 '\')"><i class="fa fa-user-check" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Stato '
                                 + row.statopartecipazione.descrizione + '"></i>Cambia stato di partecipazione</a>';
-                        //                      }
 
+                        if (row.progetto.stato.id === 'DVB'
+                                || row.progetto.stato.id === 'IV'
+                                || row.progetto.stato.id === 'CK'
+                                || row.progetto.stato.id === 'EVI'
+                                || row.progetto.stato.id === 'CO'
+                                ) {
+
+                            option += '<a class="dropdown-item fancyBoxNoRef" href="attestati.jsp?id='
+                                    + row.id + '"><i class="fa fa-file-alt"></i> Visualizza Attestati</a>';
+                        }
                         option += '</div></div>';
                         return option;
                     }

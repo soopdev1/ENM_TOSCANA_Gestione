@@ -86,12 +86,32 @@ public class MascheraM5 implements Serializable {
     @Column(name = "m5_misura_si_motivazione")
     private String misura_si_motivazione;
 
-    
+    @Column(name = "businessplan_path")
+    private String businessplan_path;
+    @Column(name = "businessplan_presente")
+    private boolean businessplan_presente;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", name = "timestamp", insertable = false)
     private Date timestamp;
 
     public MascheraM5() {
+    }
+
+    public String getBusinessplan_path() {
+        return businessplan_path;
+    }
+
+    public void setBusinessplan_path(String businessplan_path) {
+        this.businessplan_path = businessplan_path;
+    }
+
+    public boolean isBusinessplan_presente() {
+        return businessplan_presente;
+    }
+
+    public void setBusinessplan_presente(boolean businessplan_presente) {
+        this.businessplan_presente = businessplan_presente;
     }
 
     public ProgettiFormativi getProgetto_formativo() {

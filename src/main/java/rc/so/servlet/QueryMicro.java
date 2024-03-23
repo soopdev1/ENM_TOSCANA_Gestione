@@ -280,7 +280,7 @@ public class QueryMicro extends HttpServlet {
                 if (oreRendicontabili_faseA.get(al1.getId()) == null) {
                     al1.setOrerendicontabili("0");
                 } else {
-                    al1.setOrerendicontabili(Utility.roundFloatAndFormat(oreRendicontabili_faseA.get(al1.getId()), true));
+                    al1.setOrerendicontabili(Utility.roundFloatAndFormat(oreRendicontabili_faseA.get(al1.getId()), true, true));
                 }
             });
 
@@ -465,7 +465,7 @@ public class QueryMicro extends HttpServlet {
 
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
                                         -> new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
-                                
+
                                 Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
                                 ASSENTE.setDatalezione(temp.getGiorno());
                                 ASSENTE.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
@@ -522,8 +522,8 @@ public class QueryMicro extends HttpServlet {
                         presenze_t.add(NONINSERITA);
                     } else {
                         Presenze_Lezioni_Allievi pla = presenze_pr.stream().filter(p1
-                                -> p1.getPresenzelezioni().getIdpresenzelezioni()
-                                        .equals(pl1.getIdpresenzelezioni())).findAny().orElse(null);
+                                -> p1.getPresenzelezioni() != null && p1.getPresenzelezioni().getIdpresenzelezioni()
+                                .equals(pl1.getIdpresenzelezioni())).findAny().orElse(null);
                         if (pla == null) {
                             Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
                             ASSENTE.setDatalezione(pl1.getDatalezione());
@@ -558,19 +558,16 @@ public class QueryMicro extends HttpServlet {
 
                             presenze_t.add(FUTURE);
                         } else {
-                            Presenze_Lezioni_Allievi pla = presenze_fad.stream().filter(p1 -> 
-                                    p1.getDatalezione().equals(temp.getGiorno())).findAny()
+                            Presenze_Lezioni_Allievi pla = presenze_fad.stream().filter(p1
+                                    -> p1.getDatalezione().equals(temp.getGiorno())).findAny()
                                     .orElse(null);
                             if (pla == null) {
-                                
+
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
                                         -> new DateTime(p1.getDatainserimento()).withMillisOfDay(0)
                                                 .isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0)))
                                         .findAny().orElse(null);
-                                
-                                
-                                
-                                
+
                                 Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
                                 ASSENTE.setDatalezione(temp.getGiorno());
                                 ASSENTE.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
@@ -600,6 +597,8 @@ public class QueryMicro extends HttpServlet {
                 }
             }
 
+//            System.out.println(presenze_t);
+
             writeJsonResponse(response, presenze_t);
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -615,7 +614,7 @@ public class QueryMicro extends HttpServlet {
             Allievi a = e.getEm().find(Allievi.class, Long.valueOf(request.getParameter("idallievo")));
             List<Documenti_Allievi> docs = e.getDocAllievo(a);
             MascheraM5 m5_allievo = e.getM5_byAllievo(a);
-            if (m5_allievo != null ) {
+            if (m5_allievo != null) {
                 TipoDoc_Allievi dA = new TipoDoc_Allievi();
                 dA.setDescrizione("DOMANDA AMMISSIONE");
                 dA.setEstensione("pdf");
@@ -934,7 +933,7 @@ public class QueryMicro extends HttpServlet {
 
     protected void getChecklistfinale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
-        ProgettiFormativi d = e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("pf")));
+        ProgettiFormativi d = e.getEm().find(ProgettiFormativi.class, Long.valueOf(request.getParameter("pf")));
 
         JSONArray array = new JSONArray();
         JSONObject item;
@@ -944,7 +943,7 @@ public class QueryMicro extends HttpServlet {
             if (m5 != null) {
                 item = new JSONObject();
                 item.put("id", a.getId());
-                item.put("da", "");
+                item.put("bp", m5.getBusinessplan_path());
                 array.put(item);
             }
         }

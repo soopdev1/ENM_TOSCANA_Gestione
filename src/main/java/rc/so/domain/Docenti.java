@@ -45,11 +45,9 @@ import javax.persistence.Transient;
     @NamedQuery(name = "d.byCf", query = "SELECT d FROM Docenti d WHERE d.codicefiscale=:cf"),
     @NamedQuery(name = "d.byEmail", query = "SELECT d FROM Docenti d WHERE d.email=:email AND d.soggetto=:soggetto AND d.stato <> 'R'"),
     @NamedQuery(name = "d.byCf_SA", query = "SELECT d FROM Docenti d WHERE d.codicefiscale=:cf AND d.soggetto=:soggetto AND d.stato <> 'R'"),
-    @NamedQuery(name = "d.bySA_Active", query = "SELECT d FROM Docenti d WHERE d.soggetto=:soggetto AND d.stato = 'A'"),
-})
-    
+    @NamedQuery(name = "d.bySA_Active", query = "SELECT d FROM Docenti d WHERE d.soggetto=:soggetto AND d.stato = 'A'"),})
 
-@JsonIgnoreProperties(value = {"progetti", "registri_aula", "registri_allievi","attivita"})
+@JsonIgnoreProperties(value = {"progetti", "registri_aula", "registri_allievi", "attivita"})
 public class Docenti implements Serializable {
 
     @Id
@@ -74,8 +72,7 @@ public class Docenti implements Serializable {
     private String richiesta_accr;
     @Column(name = "stato")
     private String stato = "DV";
-    
-    
+
     @Column(name = "scadenza_doc")
     @Temporal(TemporalType.DATE)
     private Date scadenza_doc;
@@ -89,8 +86,7 @@ public class Docenti implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "fascia")
     private FasceDocenti fascia;
-    
-    
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "idsoggetti_attuatori")
     SoggettiAttuatori soggetto;
@@ -109,11 +105,10 @@ public class Docenti implements Serializable {
     @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonIgnore
     List<Lezioni_Modelli> lezioni;
-    
+
     @Transient
     String descrizionestato;
-    
-    
+
     @Column(name = "pec")
     private String pec;
     @Column(name = "cellulare")
@@ -128,20 +123,21 @@ public class Docenti implements Serializable {
     private int area_prevalente_di_qualificazione;
     @Column(name = "inquadramento")
     private int inquadramento;
-    
+
     /*Per un eventuale rigetto del docente da parte del MC*/
     @Column(name = "motivo")
     private String motivo;
     /*Per differenziare inserimento (automatico - da accreditamento/manuale - da piattaforma) */
     @Column(name = "tipo_inserimento", columnDefinition = "VARCHAR(255) default 'ACCREDITAMENTO'")
     private String tipo_inserimento;
-    
-    
-    @OneToMany(mappedBy = "docente",fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+
+    @OneToMany(mappedBy = "docente", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonIgnore
     List<Attivita_Docente> attivita;
-    
-    
+
+    @Transient
+    private double orec_faseA;
+
     public Docenti(String nome, String cognome, String codicefiscale, Date datanascita) {
         this.nome = nome;
         this.cognome = cognome;
@@ -166,42 +162,64 @@ public class Docenti implements Serializable {
         this.curriculum = curriculum;
         this.docId = docId;
         this.stato = stato;
-        
+
         this.progetti = progetti;
     }
 
     public Docenti() {
     }
-    
+
     public String getDescrizionestato() {
-        if(null == this.stato){
+        if (null == this.stato) {
             return "";
-        }else switch (this.stato) {
-            case "A":
-                return "ACCREDITATO";
-            case "DV":
-                return "DA VALIDARE";
-            case "W":
-                return "IN ATTESA WEBINAIR";
-            case "R":
-                return "RIGETTATO";
-            default:
-                break;
+        } else {
+            switch (this.stato) {
+                case "A" -> {
+                    return "ACCREDITATO";
+                }
+                case "DV" -> {
+                    return "DA VALIDARE";
+                }
+                case "W" -> {
+                    return "IN ATTESA WEBINAIR";
+                }
+                case "R" -> {
+                    return "RIGETTATO";
+                }
+                default -> {
+                }
+            }
         }
         return "";
     }
 
     public void setDescrizionestato() {
-        if(this.stato == null){
+        if (null == this.stato) {
             this.descrizionestato = "";
-        }else if(this.stato.equals("A")){
-            this.descrizionestato = "ACCREDITATO";
-        }else if(this.stato.equals("DV")){
-            this.descrizionestato = "DA VALIDARE";
-        }else if(this.stato.equals("R")){
-            this.descrizionestato = "RIGETTATO";
+        } else {
+            switch (this.stato) {
+                case "A":
+                    this.descrizionestato = "ACCREDITATO";
+                    break;
+                case "DV":
+                    this.descrizionestato = "DA VALIDARE";
+                    break;
+                case "R":
+                    this.descrizionestato = "RIGETTATO";
+                    break;
+                default:
+                    break;
+            }
+            this.descrizionestato = "";
         }
-        this.descrizionestato = "";
+    }
+
+    public double getOrec_faseA() {
+        return orec_faseA;
+    }
+
+    public void setOrec_faseA(double orec_faseA) {
+        this.orec_faseA = orec_faseA;
     }
     
     public SoggettiAttuatori getSoggetto() {
@@ -211,7 +229,7 @@ public class Docenti implements Serializable {
     public void setSoggetto(SoggettiAttuatori soggetto) {
         this.soggetto = soggetto;
     }
-    
+
     public Date getDatawebinair() {
         return datawebinair;
     }
@@ -239,7 +257,7 @@ public class Docenti implements Serializable {
     public void setRichiesta_accr(String richiesta_accr) {
         this.richiesta_accr = richiesta_accr;
     }
-    
+
     public void setNome(String nome) {
         this.nome = nome;
     }
@@ -434,7 +452,7 @@ public class Docenti implements Serializable {
     public void setTipo_inserimento(String tipo_inserimento) {
         this.tipo_inserimento = tipo_inserimento;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -494,7 +512,5 @@ public class Docenti implements Serializable {
         sb.append('}');
         return sb.toString();
     }
-
-    
 
 }

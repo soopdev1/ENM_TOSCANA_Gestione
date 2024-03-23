@@ -38,6 +38,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import static java.sql.ResultSet.CONCUR_READ_ONLY;
+import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -48,7 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
@@ -59,6 +60,7 @@ import static org.apache.commons.lang3.StringUtils.right;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 import org.joda.time.DateTime;
 import rc.so.domain.Presenze_Lezioni_Allievi;
+import static rc.so.util.Utility.calcolaintervallomillis;
 import static rc.so.util.Utility.conf;
 
 /**
@@ -1014,11 +1016,12 @@ public class Database {
         }
     }
 
-    public List<Registro_completo> registro_modello6(String idpr) {
+    public List<Registro_completo> registro_modello6(int idpr) {
         List<Registro_completo> registro = new ArrayList<>();
         try {
+            //FAD
             String sql = "SELECT * FROM registro_completo WHERE idprogetti_formativi = " + idpr + " GROUP BY ruolo,idutente,data ORDER BY data";
-            try (Statement st = this.c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = this.c.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
 
                     long orerend = rs.getLong(21);
@@ -1046,6 +1049,85 @@ public class Database {
                             orerend,
                             rs.getInt(23));
                     registro.add(rc);
+                }
+            }
+
+            //PRESENZA
+            String sql1 = "SELECT * FROM presenzelezioni p, progetti_formativi f, lezioni_modelli lm, lezione_calendario lc , docenti d "
+                    + " WHERE d.iddocenti=p.iddocente AND lc.id_lezionecalendario=lm.id_lezionecalendario AND lm.id_lezionimodelli=p.idlezioneriferimento AND "
+                    + " p.idprogetto=f.idprogetti_formativi AND p.idprogetto = " + idpr + " ORDER BY p.datalezione,p.orainizio;";
+
+            try (Statement st1 = this.c.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY); ResultSet rs1 = st1.executeQuery(sql1)) {
+                while (rs1.next()) {
+                    String sql2 = "SELECT * FROM presenzelezioniallievi a, allievi l WHERE a.idallievi=l.idallievi AND a.idpresenzelezioni = "
+                            + rs1.getInt("p.idpresenzelezioni")
+                            + " AND a.convalidata = 1 GROUP BY l.idallievi";
+
+                    try (Statement st2 = this.c.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY); ResultSet rs2 = st2.executeQuery(sql2)) {
+
+                        int numpartecipanti = 0;
+                        while (rs2.next()) {
+                            numpartecipanti++;
+                        }
+                        rs2.beforeFirst();
+
+                        long durata = calcolaintervallomillis(rs1.getString("p.orainizio"), rs1.getString("p.orafine"));
+
+                        String fase = rs1.getString("lc.codice_ud").startsWith("A") ? "A" : "B";
+
+                        int gruppofaseb = fase.equals("A") ? 0 : rs1.getInt("lm.gruppo_faseB");
+
+                        Registro_completo docente = new Registro_completo(0,
+                                idpr,
+                                rs1.getInt("f.idsoggetti_attuatori"),
+                                rs1.getString("f.cip"),
+                                new DateTime(rs1.getDate("p.datalezione").getTime()),
+                                rs1.getString("f.cip") + "_" + fase + "_" + rs1.getString("lc.codice_ud") + "_" + StringUtils.replace(rs1.getString("p.datalezione"), "-", ""),
+                                numpartecipanti,
+                                rs1.getString("p.orainizio"),
+                                rs1.getString("p.orafine"),
+                                durata,
+                                rs1.getString("lc.codice_ud"),
+                                fase,
+                                gruppofaseb,
+                                "DOCENTE",
+                                rs1.getString("d.cognome"),
+                                rs1.getString("d.nome"),
+                                rs1.getString("d.email"),
+                                rs1.getString("p.orainizio"),
+                                rs1.getString("p.orafine"),
+                                durata,
+                                durata,
+                                rs1.getInt("d.iddocenti"));
+                        registro.add(docente);
+
+                        while (rs2.next()) {
+
+                            Registro_completo rc = new Registro_completo(0,
+                                    idpr,
+                                    rs1.getInt("f.idsoggetti_attuatori"),
+                                    rs1.getString("f.cip"),
+                                    new DateTime(rs1.getDate("p.datalezione").getTime()),
+                                    rs1.getString("f.cip") + "_" + fase + "_" + rs1.getString("lc.codice_ud") + "_" + StringUtils.replace(rs1.getString("p.datalezione"), "-", ""),
+                                    numpartecipanti,
+                                    rs1.getString("p.orainizio"),
+                                    rs1.getString("p.orafine"),
+                                    calcolaintervallomillis(rs1.getString("p.orainizio"), rs1.getString("p.orafine")),
+                                    rs1.getString("lc.codice_ud"),
+                                    fase,
+                                    gruppofaseb,
+                                    "ALLIEVO",
+                                    rs2.getString("l.cognome"),
+                                    rs2.getString("l.nome"),
+                                    rs2.getString("l.email"),
+                                    rs2.getString("a.orainizio"),
+                                    rs2.getString("a.orafine"),
+                                    rs2.getLong("a.durata"),
+                                    rs2.getLong("a.durataconvalidata"),
+                                    rs2.getInt("l.idallievi"));
+                            registro.add(rc);
+                        }
+                    }
                 }
             }
 
@@ -1337,7 +1419,8 @@ public class Database {
 
     public List<String> ore_convalidateAllievi(String idallievo) {
         List<String> report = new ArrayList<>();
-        String sql1 = (idallievo == null) ? "SELECT a.idallievi FROM allievi a WHERE a.id_statopartecipazione='15'" : "SELECT a.idallievi FROM allievi a WHERE a.idallievi=" + idallievo;
+        String sql1 = (idallievo == null) ? "SELECT a.idallievi FROM allievi a WHERE a.id_statopartecipazione IN ('15','16','17')"
+                : "SELECT a.idallievi FROM allievi a WHERE a.idallievi=" + idallievo;
 
         try (Statement st1 = this.c.createStatement(); ResultSet rs1 = st1.executeQuery(sql1)) {
             while (rs1.next()) {
@@ -1381,6 +1464,34 @@ public class Database {
         }
 
         return report;
+    }
+
+    public String[] estrai_dati_permodello6(Long idsoggetto) {
+        String[] out = {"", ""};
+        try {
+            String sql1 = "SELECT p.accreditato,a.soggettosingolo,a.costituenda,a.costituita,a.rete,a.consorzio "
+                    + "FROM enm_toscana_prod.bando_toscana_mcn p,enm_gestione_toscana_prod.soggetti_attuatori t, enm_toscana_prod.allegato_a a "
+                    + "WHERE p.protocollo=t.protocollo AND p.username=a.username AND t.idsoggetti_attuatori=1;";
+            try (Statement st1 = this.c.createStatement(); ResultSet rs1 = st1.executeQuery(sql1)) {
+                if (rs1.next()) {
+                    out[0] = rs1.getString(1).toUpperCase();
+                    if (rs1.getString("a.soggettosingolo").equals("SI")) {
+                        out[1] = "Soggetto Singolo";
+                    } else if (rs1.getString("a.costituenda").equals("SI")) {
+                        out[1] = "Costituenda ATI/ATS o costituenda rete di imprese";
+                    } else if (rs1.getString("a.costituita").equals("SI")) {
+                        out[1] = "Costituita ATI/ATS che preveda mandato di rappresentanza specifico al capofila";
+                    } else if (rs1.getString("a.rete").equals("SI")) {
+                        out[1] = "Costituita Rete contratto dotata di organo comune con potere di rappresentanza";
+                    } else if (rs1.getString("a.consorzio").equals("SI")) {
+                        out[1] = "Consorzio/Fondazione/Rete soggetto";
+                    }
+                }
+            }
+        } catch (Exception ex1) {
+            LOGAPP.log(Level.SEVERE, estraiEccezione(ex1));
+        }
+        return out;
     }
 
 }

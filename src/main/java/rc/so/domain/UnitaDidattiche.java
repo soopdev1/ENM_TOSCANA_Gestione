@@ -49,10 +49,21 @@ public class UnitaDidattiche implements Serializable {
     @JsonIgnore        
     List<Documenti_UnitaDidattiche> documenti_ud;
     
+    @Column(name = "definizione", columnDefinition = "TEXT")
+    private String definizione;
+    
     @Transient
     private int countDocs;
     
     public UnitaDidattiche() {
+    }
+
+    public String getDefinizione() {
+        return definizione;
+    }
+
+    public void setDefinizione(String definizione) {
+        this.definizione = definizione;
     }
 
     public String getCodice() {

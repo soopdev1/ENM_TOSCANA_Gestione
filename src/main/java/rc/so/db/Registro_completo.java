@@ -33,6 +33,7 @@ public class Registro_completo {
     //docenti
     String cf, fascia;
     long data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12;
+    long data13, data14, data15, data16, data17, data18, data19, data20, data21, data22, data23, data24;
 
     //allieviB
     int gruppoB;
@@ -41,6 +42,102 @@ public class Registro_completo {
     String datapattogg, domandaammissione, modello5;
 
     public Registro_completo() {
+    }
+
+    public long getData13() {
+        return data13;
+    }
+
+    public void setData13(long data13) {
+        this.data13 = data13;
+    }
+
+    public long getData14() {
+        return data14;
+    }
+
+    public void setData14(long data14) {
+        this.data14 = data14;
+    }
+
+    public long getData15() {
+        return data15;
+    }
+
+    public void setData15(long data15) {
+        this.data15 = data15;
+    }
+
+    public long getData16() {
+        return data16;
+    }
+
+    public void setData16(long data16) {
+        this.data16 = data16;
+    }
+
+    public long getData17() {
+        return data17;
+    }
+
+    public void setData17(long data17) {
+        this.data17 = data17;
+    }
+
+    public long getData18() {
+        return data18;
+    }
+
+    public void setData18(long data18) {
+        this.data18 = data18;
+    }
+
+    public long getData19() {
+        return data19;
+    }
+
+    public void setData19(long data19) {
+        this.data19 = data19;
+    }
+
+    public long getData20() {
+        return data20;
+    }
+
+    public void setData20(long data20) {
+        this.data20 = data20;
+    }
+
+    public long getData21() {
+        return data21;
+    }
+
+    public void setData21(long data21) {
+        this.data21 = data21;
+    }
+
+    public long getData22() {
+        return data22;
+    }
+
+    public void setData22(long data22) {
+        this.data22 = data22;
+    }
+
+    public long getData23() {
+        return data23;
+    }
+
+    public void setData23(long data23) {
+        this.data23 = data23;
+    }
+
+    public long getData24() {
+        return data24;
+    }
+
+    public void setData24(long data24) {
+        this.data24 = data24;
     }
 
     public String getDatapattogg() {

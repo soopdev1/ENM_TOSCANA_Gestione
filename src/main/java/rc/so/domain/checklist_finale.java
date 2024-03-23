@@ -5,7 +5,6 @@
  */
 package rc.so.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -102,6 +101,149 @@ public class checklist_finale implements Serializable {
     @OneToOne(mappedBy = "checklist_finale")
     private ProgettiFormativi progetto_formativo;
 
+    //TOSCANA CHECKLIST
+    @Column(name = "allievi_gol")
+    private int allievi_gol;
+    @Column(name = "allievi_pat")
+    private int allievi_pat;
+    
+    @Column(name = "fa_total")
+    private double fa_total;
+    @Column(name = "fa_total_G")
+    private double fa_total_G;
+    @Column(name = "fa_total_P")
+    private double fa_total_P;
+    @Column(name = "fb_total")
+    private double fb_total;
+    @Column(name = "fb_total_G")
+    private double fb_total_G;
+    @Column(name = "fb_total_P")
+    private double fb_total_P;
+    @Column(name = "dc_total")
+    private double dc_total;
+    @Column(name = "dc_total_P")
+    private double dc_total_P;
+    @Column(name = "dc_total_G")
+    private double dc_total_G;
+    @Column(name = "tot_gol")
+    private double tot_gol;
+    @Column(name = "tot_pat")
+    private double tot_pat;
+    @Column(name = "tot_tot")
+    private double tot_tot;
+
+    public int getAllievi_gol() {
+        return allievi_gol;
+    }
+
+    public void setAllievi_gol(int allievi_gol) {
+        this.allievi_gol = allievi_gol;
+    }
+
+    public int getAllievi_pat() {
+        return allievi_pat;
+    }
+
+    public void setAllievi_pat(int allievi_pat) {
+        this.allievi_pat = allievi_pat;
+    }
+
+    public double getFa_total() {
+        return fa_total;
+    }
+
+    public void setFa_total(double fa_total) {
+        this.fa_total = fa_total;
+    }
+
+    public double getFa_total_G() {
+        return fa_total_G;
+    }
+
+    public void setFa_total_G(double fa_total_G) {
+        this.fa_total_G = fa_total_G;
+    }
+
+    public double getFa_total_P() {
+        return fa_total_P;
+    }
+
+    public void setFa_total_P(double fa_total_P) {
+        this.fa_total_P = fa_total_P;
+    }
+
+    public double getFb_total() {
+        return fb_total;
+    }
+
+    public void setFb_total(double fb_total) {
+        this.fb_total = fb_total;
+    }
+
+    public double getFb_total_G() {
+        return fb_total_G;
+    }
+
+    public void setFb_total_G(double fb_total_G) {
+        this.fb_total_G = fb_total_G;
+    }
+
+    public double getFb_total_P() {
+        return fb_total_P;
+    }
+
+    public void setFb_total_P(double fb_total_P) {
+        this.fb_total_P = fb_total_P;
+    }
+
+    public double getDc_total() {
+        return dc_total;
+    }
+
+    public void setDc_total(double dc_total) {
+        this.dc_total = dc_total;
+    }
+
+    public double getDc_total_P() {
+        return dc_total_P;
+    }
+
+    public void setDc_total_P(double dc_total_P) {
+        this.dc_total_P = dc_total_P;
+    }
+
+    public double getDc_total_G() {
+        return dc_total_G;
+    }
+
+    public void setDc_total_G(double dc_total_G) {
+        this.dc_total_G = dc_total_G;
+    }
+
+    public double getTot_gol() {
+        return tot_gol;
+    }
+
+    public void setTot_gol(double tot_gol) {
+        this.tot_gol = tot_gol;
+    }
+
+    public double getTot_pat() {
+        return tot_pat;
+    }
+
+    public void setTot_pat(double tot_pat) {
+        this.tot_pat = tot_pat;
+    }
+
+    public double getTot_tot() {
+        return tot_tot;
+    }
+
+    public void setTot_tot(double tot_tot) {
+        this.tot_tot = tot_tot;
+    }
+    
     public Long getId() {
         return id;
     }

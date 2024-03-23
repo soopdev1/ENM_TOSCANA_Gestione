@@ -133,7 +133,6 @@ public class Action {
         List<ProgettiFormativi> conclusi = allpr.stream().filter(pr
                 -> pr.getStato().getId().equalsIgnoreCase("F")
                 || pr.getStato().getId().equalsIgnoreCase("DVB")
-                || pr.getStato().getId().equalsIgnoreCase("MA")
                 || pr.getStato().getId().equalsIgnoreCase("IV")
                 || pr.getStato().getId().equalsIgnoreCase("CK")
                 || pr.getStato().getId().equalsIgnoreCase("EVI")
@@ -207,7 +206,6 @@ public class Action {
         List<ProgettiFormativi> conclusi = allpr.stream().filter(pr
                 -> pr.getStato().getId().equalsIgnoreCase("F")
                 || pr.getStato().getId().equalsIgnoreCase("DVB")
-                || pr.getStato().getId().equalsIgnoreCase("MA")
                 || pr.getStato().getId().equalsIgnoreCase("IV")
                 || pr.getStato().getId().equalsIgnoreCase("CK")
                 || pr.getStato().getId().equalsIgnoreCase("EVI")
@@ -382,7 +380,7 @@ public class Action {
 
     public static List<Registro_completo> registro_modello6(String idpr) {
         Database db = new Database(false);
-        List<Registro_completo> rc = db.registro_modello6(idpr);
+        List<Registro_completo> rc = db.registro_modello6(Utility.parseIntR(idpr));
         db.closeDB();
         return rc;
     }

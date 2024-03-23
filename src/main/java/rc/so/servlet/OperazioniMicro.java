@@ -99,7 +99,9 @@ import rc.so.domain.TipoDoc_Allievi;
 import static rc.so.util.Utility.convertHours;
 import static rc.so.util.Utility.estraiEccezione;
 import static rc.so.util.Utility.getRequestValue;
+import static rc.so.util.Utility.parseDouble;
 import static rc.so.util.Utility.parseInt;
+import static rc.so.util.Utility.parseIntR;
 import static rc.so.util.Utility.redirect;
 
 /**
@@ -122,7 +124,6 @@ public class OperazioniMicro extends HttpServlet {
             String tipo = getRequestValue(request, "tipo");
             String idpresenza = getRequestValue(request, "idpresenza");
             String convalidate = getRequestValue(request, "convalidate");
-            System.out.println("rc.so.servlet.OperazioniMicro.CONVALIDAPRESENZEALLIEVO() "+convalidate);
             if (tipo.equals("1")) {
                 Date d1 = new Date(Long.parseLong(getRequestValue(request, "datalez")));
 
@@ -133,7 +134,7 @@ public class OperazioniMicro extends HttpServlet {
                 pl1.setDurata(0L);
                 if (pl1.getDurataconvalidata() < 0) {
                     pl1.setAssenzagiustificata(false);
-                }else{
+                } else {
                     pl1.setAssenzagiustificata(true);
                 }
                 pl1.setDatainserimento(d1);
@@ -175,6 +176,63 @@ public class OperazioniMicro extends HttpServlet {
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
+    }
+
+    protected void SCARICAATTESTATI(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        File downloadFile = null;
+        try {
+            Entity e = new Entity();
+            String idallievo = getRequestValue(request, "idallievo");
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(idallievo));
+
+            String pathtemp = e.getPath("pathtemp");
+            createDir(pathtemp);
+
+            List<String> filetomerge = new ArrayList<>();
+
+            Documenti_Allievi att_OK = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(22L)).findFirst().orElse(null);
+            Documenti_Allievi att_UD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(23L)).findFirst().orElse(null);
+            Documenti_Allievi att_CD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(24L)).findFirst().orElse(null);
+
+            if (att_OK != null) {
+                filetomerge.add(att_OK.getPath());
+            } else {
+                if (att_UD != null) {
+                    filetomerge.add(att_UD.getPath());
+                }
+            }
+            if (att_CD != null) {
+                filetomerge.add(att_CD.getPath());
+            }
+            downloadFile = Pdf_new.merge_PDF(filetomerge, pathtemp);
+
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        }
+
+        if (downloadFile != null && downloadFile.exists()) {
+            OutputStream outStream;
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                String mimeType = probeContentType(downloadFile.toPath());
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                String headerKey = "Content-Disposition";
+                String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                response.setHeader(headerKey, headerValue);
+                outStream = response.getOutputStream();
+                byte[] buffer = new byte[4096 * 4096];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, bytesRead);
+                }
+            }
+            outStream.close();
+        } else {
+            redirect(request, response, request.getContextPath() + "/404.jsp");
+        }
     }
 
     protected void SCARICAREGISTROCARTACEO(HttpServletRequest request, HttpServletResponse response)
@@ -2546,7 +2604,7 @@ public class OperazioniMicro extends HttpServlet {
             String messaggioerrore = "";
 
             switch (step) {
-                case "1":
+                case "1" -> {
                     if (isNew) {
                         cfinal.setProgetto_formativo(pf);
                         cfinal.setStep(2);
@@ -2590,34 +2648,39 @@ public class OperazioniMicro extends HttpServlet {
                     if (cfinal.getStep() < 2) {
                         cfinal.setStep(2);
                     }
-                    break;
-                case "2":
-                    cfinal.setTot_contributo_indennita_frequenza_fa(Double.parseDouble(request.getParameter("fa_total")));
-                    cfinal.setTot_contributo_fb(Double.parseDouble(request.getParameter("fb_total")));
-                    cfinal.setTot_docenza_fa(Double.parseDouble(request.getParameter("dc_total")));
-                    cfinal.setTot_massimo_ammissibile(Double.parseDouble(request.getParameter("maxammissibile")));
-                    cfinal.setCondizionalita_30perc(Double.parseDouble(request.getParameter("cond30")));
-                    cfinal.setVcr_70perc(Double.parseDouble(request.getParameter("vcr70")));
-                    cfinal.setValore_unitario_condizionalita(Double.parseDouble(request.getParameter("valunitario")));
+                }
+                case "2" -> {
+                    cfinal.setAllievi_pat(parseIntR(getRequestValue(request, "allievi_pat")));
+                    cfinal.setAllievi_gol(parseIntR(getRequestValue(request, "allievi_gol")));
+                    cfinal.setFa_total(parseDouble(getRequestValue(request, "fa_total")));
+                    cfinal.setFa_total_G(parseDouble(getRequestValue(request, "fa_total_G")));
+                    cfinal.setFa_total_P(parseDouble(getRequestValue(request, "fa_total_P")));
+                    cfinal.setFb_total(parseDouble(getRequestValue(request, "fb_total")));
+                    cfinal.setFb_total_G(parseDouble(getRequestValue(request, "fb_total_G")));
+                    cfinal.setFb_total_P(parseDouble(getRequestValue(request, "fb_total_P")));
+                    cfinal.setDc_total(parseDouble(getRequestValue(request, "dc_total")));
+                    cfinal.setDc_total_G(parseDouble(getRequestValue(request, "dc_total_G")));
+                    cfinal.setDc_total_P(parseDouble(getRequestValue(request, "dc_total_P")));
                     cfinal.setTab_neet_fa(Utility.createJsonCL(request.getParameter("fa_controllo_ore")));
                     cfinal.setTab_neet_fb(Utility.createJsonCL(request.getParameter("fb_controllo_ore")));
                     if (cfinal.getStep() < 3) {
                         cfinal.setStep(3);
                     }
-                    break;
-                case "3":
-                    cfinal.setTot_output_conformi(Integer.parseInt(request.getParameter("allievi_output_ok")));
-                    cfinal.setTot_contributo_ammesso(Double.parseDouble(request.getParameter("tot_contributo_ammesso")));
+                }
+                case "3" -> {
+                    cfinal.setTot_output_conformi(parseIntR(request.getParameter("allievi_output_ok")));
                     if (request.getParameter("nota_controllore") != null) {
                         cfinal.setNota_controllore(new String(request.getParameter("nota_controllore").getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
                     }
                     cfinal.setTab_completezza_output_neet(Utility.createJsonCL_Output(request.getParameter("outputs")));
-                    cfinal.setTab_mappatura_neet(Utility.createJsonCL_Mappatura(request.getParameter("mappatura")));
+                    cfinal.setTot_gol(parseDouble(getRequestValue(request, "tot_gol")));
+                    cfinal.setTot_pat(parseDouble(getRequestValue(request, "tot_pat")));
+                    cfinal.setTot_tot(parseDouble(getRequestValue(request, "tot_tot")));
                     if (cfinal.getStep() < 4) {
                         cfinal.setStep(4);
                     }
-                    break;
-                default:
+                }
+                default -> {
                     cfinal.setRevisore(e.getEm().find(Revisori.class, request.getParameter("controllore")));
                     pf.setStato((StatiPrg) e.getEm().find(StatiPrg.class, "CK"));
 
@@ -2640,8 +2703,7 @@ public class OperazioniMicro extends HttpServlet {
                     esval.setTipo(e.getEm().find(TipoDoc.class, 36L));
                     esval.setProgetto(pf);
                     e.persist(esval);
-
-                    break;
+                }
             }
 
             if (errore) {
@@ -2710,194 +2772,134 @@ public class OperazioniMicro extends HttpServlet {
             String type = request.getParameter("type");
 
             switch (type) {
-                case "assegnaenm":
+                case "assegnaenm" ->
                     assegnaenm(request, response);
-                    break;
-                case "saveanpal":
+                case "saveanpal" ->
                     saveanpal(request, response);
-                    break;
-                case "addlez":
+                case "addlez" ->
                     addlez(request, response);
-                    break;
-                case "removelez":
+                case "removelez" ->
                     removelez(request, response);
-                    break;
-                case "addDocente":
+                case "addDocente" ->
                     addDocente(request, response);
-                    break;
-                case "addDocenteFile":
+                case "addDocenteFile" ->
                     addDocenteFile(request, response);
-                    break;
-                case "addAuleFile":
+                case "addAuleFile" ->
                     addAuleFile(request, response);
-                    break;
-                case "addAula":
+                case "addAula" ->
                     addAula(request, response);
-                    break;
-                case "validatePrg":
+                case "validatePrg" ->
                     validatePrg(request, response);
-                    break;
-                case "validateAula":
+                case "validateAula" ->
                     validateAula(request, response);
-                    break;
-                case "rejectPrg":
+                case "rejectPrg" ->
                     rejectPrg(request, response);
-                    break;
-                case "annullaPrg":
+                case "annullaPrg" ->
                     annullaPrg(request, response);
-                    break;
-                case "validateHourRegistroAula":
+                case "validateHourRegistroAula" ->
                     validateHourRegistroAula(request, response);
-                    break;
-                case "setHoursRegistro":
+                case "setHoursRegistro" ->
                     setHoursRegistro(request, response);
-                    break;
-                case "modifyDoc":
+                case "modifyDoc" ->
                     modifyDoc(request, response);
-                    break;
-                case "uploadDocPrg":
+                case "uploadDocPrg" ->
                     uploadDocPrg(request, response);
-                    break;
-                case "uploadDocAllievo":
+                case "uploadDocAllievo" ->
                     uploadDocAllievo(request, response);
-                    break;
-                case "compileCL2":
+                case "compileCL2" ->
                     compileCL2(request, response);
-                    break;
-                case "downloadExcelDocente":
+                case "downloadExcelDocente" ->
                     downloadExcelDocente(request, response);
-                    break;
-                case "downloadTarGz_only":
+                case "downloadTarGz_only" ->
                     downloadTarGz_only(request, response);
-                    break;
-                case "crearendicontazione":
+                case "crearendicontazione" ->
                     crearendicontazione(request, response);
-                    break;
-                case "checkPiva":
+                case "checkPiva" ->
                     checkPiva(request, response);
-                    break;
-                case "checkCF":
+                case "checkCF" ->
                     checkCF(request, response);
-                    break;
-                case "uploadPec":
+                case "uploadPec" ->
                     uploadPec(request, response);
-                    break;
-                case "uploadDocPregresso":
+                case "uploadDocPregresso" ->
                     uploadDocPregresso(request, response);
-                    break;
-                case "modifyDocPregresso":
+                case "modifyDocPregresso" ->
                     modifyDocPregresso(request, response);
-                    break;
-                case "modifyDocIdPregresso":
+                case "modifyDocIdPregresso" ->
                     modifyDocIdPregresso(request, response);
-                    break;
-                case "sendAnswer":
+                case "sendAnswer" ->
                     sendAnswer(request, response);
-                    break;
-                case "setTipoFaq":
+                case "setTipoFaq" ->
                     setTipoFaq(request, response);
-                    break;
-                case "modifyFaq":
+                case "modifyFaq" ->
                     modifyFaq(request, response);
-                    break;
-                case "creaFAD":
+                case "creaFAD" ->
                     creaFAD(request, response);
-                    break;
-                case "closeFAd":
+                case "closeFAd" ->
                     closeFAd(request, response);
-                    break;
-                case "reinvitaFAD":
+                case "reinvitaFAD" ->
                     reinvitaFAD(request, response);
-                    break;
-                case "addActivity":
+                case "addActivity" ->
                     addActivity(request, response);
-                    break;
-                case "deleteActivity":
+                case "deleteActivity" ->
                     deleteActivity(request, response);
-                    break;
-                case "modifyDocente":
+                case "modifyDocente" ->
                     modifyDocente(request, response);
-                    break;
-                case "rejectDocente":
+                case "rejectDocente" ->
                     rejectDocente(request, response);
-                    break;
-                case "updateDateProgetto":
+                case "updateDateProgetto" ->
                     updateDateProgetto(request, response);
-                    break;
-                case "rendicontaProgetto":
+                case "rendicontaProgetto" ->
                     rendicontaProgetto(request, response);
-                    break;
-                case "modifyFAD":
+                case "modifyFAD" ->
                     modifyFAD(request, response);
-                    break;
-                case "addCpiUser":
+                case "addCpiUser" ->
                     addCpiUser(request, response);
-                    break;
-                case "liquidaPrg":
+                case "liquidaPrg" ->
                     liquidaPrg(request, response);
-                    break;
-                case "accreditaSA":
+                case "accreditaSA" ->
                     accreditaSA(request, response);
-                    break;
-                case "uploadDocUnitaDidattica":
+                case "uploadDocUnitaDidattica" ->
                     uploadDocUnitaDidattica(request, response);
-                    break;
-                case "updateDocUnitaDidattica":
+                case "updateDocUnitaDidattica" ->
                     updateDocUnitaDidattica(request, response);
-                    break;
-                case "deleteDocUnitaDidattica":
+                case "deleteDocUnitaDidattica" ->
                     deleteDocUnitaDidattica(request, response);
-                    break;
-                case "updateDescrizioneUD":
+                case "updateDescrizioneUD" ->
                     updateDescrizioneUD(request, response);
-                    break;
-                case "addCloud":
+                case "addCloud" ->
                     addCloud(request, response);
-                    break;
-                case "deleteDocCloud":
+                case "deleteDocCloud" ->
                     deleteDocCloud(request, response);
-                    break;
-                case "scaricaFileAssenza":
+                case "scaricaFileAssenza" ->
                     scaricaFileAssenza(request, response);
-                    break;
-                case "checklistFinale":
+                case "checklistFinale" ->
                     checklistFinale(request, response);
-                    break;
-                case "scaricapdfunico":
+                case "scaricapdfunico" ->
                     scaricapdfunico(request, response);
-                    break;
-                case "mappatura":
+                case "mappatura" ->
                     mappatura(request, response);
-                    break;
-                case "sendmailesitovalutazione":
+                case "sendmailesitovalutazione" ->
                     sendmailesitovalutazione(request, response);
-                    break;
-                case "caricaesitovalutazione":
+                case "caricaesitovalutazione" ->
                     caricaesitovalutazione(request, response);
-                    break;
-                case "caricanuovodocumento":
+                case "caricanuovodocumento" ->
                     caricanuovodocumento(request, response);
-                    break;
-                case "caricanuovodocumentoANPAL":
+                case "caricanuovodocumentoANPAL" ->
                     caricanuovodocumentoANPAL(request, response);
-                    break;
-                case "assegnaPrg":
+                case "assegnaPrg" ->
                     assegnaPrg(request, response);
-                    break;
-                case "setSIGMA":
+                case "setSIGMA" ->
                     setSIGMA(request, response);
-                    break;
-                case "salvamodello0":
+                case "salvamodello0" ->
                     salvamodello0(request, response);
-                    break;
-                case "SCARICAREGISTROCARTACEO":
+                case "SCARICAREGISTROCARTACEO" ->
                     SCARICAREGISTROCARTACEO(request, response);
-                    break;
-                case "CONVALIDAPRESENZEALLIEVO":
+                case "SCARICAATTESTATI" ->
+                    SCARICAATTESTATI(request, response);
+                case "CONVALIDAPRESENZEALLIEVO" ->
                     CONVALIDAPRESENZEALLIEVO(request, response);
-                    break;
-                default:
-                    break;
+                default -> {
+                }
             }
         }
     }

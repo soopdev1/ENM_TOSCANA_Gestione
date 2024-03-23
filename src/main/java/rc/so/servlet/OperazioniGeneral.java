@@ -44,6 +44,29 @@ import static rc.so.util.Utility.redirect;
  */
 public class OperazioniGeneral extends HttpServlet {
 
+    protected void sendmailAttestato(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String maildest = getRequestValue(request, "maildest");
+        String path = getRequestValue(request, "path");
+        try {
+            File f1 = new File(path);
+            if (EmailValidator.getInstance().isValid(maildest)) {
+                Entity e = new Entity();
+                Email email_txt = (Email) e.getEmail("invio_attestato");
+                SendMailJet.sendMail(e.getPath("mailsender"), new String[]{maildest}, null,
+                        email_txt.getTesto().replace("@nomecognome", ""),
+                        email_txt.getOggetto(), f1);
+
+                e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "INVIO MAIL ATTESTATO - DESTINATARIO: " + maildest);
+                redirect(request, response, "page/mc/attestati.jsp?id=" + getRequestValue(request, "idallievo"));
+            } else {
+                redirect(request, response, "page/mc/attestati.jsp?esito=KO&id=" + getRequestValue(request, "idallievo"));
+            }
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+            redirect(request, response, "page/mc/modello0.jsp?esito=KO&id=" + getRequestValue(request, "idallievo"));
+        }
+    }
+
     protected void sendmailModello0(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String maildest = getRequestValue(request, "maildest");
         String path = getRequestValue(request, "path");
@@ -57,6 +80,8 @@ public class OperazioniGeneral extends HttpServlet {
                                 .replace("@email_tec", e.getPath("emailtecnico"))
                                 .replace("@email_am", e.getPath("emailamministrativo")),
                         email_txt.getOggetto(), f1);
+                e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "INVIO MAIL MODELLO 0 - DESTINATARIO: " + maildest);
+
                 redirect(request, response, "page/mc/modello0.jsp?id=" + getRequestValue(request, "idallievo"));
             } else {
                 redirect(request, response, "page/mc/modello0.jsp?esito=KO&id=" + getRequestValue(request, "idallievo"));
@@ -320,17 +345,14 @@ public class OperazioniGeneral extends HttpServlet {
             String type = request.getParameter("type");
             if (type != null) {
                 switch (type) {
-                    case "ctrlSession":
+                    case "ctrlSession" ->
                         ctrlSession(request, response);
-                        break;
-                    case "showDoc":
+                    case "showDoc" ->
                         showDoc(request, response);
-                        break;
-                    case "onlyDownloadnew":
+                    case "onlyDownloadnew" ->
                         onlyDownloadnew(request, response);
-                        break;
-                    default:
-                        break;
+                    default -> {
+                    }
                 }
             } else {
                 response.sendRedirect("login.jsp");
@@ -338,35 +360,28 @@ public class OperazioniGeneral extends HttpServlet {
         } else {
             String type = request.getParameter("type");
             switch (type) {
-                case "onlyDownload":
+                case "onlyDownload" ->
                     onlyDownload(request, response);
-                    break;
-                case "showDoc":
+                case "showDoc" ->
                     showDoc(request, response);
-                    break;
-                case "downloadDoc":
+                case "downloadDoc" ->
                     downloadDoc(request, response);
-                    break;
-                case "pdfTob64":
+                case "pdfTob64" ->
                     pdfTob64(request, response);
-                    break;
-                case "excelfad":
+                case "excelfad" ->
                     excelfad(request, response);
-                    break;
-                case "ctrlSession":
+                case "ctrlSession" ->
                     ctrlSession(request, response);
-                    break;
-                case "getAttivita":
+                case "getAttivita" ->
                     getAttivita(response);
-                    break;
-                case "editMailNeet":
+                case "editMailNeet" ->
                     editMailNeet(request, response);
-                    break;
-                case "sendmailModello0":
+                case "sendmailModello0" ->
                     sendmailModello0(request, response);
-                    break;
-                default:
-                    break;
+                case "sendmailAttestato" ->
+                    sendmailAttestato(request, response);
+                default -> {
+                }
             }
         }
     }

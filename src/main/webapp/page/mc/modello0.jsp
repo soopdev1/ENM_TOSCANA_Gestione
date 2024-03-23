@@ -1,9 +1,3 @@
-<%-- 
-    Document   : uploadDocumet
-    Created on : 29-gen-2020, 12.39.45
-    Author     : agodino
---%>
-
 <%@page import="rc.so.domain.MotivazioneNO"%>
 <%@page import="rc.so.domain.SoggettiAttuatori"%>
 <%@page import="rc.so.domain.MaturazioneIdea"%>

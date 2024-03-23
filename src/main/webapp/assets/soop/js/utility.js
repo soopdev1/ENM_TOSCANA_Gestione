@@ -1327,11 +1327,8 @@ function checkDateAndHour(d) {
     let currHHMM = Number(new Date().getHours());
     let tmrw = moment().add(1, 'day').format('YYYY-MM-DD');
     let dStart = moment(d).format('YYYY-MM-DD');
-
     let diff = moment.duration(moment(dStart).diff(moment(tmrw))).asDays();
-//    console.log(dStart + " ::: " + tmrw + " ::: " + currHHMM);
-    /*if(diff == 0 && Number(currHHMM.split(":")[0]) >= 12){*/
-    if (diff == 0 && currHHMM >= 12) {
+    if (diff === 0 && currHHMM >= 12) {
         return true;
     }
     return false;

@@ -1176,15 +1176,21 @@ public class OperazioniSA extends HttpServlet {
         try {
             User us = (User) request.getSession().getAttribute("user");
             Entity e = new Entity();
+
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(idpr));
+                    Long.valueOf(idpr));
 
             ModelliPrg m6 = Utility.filterModello6(pf.getModelli());
             if (m6 != null) {
+                e.begin();
                 downloadFile = Pdf_new.MODELLO6(e,
                         us.getUsername(),
-                        us.getSoggettoAttuatore(),
-                        pf, m6, new DateTime(), true);
+                        pf.getSoggetto(),
+                        pf,
+                        m6,
+                        new DateTime(),
+                        true);
+                e.close();
             }
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -1236,7 +1242,7 @@ public class OperazioniSA extends HttpServlet {
                         20L);
 
                 User us = (User) request.getSession().getAttribute("user");
-                
+
                 downloadFile = Pdf_new.MODELLO5(e,
                         tipodoc_m5.getModello(),
                         us.getUsername(),
@@ -3371,7 +3377,6 @@ public class OperazioniSA extends HttpServlet {
             datimodello.setTotale_fabbisogno(parseDouble(getRequestValue(request, "totale_fabbisogno")));
 
             datimodello.setMisura_individuata(getRequestValue(request, "misura_individuata").equals("SI"));
-            System.out.println("rc.so.servlet.OperazioniSA.salvamodello5() "+(getRequestValue(request, "misura_si_nome")));
             datimodello.setMisura_no_motivazione(getRequestValue(request, "misura_no_motivazione"));
             datimodello.setMisura_si_nome((getRequestValue(request, "misura_si_nome")));
             datimodello.setMisura_si_tipo(getRequestValue(request, "misura_si_tipo"));
@@ -3381,37 +3386,32 @@ public class OperazioniSA extends HttpServlet {
             if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
                 try {
 
-                    String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + "")).replace("@folder", a.getCodicefiscale());
+                    String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
+                            .replace("@folder", a.getCodicefiscale());
                     File dir = new File(path);
                     createDir(path);
                     String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                    path += "domanda_ammissione_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
-                    File damm = new File(dir.getAbsolutePath() + File.separator + "domanda_ammissione_"
+                    path += "business_plan_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
+                    File bupl = new File(dir.getAbsolutePath() + File.separator + "business_plan_"
                             + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
-                    p.write(damm.getPath());
-
-//                    Email email_txt = (Email) e.getEmail("domanda_amm");
-//                    String testomail = StringUtils.replace(email_txt.getTesto(), "@nomecognome", a.getNome().toUpperCase() + " "
-//                            + a.getCognome().toUpperCase());
-//                    testomail = StringUtils.replace(testomail, "@nomeprogetto", "YES I START UP NEET");
-//                    testomail = StringUtils.replace(testomail, "@nomesa", a.getSoggetto().getRagionesociale().toUpperCase());
-//                    SendMailJet.sendMail(e.getPath("mailsender"), new String[]{a.getEmail()}, new String[]{a.getSoggetto().getEmail()},
-//                            testomail, email_txt.getOggetto(), damm);                    
+                    p.write(bupl.getPath());
+                    
+                    datimodello.setBusinessplan_presente(true);
+                    datimodello.setBusinessplan_path(path.replace("\\", "/"));
                 } catch (Exception ex1) {
                     ok = false;
                     resp.addProperty("result", false);
-                    resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
-                    e.insertTracking("System", "ERROR DOMANDA AMMISSIONE: " + Utility.estraiEccezione(ex1));
+                    resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
+                    e.insertTracking("System", "ERROR BUSINESS PLAN: " + Utility.estraiEccezione(ex1));
                 }
 
             } else {
                 ok = false;
                 resp.addProperty("result", false);
-                resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
+                resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
             }
 
             if (ok) {
-
                 e.persist(datimodello);
                 e.commit();
                 resp.addProperty("result", true);
@@ -3421,7 +3421,7 @@ public class OperazioniSA extends HttpServlet {
         } catch (Exception ex) {
             e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA rendicontaAllievo: " + ex.getMessage());
             resp.addProperty("result", false);
-            resp.addProperty("message", "Errore: non &egrave; stato possibile rendicontare l'allievo.");
+            resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
         } finally {
             e.close();
         }
@@ -3441,7 +3441,7 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
 
             //MODELLO 6
@@ -3451,6 +3451,7 @@ public class OperazioniSA extends HttpServlet {
             String path_m6 = e.getPath("pathDocSA_Prg").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", pf.getId().toString());
             File dir = new File(path_m6);
             createDir(path_m6);
+
             Part partm6 = request.getPart("doc_step4_" + modello6.getId());
             String ext = partm6.getSubmittedFileName().substring(partm6.getSubmittedFileName().lastIndexOf("."));
             path_m6 += modello6.getDescrizione() + "_" + today + ext;

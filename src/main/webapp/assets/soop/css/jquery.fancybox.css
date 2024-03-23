@@ -183,7 +183,7 @@
 	left: 0;
 	overflow: hidden;
 	display: none;
-	z-index: 999;
+	z-index: 1150;
 	background: url('fancybox_overlay.png');
 }
 

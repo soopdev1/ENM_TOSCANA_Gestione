@@ -8,6 +8,7 @@ package rc.so.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import static com.google.common.base.Splitter.on;
+import com.google.common.primitives.Ints;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -129,6 +130,7 @@ import org.joda.time.format.DateTimeFormat;
 import static org.joda.time.format.DateTimeFormat.forPattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import rc.so.db.Entity;
 
 /**
  *
@@ -720,7 +722,7 @@ public class Utility {
         for (MascheraM5 m : m5) {
             if (oreRendicontabili.get(m.getAllievo().getId()) != null && oreRendicontabili.get(m.getAllievo().getId()).compareTo(hh64) > 0) {
 //                if (m.isTabella_premialita() && m.getTabella_premialita_punteggio() > 0) {
-                    ids.put(m.getAllievo().getId(), true);
+                ids.put(m.getAllievo().getId(), true);
 //                }
             }
             i++;
@@ -802,23 +804,79 @@ public class Utility {
         return docs.stream().filter(s -> s.getId() == id).findFirst().orElse(null);
     }
 
-    public static String roundFloatAndFormat(float f, boolean converttoHours) {
+    public static String roundDoubleAndFormat(double f, boolean zero) {
+        String out = "0";
+        try {
+            BigDecimal bigDecimal = new BigDecimal(f);
+            bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
+            out = numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
+            if (out.endsWith(",00")) {
+                out = StringUtils.remove(out, ",00");
+            } else if (out.endsWith(",0")) {
+                out = StringUtils.remove(out, ",0");
+            } else if (out.contains(",") && out.endsWith("0")) {
+                out = StringUtils.removeEnd(out, "0");
+            }
+
+        } catch (Exception ex) {
+            insertTR("E", "SERVICE", estraiEccezione(ex));
+            out = "0";
+        }
+
+        if (zero) {
+            return out;
+        } else {
+            if (out.equals("0")) {
+                return "";
+            }
+            return out;
+        }
+    }
+
+    public static String roundFloatAndFormat(float f, boolean converttoHours, boolean zero) {
+        String out = "0";
         try {
             if (converttoHours) {
                 double hours = f / 1000.0 / 60.0 / 60.0;
                 BigDecimal bigDecimal = new BigDecimal(hours);
                 bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
-                String out = numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
-                return out;
+                out = numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
+                if (out.startsWith(",0")) {
+                    out = "0";
+                } else {
+                    if (out.endsWith(",00")) {
+                        out = StringUtils.remove(out, ",00");
+                    } else if (out.endsWith(",0")) {
+                        out = StringUtils.remove(out, ",0");
+                    } else if (out.contains(",") && out.endsWith("0")) {
+                        out = StringUtils.removeEnd(out, "0");
+                    }
+                }
             } else {
                 BigDecimal bigDecimal = new BigDecimal(Float.toString(f));
                 bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
-                return numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
+                out = numITA.format(bigDecimal).replaceAll("[^0123456789.,()-]", "").trim();
+                if (out.endsWith(",00")) {
+                    out = StringUtils.remove(out, ",00");
+                } else if (out.endsWith(",0")) {
+                    out = StringUtils.remove(out, ",0");
+                } else if (out.contains(",") && out.endsWith("0")) {
+                    out = StringUtils.removeEnd(out, "0");
+                }
             }
         } catch (Exception ex) {
             insertTR("E", "SERVICE", estraiEccezione(ex));
+            out = "0";
         }
-        return "0";
+
+        if (zero) {
+            return out;
+        } else {
+            if (out.equals("0")) {
+                return "";
+            }
+            return out;
+        }
 
     }
 
@@ -836,6 +894,7 @@ public class Utility {
         }
         return "0";
     }
+
     public static String formatDouble(String f) {
         try {
             String out = new DecimalFormat("###,###.#", DecimalFormatSymbols.getInstance(Locale.ITALIAN))
@@ -1063,10 +1122,14 @@ public class Utility {
 
     public static String getstatoannullato(String stato_prec) {
         return switch (stato_prec) {
-            case "ATA", "ATB" -> stato_prec + "E";
-            case "SOA" -> "ATAE";
-            case "SOB" -> "ATBE";
-            default -> "DVBE";
+            case "ATA", "ATB" ->
+                stato_prec + "E";
+            case "SOA" ->
+                "ATAE";
+            case "SOB" ->
+                "ATBE";
+            default ->
+                "DVBE";
         };
     }
 
@@ -1087,6 +1150,9 @@ public class Utility {
     public static long convertHours(String ore) {
         try {
             double d1 = Double.parseDouble(ore);
+            if (d1 == -1.0) {
+                return -1;
+            }
             long tot = Math.round(d1) * 3600000;
             return tot;
         } catch (Exception e) {
@@ -1323,15 +1389,12 @@ public class Utility {
         if (ing == null) {
             return "In FAD";
         } else {
-            switch (ing) {
-                case "":
-                case "F":
-                    return "In FAD";
-                case "P":
-                    return "In Presenza";
-                default:
-                    return "In FAD";
-            }
+            return switch (ing) {
+                case "P" ->
+                    "In Presenza";
+                default ->
+                    "In FAD";
+            };
         }
     }
 
@@ -1348,11 +1411,12 @@ public class Utility {
 
     public static List<Allievi> estraiAllieviOK(ProgettiFormativi p) {
         try {
-            List<Allievi> a = p.getAllievi().stream().filter(al -> 
-                    al.getStatopartecipazione().getId()
-                    .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
-                    .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
-                    .equalsIgnoreCase("15")
+            List<Allievi> a = p.getAllievi().stream().filter(al
+                    -> al.getStatopartecipazione().getId().equalsIgnoreCase("13")
+                    || al.getStatopartecipazione().getId().equalsIgnoreCase("14")
+                    || al.getStatopartecipazione().getId().equalsIgnoreCase("15")
+                    || al.getStatopartecipazione().getId().equalsIgnoreCase("18")
+                    || al.getStatopartecipazione().getId().equalsIgnoreCase("19")
             ).collect(Collectors.toList());
             a.sort(Comparator.comparing(Allievi::getCognome));
             return a;
@@ -1398,4 +1462,55 @@ public class Utility {
             return 0L;
         }
     }
+
+    public static int allieviOKattestato(List<Allievi> allievi_OK, int soglia) {
+        int num = 0;
+        try {
+            for (Allievi a1 : allievi_OK) {
+                if (a1.getOrec_totali() >= soglia) {
+                    num++;
+                }
+            }
+        } catch (Exception ex) {
+            insertTR("E", "SERVICE", estraiEccezione(ex));
+            num = 0;
+        }
+        return num;
+
+    }
+
+    public static List<Docenti> docenti_A(Entity e, ProgettiFormativi pf) {
+
+        List<Docenti> resp = new ArrayList<>();
+
+        Database d1 = new Database(false);
+        List<rc.so.db.Registro_completo> out = d1.registro_modello6(Ints.checkedCast(pf.getId()));
+        d1.closeDB();
+
+        List<rc.so.db.Registro_completo> docentifaseA = out.stream().filter(r1
+                -> r1.getRuolo().equalsIgnoreCase("DOCENTE")
+                && r1.getFase().equalsIgnoreCase("A")).collect(Collectors.toList());
+
+        List<Integer> docentiid = docentifaseA.stream().map(r1
+                -> r1.getIdutente()).distinct().collect(Collectors.toList());
+
+        docentiid.forEach(r1 -> {
+
+            Docenti docente = e.getEm().find(Docenti.class, Long.valueOf(String.valueOf(r1)));
+            if (docente != null) {
+
+                AtomicLong totaleA = new AtomicLong(0L);
+
+                docentifaseA.stream().filter(d11 -> d11.getIdutente() == r1).forEach(a1 -> {
+                    totaleA.addAndGet(a1.getTotaleorerendicontabili());
+                });
+                docente.setOrec_faseA(parseDouble(roundFloatAndFormat(totaleA.get(), true, false)));
+                resp.add(docente);
+            }
+
+        });
+
+        return resp;
+    }
+
 }

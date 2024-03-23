@@ -10,8 +10,6 @@ $.getScript(context + '/page/partialView/partialView.js', function () {});
 
 let calendarioModello4;
 let lezioniModello4;
-let dataStart;
-let dataEnd;
 let today = new Date(new Date().toDateString());
 let mapLezioni = new Map();
 let mapCalendario = new Map();
@@ -28,10 +26,9 @@ let numberGroups = new Set();
 let msg_neet_excluded = "I seguenti allievi sono stati esclusi durante la creazione dei gruppi:<br>";
 
 function setRangeDatesDay(giornoLezione, lezione, gruppo, daytoadd) {
-    setDateInizioFine(lezioniModello4.filter(i => i.gruppo_faseB === gruppo));
-
-    let rangeDate_min = dataStart;
-    let rangeDate_max = dataEnd;
+    var daysOK = setDateInizioFine(lezioniModello4.filter(i => (i.gruppo_faseB === gruppo)));
+    let rangeDate_min = daysOK[0];
+    let rangeDate_max = daysOK[1];
     let days;
     let prevLez = (lezione - 1) + '_' + gruppo;
     let nextLez = (lezione + 1) + '_' + gruppo;
@@ -61,7 +58,6 @@ function setRangeDatesDay(giornoLezione, lezione, gruppo, daytoadd) {
             rangeDate_min = moment(rangeDate_min).add(1, 'd')._d;
         }
     }
-
     giornoLezione = giornoLezione === null ? rangeDate_min : giornoLezione;
     return [rangeDate_min, rangeDate_max, giornoLezione];
 }
@@ -368,11 +364,11 @@ function uploadLezione(idprogetto, idm, idl, grp, ud, sedefisica) {
     let t = mapCalendario.get(idl);
     let days = setRangeDatesDay(null, idl, grp);
 
-    if (ud.endsWith('4B') || ud.endsWith('5B')) {
+//    if (ud.endsWith('4B') || ud.endsWith('5B')) {
         days = setRangeDatesDay(null, idl, grp, 0);
-    } else {
-        days = setRangeDatesDay(null, idl, grp, 1);
-    }
+//    } else {
+//        days = setRangeDatesDay(null, idl, grp, 1);
+//    }
 
     let orario_default_start = '9:00';
     let orario_default_end = sumHHMM(orario_default_start, doubletoHHmm(t.ore1 + t.ore2));
@@ -812,30 +808,25 @@ function loadCalendario() {
 
 function setDateInizioFine(lez) {
     let t_e = Number($('#endPrg').val());
-    dataEnd = new Date(t_e);
+    var d_E = new Date(t_e);
+    var d_S;
     try {
-        dataEnd = moment(dataEnd).add(30, 'd')._d;
+        d_E = moment(d_E).add(30, 'd')._d;
     } catch (error) {
         console.log(error);
     }
 
     //setto come data di inizio il giorno successivo a quello del giorno dell'ultima lezione (se non ci sono lezioni, da domani)
     if (lez.length > 0) {
-        dataStart = new Date(Math.max.apply(Math, lez.map(function (o) {
+        d_S = new Date(Math.max.apply(Math, lez.map(function (o) {
             return o.giorno;
         })));
-        dataStart = moment(dataStart).add(1, 'd')._d;
+        d_S = moment(d_S).add(1, 'd')._d;
     } else {
-        dataStart = moment(new Date()).add(1, 'd')._d;
-        //setto la data massima che corrisponde a 45 gg dopo la data di inizio del progetto
-        //let t_s = Number($('#startPrg').val());
-        //dataStart = new Date(t_s);
-        //dataStart = moment(new Date(t_s)).add(45, 'd')._d;
-        //controllo se la data è inferiore ad oggi
-        //if(new Date(dataStart.toDateString()) <= today){
-        // dataStart = moment(new Date()).add(1, 'd')._d;
-        //}
+        d_S = moment(new Date()).add(1, 'd')._d;
     }
+    var days = [d_S, d_E];
+    return days;
 }
 
 function countLezioneEffettive(l, gr) {
@@ -1419,9 +1410,7 @@ jQuery(document).ready(function () {
         disableOptions();
 
         lezioniModello4 = loadLezioni();
-        console.log(lezioniModello4);
         calendarioModello4 = loadCalendario();
-//        setDateInizioFine(lezioniModello4);
         for (let gr of numberGroups) {
             buttonsControl(countLezioneEffettive(lezioniModello4, gr), mapCalendario.size, gr);
         }

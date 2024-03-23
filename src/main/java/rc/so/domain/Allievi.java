@@ -36,7 +36,7 @@ import javax.persistence.Transient;
     @NamedQuery(name = "a.byCF", query = "SELECT a FROM Allievi a WHERE a.codicefiscale=:codicefiscale AND a.statopartecipazione.id='01' ORDER BY a.cognome"),
     @NamedQuery(name = "a.bySoggettoAttuatore", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto ORDER BY a.cognome"),
     @NamedQuery(name = "a.bySoggettoAttuatoreNoProgettoAttivi", query = "SELECT a FROM Allievi a WHERE a.soggetto=:soggetto and a.progetto=null AND a.statopartecipazione.id='01' AND a.stato='A' ORDER BY a.cognome"),
-    @NamedQuery(name = "a.byProgetto", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto AND a.statopartecipazione.id IN ('13','14','15','18','19') ORDER BY a.cognome"),
+    @NamedQuery(name = "a.byProgetto", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto AND a.statopartecipazione.id IN ('13','14','15','16','17','18','19') ORDER BY a.cognome"),
     @NamedQuery(name = "a.byProgettoAll", query = "SELECT a FROM Allievi a WHERE a.progetto=:progetto ORDER BY a.cognome"),
     @NamedQuery(name = "a.byEmail", query = "SELECT a FROM Allievi a WHERE a.email=:email AND a.statopartecipazione.id='01' ORDER BY a.cognome"),
     @NamedQuery(name = "allievi.daassegnare", query = "SELECT a FROM Allievi a WHERE a.statopartecipazione.id='10' ORDER BY a.cognome"),
@@ -282,10 +282,33 @@ public class Allievi implements Serializable {
     @Column(name = "assenzeKO")
     private int assenzeKO;
 
+    @Column(name = "data_inizio_UD11")
+    private String data_inizio_UD11;
+    @Column(name = "data_fine_UD11")
+    private String data_fine_UD11;
+    
+    
+    
     public Allievi() {
         this.pregresso = false;
     }
 
+    public String getData_inizio_UD11() {
+        return data_inizio_UD11;
+    }
+
+    public void setData_inizio_UD11(String data_inizio_UD11) {
+        this.data_inizio_UD11 = data_inizio_UD11;
+    }
+
+    public String getData_fine_UD11() {
+        return data_fine_UD11;
+    }
+
+    public void setData_fine_UD11(String data_fine_UD11) {
+        this.data_fine_UD11 = data_fine_UD11;
+    }
+    
     public int getAssenzeOK() {
         return assenzeOK;
     }

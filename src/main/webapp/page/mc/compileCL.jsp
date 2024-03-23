@@ -38,26 +38,25 @@
         } else {
             String src = session.getAttribute("src").toString();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
             Entity e = new Entity();
             String msg = e.getPath("compilaCL.html").replaceAll("\\\\", "/");
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("id")));
-            List<Allievi> allievi_totali = e.getAllieviProgettiFormativi(p);
-            List<Allievi> allievi_faseA = Utility.allievi_fa(p.getId(), e.getAllieviProgettiFormativi(p));
-            List<Allievi> allievi_faseB = Utility.allievi_fb(p.getId(), e.getAllieviProgettiFormativi(p));
-            List<Docenti> docenti_tab = Utility.docenti_ore_A(p.getId(), p.getDocenti());
-            Map<Long, Long> oreRendicontabili_faseA = Action.OreRendicontabiliAlunni_faseA((int) (long) p.getId());
-            Map<Long, Long> oreRendicontabili_faseB = Action.OreRendicontabiliAlunni_faseB((int) (long) p.getId());
-            Map<Long, Long> oreRendicontabili_docenti = Action.OreRendicontabiliDocentiFASEA((int) (long) p.getId());
+            int allievi_Patto = 0;
+            int allievi_Gol = 0;
+            List<Allievi> allievi_totali = e.getAllieviProgettiFormativiAll(p);
+            List<Allievi> allievi_OK = e.getAllieviProgettiFormativi(p);
+            List<Docenti> docenti_tab = Utility.docenti_A(e, p);
+            int soglia = Utility.parseIntR(e.getPath("soglia.allegato7"));
             String coeff_fa = e.getPath("coeff.allievo.fasea");
             String coeff_fb = e.getPath("coeff.allievo.faseb");
             List<Revisori> controllori = e.findAll(Revisori.class);
             Map<String, String> fasceDocenti = Utility.mapCoeffDocenti(e.getPath("coeff.docente.a"), e.getPath("coeff.docente.b"));
             e.close();
-            int allieviOK = Utility.allieviOK(p.getId(), allievi_totali);
 
-            boolean fancy = request.getParameter("fb") != null && request.getParameter("fb").equals("1") ? false : true;
-%>
+            int allieviOK = allievi_OK.size();
+            int allieviOKATT = Utility.allieviOKattestato(allievi_OK, soglia);
+
+            boolean fancy = request.getParameter("fb") != null && request.getParameter("fb").equals("1") ? false : true;%>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -373,7 +372,7 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="row">        
-                                                                        <div class="form-group col-md-6 col-lg-6 col-sm-12">
+                                                                        <div class="form-group col-md-4 col-lg-4 col-sm-12">
                                                                             <label>Numero allievi iscritti</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
@@ -384,7 +383,7 @@
                                                                                 <input type="text" disabled class="form-control kt-font-io" style="font-weight: 500;" value="<%=allievi_totali.size()%>">
                                                                             </div>
                                                                         </div>
-                                                                        <div class="form-group col-md-6 col-lg-6 col-sm-12">
+                                                                        <div class="form-group col-md-4 col-lg-4 col-sm-12">
                                                                             <label>Numero allievi che hanno terminato il percorso</label>
                                                                             <div class="input-group input-group-md">
                                                                                 <div class="input-group-prepend">
@@ -393,6 +392,18 @@
                                                                                     </span>
                                                                                 </div>
                                                                                 <input type="text" disabled class="form-control kt-font-io" style="font-weight: 500;" value="<%=allieviOK%>">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="form-group col-md-4 col-lg-4 col-sm-12">
+                                                                            <label>Numero allievi che hanno ricevuto l'Attestato Finale</label>
+                                                                            <div class="input-group input-group-md">
+                                                                                <div class="input-group-prepend">
+                                                                                    <span class="input-group-text">
+                                                                                        <i class="fa fa-users kt-font-io" aria-hidden="true"></i>
+                                                                                    </span>
+                                                                                </div>
+                                                                                <input type="text" disabled class="form-control kt-font-io" 
+                                                                                       style="font-weight: 500;" value="<%=allieviOKATT%>">
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -490,116 +501,149 @@
                                                                     <label class="text-uppercase" style="color:#b9003d; font-weight: 800;">Calcolo importi da liquidare FASE A</label>
                                                                     <div class="form-group" id="allievi_faseA">
                                                                         <div class="row">
-                                                                            <div class="col-4"><b>Allievo</b></div>
+                                                                            <div class="col-2"><b>Allievo</b></div>
+                                                                            <div class="col-2"><b>Patto del Lavoro / GOL</b></div>
                                                                             <div class="col-2"><b>Ore Presenza Allievi</b></div>
                                                                             <div class="col-2"><b>Controllo Ore Presenze Allievo</b></div>
                                                                             <div class="col-2"><b>Importo Orario Riconosciuto</b></div>
                                                                             <div class="col-2"><b>Totale</b></div>
                                                                         </div>
-                                                                        <%for (Allievi al : allievi_faseA) {
-
-                                                                                String orerend = "0.00";
-                                                                                System.out.println(al.getId()+" className.methodName() " + oreRendicontabili_faseA.get(al.getId()));
-                                                                                if (oreRendicontabili_faseA.get(al.getId()) != null) {
-                                                                                    orerend = Utility.convertToHours_R(oreRendicontabili_faseA.get(al.getId()));
+                                                                        <%for (Allievi al : allievi_totali) {
+                                                                                if (al.getTos_tipofinanziamento().startsWith("PA")) {
+                                                                                    allievi_Patto++;
+                                                                                } else {
+                                                                                    allievi_Gol++;
                                                                                 }
-
                                                                         %>
                                                                         <div class="row" id="farow_<%=al.getId()%>">
-                                                                            <div class="col-4"><%=al.getNome()%> <%=al.getCognome()%></div>
+                                                                            <div class="col-2"><%=al.getNome()%> <%=al.getCognome()%></div>
+                                                                            <div class="col-2"><%=al.getTos_tipofinanziamento()%></div>
                                                                             <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" 
-                                                                                                      disabled="disabled" type="text" value="<%=orerend%>" name="fa_ore_<%=al.getId()%>" id="fa_ore_<%=al.getId()%>" /></div>
+                                                                                                      disabled="disabled" type="text" 
+                                                                                                      value="<%=al.getOrec_fasea()%>" name="fa_ore_<%=al.getId()%>" 
+                                                                                                      id="fa_ore_<%=al.getId()%>" /></div>
                                                                             <div class="col-2"><input class="form-control decimal_custom obbligatory kt-font-bold kt-font-danger ctrl" type="text" 
-                                                                                                      value="<%=orerend%>" name="fa_controllo_ore_<%=al.getId()%>" id="fa_controllo_ore_<%=al.getId()%>" /></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" disabled="disabled" type="text" value="<%=coeff_fa%>" name="fa_coeff_<%=al.getId()%>" id="fa_coeff_<%=al.getId()%>" /></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" disabled="disabled" type="text" name="fa_tot_<%=al.getId()%>" id="fa_tot_<%=al.getId()%>" /></div>
+                                                                                                      value="<%=al.getOrec_fasea()%>" name="fa_controllo_ore_<%=al.getId()%>" id="fa_controllo_ore_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom"
+                                                                                                      disabled="disabled" type="text" value="<%=coeff_fa%>" name="fa_coeff_<%=al.getId()%>" id="fa_coeff_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom tot_splitter"
+                                                                                                      disabled="disabled" type="text" name="fa_tot_<%=al.getId()%>" id="fa_tot_<%=al.getId()%>" 
+                                                                                                      data-tipo="<%=al.getTos_tipofinanziamento()%>" /></div>
                                                                         </div>
                                                                         <%}%>
                                                                         <div class="row">
-                                                                            <div class="col-10 kt-align-right"><b>Totale contributo indennità di frequenza</b></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" class="form-control decimal_custom totalref kt-font-io" disabled="disabled" type="text" id="fa_total" name="fa_total" /></div>
+                                                                            <div class="col-10 kt-align-right"><b>Totale contributo Fase A</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" disabled="disabled" type="text" 
+                                                                                                      id="fa_total" name="fa_total" /></div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale contributo Fase A - GOL</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" disabled="disabled" type="text" 
+                                                                                                      id="fa_total_G" name="fa_total_G" /></div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale contributo Fase A - PATTO</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" disabled="disabled" type="text" 
+                                                                                                      id="fa_total_P" name="fa_total_P" /></div>
                                                                         </div>
                                                                     </div> 
                                                                     <label class="text-uppercase" style="color:#b9003d; font-weight: 800;">Calcolo importi da liquidare FASE B</label>
                                                                     <div class="form-group" id="allievi_faseB">
                                                                         <div class="row">
-                                                                            <div class="col-4"><b>Allievo</b></div>
+                                                                            <div class="col-2"><b>Allievo</b></div>
+                                                                            <div class="col-2"><b>Patto del Lavoro / GOL</b></div>
                                                                             <div class="col-2"><b>Ore Presenza Allievi</b></div>
                                                                             <div class="col-2"><b>Controllo Ore Presenze Allievo</b></div>
                                                                             <div class="col-2"><b>Importo Orario Riconosciuto</b></div>
                                                                             <div class="col-2"><b>Totale</b></div>
                                                                         </div>
-                                                                        <%for (Allievi al : allievi_faseB) {
-
-                                                                                String orerend1 = "0.00";
-
-                                                                                if (oreRendicontabili_faseB.get(al.getId()) != null) {
-                                                                                    orerend1 = Utility.convertToHours_R(oreRendicontabili_faseB.get(al.getId()));
-                                                                                }
-
-
-                                                                        %>
+                                                                        <%for (Allievi al : allievi_OK) {%>
                                                                         <div class="row" id="fbrow_<%=al.getId()%>">
-                                                                            <div class="col-4"><%=al.getNome()%> <%=al.getCognome()%></div>
+                                                                            <div class="col-2"><%=al.getNome()%> <%=al.getCognome()%></div>
+                                                                            <div class="col-2"><%=al.getTos_tipofinanziamento()%></div>
                                                                             <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" 
                                                                                                       disabled="disabled" type="text" 
-                                                                                                      value="<%=orerend1%>" name="fb_ore_<%=al.getId()%>" id="fb_ore_<%=al.getId()%>" /></div>
+                                                                                                      value="<%=al.getOrec_faseb()%>" name="fb_ore_<%=al.getId()%>" id="fb_ore_<%=al.getId()%>" /></div>
                                                                             <div class="col-2"><input class="form-control decimal_custom obbligatory kt-font-bold kt-font-danger ctrl" type="text" 
-                                                                                                      value="<%=orerend1%>" name="fb_controllo_ore_<%=al.getId()%>" id="fb_controllo_ore_<%=al.getId()%>" /></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom"  disabled="disabled" type="text" value="<%=coeff_fb%>" name="fb_coeff_<%=al.getId()%>" id="fb_coeff_<%=al.getId()%>" /></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" disabled="disabled" type="text" name="fb_tot_<%=al.getId()%>" id="fb_tot_<%=al.getId()%>" /></div>
+                                                                                                      value="<%=al.getOrec_faseb()%>" name="fb_controllo_ore_<%=al.getId()%>" id="fb_controllo_ore_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" 
+                                                                                                      class="form-control decimal_custom"  disabled="disabled" type="text" value="<%=coeff_fb%>" name="fb_coeff_<%=al.getId()%>" id="fb_coeff_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" 
+                                                                                                      class="form-control decimal_custom tot_splitter" disabled="disabled" type="text" name="fb_tot_<%=al.getId()%>" id="fb_tot_<%=al.getId()%>" data-tipo="<%=al.getTos_tipofinanziamento()%>" /></div>
                                                                         </div>
                                                                         <%}%>
                                                                         <div class="row">
                                                                             <div class="col-10 kt-align-right"><b>Totale contributo FASE B</b></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" class="form-control decimal_custom totalref kt-font-io" disabled="disabled" type="text" id="fb_total" name="fb_total" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" disabled="disabled" 
+                                                                                                      type="text" id="fb_total" name="fb_total" /></div>
                                                                         </div>
-                                                                    </div>    
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale contributo FASE B - GOL</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" 
+                                                                                                      disabled="disabled" type="text" id="fb_total_G" name="fb_total_G" /></div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale contributo FASE B - PATTO</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom totalref kt-font-io" 
+                                                                                                      disabled="disabled" type="text" id="fb_total_P" name="fb_total_P" /></div>
+                                                                        </div>
+                                                                    </div>   
+                                                                    <div class="form-group">
+                                                                        <div class="row">
+                                                                            <div class="col-6"><b>TOTALE ALLIEVI GOL</b></div>
+                                                                            <div class="col-6"><b>TOTALE ALLIEVI PATTO</b></div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-6"><b><%=allievi_Gol%></b></div>
+                                                                            <div class="col-6"><b><%=allievi_Patto%></b></div>
+                                                                        </div>
+                                                                        <input type="hidden" id="allievi_gol" name="allievi_gol" value="<%=allievi_Gol%>" />
+                                                                        <input type="hidden" id="allievi_pat" name="allievi_pat" value="<%=allievi_Patto%>" />
+                                                                    </div>
                                                                     <label class="text-uppercase" style="color:#b9003d; font-weight: 800;">Calcolo importi da liquidare DOCENTI</label>
                                                                     <div class="form-group" id="allievi_faseA">
                                                                         <div class="row">
                                                                             <div class="col-4"><b>Docenti</b></div>
                                                                             <div class="col-3"><b>Controllo Ore Presenze Docente</b></div>
-                                                                            <div class="col-3"><b>Contributo €/H per fascia (A: 95,00, B: 70,00)</b></div>
+                                                                            <div class="col-3"><b>Importo Orario Riconosciuto</b></div>
                                                                             <div class="col-2"><b>Totale</b></div>
                                                                         </div>
                                                                         <%for (Docenti al : docenti_tab) {
-
-                                                                                String orerend = "0.00";
-
-                                                                                if (oreRendicontabili_docenti.get(al.getId()) != null) {
-                                                                                    orerend = Utility.convertToHours_R(oreRendicontabili_docenti.get(al.getId()));
-                                                                                }
                                                                         %>
                                                                         <div class="row" id="dcrow_<%=al.getId()%>">
                                                                             <div class="col-4"><%=al.getNome()%> <%=al.getCognome()%></div>
                                                                             <div class="col-3"><input class="form-control decimal_custom" disabled="disabled" type="text" 
-                                                                                                      value="<%=orerend%>" name="dc_ore_<%=al.getId()%>" id="dc_ore_<%=al.getId()%>" /></div>
+                                                                                                      value="<%=al.getOrec_faseA()%>" name="dc_ore_<%=al.getId()%>" id="dc_ore_<%=al.getId()%>" /></div>
                                                                             <div class="col-3"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom"  disabled="disabled" type="text" value="<%=fasceDocenti.get(al.getFascia().getId())%>" name="dc_coeff_<%=al.getId()%>" id="dc_coeff_<%=al.getId()%>" /></div>
                                                                             <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" disabled="disabled" type="text" name="dc_tot_<%=al.getId()%>" id="dc_tot_<%=al.getId()%>" /></div>
                                                                         </div>
                                                                         <%}%>
                                                                         <div class="row">
                                                                             <div class="col-10 kt-align-right"><b>Totale docenza FASE A</b></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="dc_total" name="dc_total" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom kt-font-io" disabled="disabled" 
+                                                                                                      type="text" id="dc_total" name="dc_total" /></div>
                                                                         </div>
-                                                                    </div> 
-                                                                    <br>
-                                                                    <label class="kt-font-io text-uppercase" style="font-weight: 800;">CALCOLO CONTRIBUTO AMMISSIBILE</label>
-                                                                    <div class="form-group">
                                                                         <div class="row">
-                                                                            <div class="col-3"><b>Totale massimo ammissibile</b></div>
-                                                                            <div class="col-3"><b>30% a condizionalità</b></div>
-                                                                            <div class="col-3"><b>70% VCR a processo</b></div>
-                                                                            <div class="col-3"><b>Valore unitario condizionalità</b></div>
+                                                                            <div class="col-10 kt-align-right"><b>Totale docenza FASE A - PATTO</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom kt-font-io" disabled="disabled" 
+                                                                                                      type="text" id="dc_total_P" name="dc_total_P" /></div>
                                                                         </div>
-                                                                        <div class="row" id="totalsrow">
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="maxammissibile" name="maxammissibile" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="cond30" name="cond30" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="vcr70" name="vcr70" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="valunitario" name="valunitario" /></div>
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale docenza FASE A - GOL</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom kt-font-io" disabled="disabled" 
+                                                                                                      type="text" id="dc_total_G" name="dc_total_G" /></div>
                                                                         </div>
                                                                     </div> 
+
                                                                     <div class="kt-section__content kt-section__content--solid text-center" style="margin-top:3rem;">
                                                                         <a id="save_step2" href="javascript:void(0);" class="btn btn-success" style="font-family: Poppins;"><i class="fa fa-check"></i> Salva</a>
                                                                     </div>
@@ -613,60 +657,28 @@
                                                         <div class="kt-wizard-v1__content" id="step3" data-ktwizard-type="step-content">
                                                             <div class="kt-form__section kt-form__section--first">
                                                                 <div class="kt-wizard-v1__form" style="color: #6c7293;">
-                                                                    <label class="kt-font-io text-uppercase" style="font-weight: 800;">CONTRIBUTO AMMISSIBILE</label>
-                                                                    <div class="form-group">
-                                                                        <div class="row">
-                                                                            <div class="col-3"><b>Totale massimo ammissibile</b></div>
-                                                                            <div class="col-3"><b>30% a condizionalità</b></div>
-                                                                            <div class="col-3"><b>70% VCR a processo</b></div>
-                                                                            <div class="col-3"><b>Valore unitario condizionalità</b></div>
-                                                                        </div>
-                                                                        <div class="row" id="totalsrow">
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="maxammissibile_step3" name="maxammissibile_step3" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="cond30_step3" name="cond30_step3" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="vcr70_step3" name="vcr70_step3" /></div>
-                                                                            <div class="col-3"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="valunitario_step3" name="valunitario_step3" /></div>
-                                                                        </div>
-                                                                    </div> 
-                                                                    <br>
+                                                                    
                                                                     <label class="text-uppercase" style="color:#b9003d; font-weight: 800;">Conformità/Completezza output allievo e mappatura</label>
                                                                     <div class="row step3class">
                                                                         <div class="form-group col-lg-8 col-md-12 col-sm-12" id="mappatura_allievi">
                                                                             <div class="row">
-                                                                                <div class="col-3 kt-align-center"><b>Allievo</b></div>
-                                                                                <div class="col-3 kt-align-center"><b>Domanda d'Ammissione</b></div>
-                                                                                <div class="col-3 kt-align-center"><b>Output Conforme</b></div>
-                                                                                <div class="col-3 kt-align-center"><b>Mappatura In Chiusura</b></div>
+                                                                                <div class="col-4 kt-align-center"><b>Allievo</b></div>
+                                                                                <div class="col-4 kt-align-center"><b>Business Plan</b></div>
+                                                                                <div class="col-4 kt-align-center"><b>Output Conforme</b></div>
                                                                             </div>
-                                                                            <%for (Allievi al : allievi_faseA) {
-                                                                                    String ch1 = "";
-                                                                                    boolean mappato = al.getMappatura() == 1;
-                                                                                    if (mappato) {
-                                                                                        ch1 = "checked='checked'";
-                                                                                    }
+                                                                            <%for (Allievi al : allievi_OK) {
                                                                             %>
                                                                             <div class="row" id="mappaturarow_<%=al.getId()%>">
-                                                                                <div class="col-3 kt-align-center"><%=al.getNome()%> <%=al.getCognome()%></div>
-                                                                                <div class="col-3 kt-align-center">    
-                                                                                    <a target="_blank" class="btn btn-md kt-font-bold" id="ammissione_<%=al.getId()%>" style="color: white; width:100%!important;" data-container="body" data-html="true" data-toggle="kt-tooltip" data-placement="top" title=""></a>
+                                                                                <div class="col-4 kt-align-center"><%=al.getNome()%> <%=al.getCognome()%></div>
+                                                                                <div class="col-4 kt-align-center">    
+                                                                                    <a target="_blank" class="btn btn-md kt-font-bold" id="ammissione_<%=al.getId()%>" 
+                                                                                       style="color: white; width:100%!important;" data-container="body" data-html="true" 
+                                                                                       data-toggle="kt-tooltip" data-placement="top" title=""></a>
                                                                                 </div>
-                                                                                <div class="col-3 kt-align-center">
+                                                                                <div class="col-4 kt-align-center">
                                                                                     <span class="kt-switch kt-switch--outline kt-switch--icon kt-switch--info">
                                                                                         <label>
                                                                                             <input type="checkbox" name="output_<%=al.getId()%>" id="output_<%=al.getId()%>" data-container="body" data-html="true" data-toggle="kt-tooltip" data-placement="top" title="">
-                                                                                            <span></span>
-                                                                                        </label>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div class="col-3 kt-align-center">
-                                                                                    <span class="kt-switch kt-switch--outline kt-switch--icon kt-switch--info">
-                                                                                        <label>
-                                                                                            <input type="checkbox" 
-                                                                                                   <%=ch1%> 
-                                                                                                   name="mappatura_<%=al.getId()%>" 
-                                                                                                   id="mappatura_<%=al.getId()%>" 
-                                                                                                   data-container="body" data-html="true" data-toggle="kt-tooltip" 
-                                                                                                   data-placement="top" title="">
                                                                                             <span></span>
                                                                                         </label>
                                                                                     </span>
@@ -681,15 +693,30 @@
                                                                     </div>
                                                                     <br>
                                                                     <div class="form-group">
-                                                                        <div class="row">
-                                                                            <div class="col-lg-6 col-sm-12 col-md-6"><b>Numero Allievi con output ammissibile</b></div>
-                                                                            <div class="col-lg-6 col-sm-12 col-md-6 kt-font-io"><b>TOTALE CONTRIBUTO AMMESSO</b></div>
-                                                                        </div>
                                                                         <div class="row" id="totalsrow">
+                                                                            <div class="col-lg-6 col-sm-12 col-md-6"><b>Numero Allievi con output conforme</b></div>
                                                                             <div class="col-lg-6 col-sm-12 col-md-6"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control kt-font-io" disabled="disabled" type="text" id="allievi_output_ok" name="allievi_output_ok" /></div>
-                                                                            <div class="col-lg-6 col-sm-12 col-md-6"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control decimal_custom kt-font-io" disabled="disabled" type="text" id="tot_contributo_ammesso" name="tot_contributo_ammesso" /></div>
                                                                         </div>
                                                                     </div> 
+                                                                    <br>
+                                                                    <div class="form-group">
+                                                                        <div class="row">
+                                                                            <div class="col-4"><b>IMPORTO AMMESSO GOL</b></div>
+                                                                            <div class="col-4"><b>IMPORTO AMMESSO PATTO DEL LAVORO</b></div>
+                                                                            <div class="col-4"><b>IMPORTO AMMESSO TOTALE</b></div>
+                                                                        </div>
+                                                                        <div class="row" id="totalsrow">
+                                                                            <div class="col-4"><input style="background-color: #0abb87!important; font-weight: 600;" class="form-control decimal_custom kt-font-white" 
+                                                                                                      readonly type="text" id="tot_gol" name="tot_gol" /></div>
+                                                                            <div class="col-4"><input style="background-color: #0abb87!important; font-weight: 600;" class="form-control decimal_custom kt-font-white" 
+                                                                                                      readonly type="text" id="tot_pat" name="tot_pat" /></div>
+                                                                            <div class="col-4"><input style="background-color: #0abb87!important; font-weight: 600;" class="form-control decimal_custom kt-font-white" 
+                                                                                                      readonly type="text" id="tot_tot" name="tot_tot" /></div>
+                                                                        </div>
+                                                                    </div> 
+                                                                    <br>
+                                                                    
+                                                                    
                                                                     <div class="kt-section__content kt-section__content--solid text-center" style="margin-top:3rem;">
                                                                         <a id="save_step3" href="javascript:void(0);" class="btn btn-success" style="font-family: Poppins;"><i class="fa fa-check"></i> Salva</a>
                                                                     </div>
@@ -742,25 +769,31 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="row">        
-                                                                        <div class="form-group col-lg-6 col-sm-12 col-md-6">
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Numero allievi iscritti</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=allievi_totali.size()%>">
                                                                         </div>
-                                                                        <div class="form-group col-lg-6 col-sm-12 col-md-6">
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Numero allievi che hanno terminato il percorso</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=allieviOK%>">
+                                                                        </div>
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Numero allievi che hanno ricevuto l'Attestato Finale</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" style="font-weight: 500;" value="<%=allieviOKATT%>">
                                                                         </div>
                                                                     </div>
                                                                     <div class="row">
                                                                         <div class="form-group col-12">
                                                                             <div class="row">
-                                                                                <div class="col-5"><label>Docenti</label></div>
-                                                                                <div class="col-2"><label>Totale Docenza FASE A</label></div>
+                                                                                <div class="col-5"><label>DOCENTI</label></div>
+                                                                                <div class="col-2"><label>Totale € Docenza FASE A</label></div>
                                                                             </div>
                                                                             <%for (Docenti al : docenti_tab) {%>
                                                                             <div class="row">
-                                                                                <div class="col-5"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="<%=al.getNome()%> <%=al.getCognome()%>" /></div>
-                                                                                <div class="col-2"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="-" name="recapdc_<%=al.getId()%>" id="recapdc_<%=al.getId()%>" /></div>
+                                                                                <div class="col-5"><input class="form-control info-input kt-font-io" style="font-weight: 500;" 
+                                                                                                          disabled="disabled" type="text" value="<%=al.getNome()%> <%=al.getCognome()%>" /></div>
+                                                                                <div class="col-2"><input class="form-control info-input kt-font-io" style="font-weight: 500;" 
+                                                                                                          disabled="disabled" type="text" value="-" name="recapdc_<%=al.getId()%>" id="recapdc_<%=al.getId()%>" /></div>
                                                                             </div>
                                                                             <%}%>
                                                                         </div>
@@ -768,15 +801,17 @@
                                                                     <div class="row">
                                                                         <div class="form-group col-12">
                                                                             <div class="row">
-                                                                                <div class="col-3"><label>NEET</label></div>
-                                                                                <div class="col-3"><label>Totale FASE A</label></div>
-                                                                                <div class="col-3"><label>Totale FASE B</label></div>
+                                                                                <div class="col-3"><label>ALLIEVI</label></div>
+                                                                                <div class="col-3"><label>Totale € FASE A</label></div>
+                                                                                <div class="col-3"><label>Totale € FASE B</label></div>
                                                                                 <div class="col-3"><label>Output Conforme</label></div>
                                                                             </div>
-                                                                            <%for (Allievi al : allievi_faseA) {%>
+                                                                            <%for (Allievi al : allievi_OK) {%>
                                                                             <div class="row">
-                                                                                <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="<%=al.getNome()%> <%=al.getCognome()%>" /></div>
-                                                                                <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="-" name="recapfa_<%=al.getId()%>" id="recapfa_<%=al.getId()%>" /></div>
+                                                                                <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" 
+                                                                                                          disabled="disabled" type="text" value="<%=al.getNome()%> <%=al.getCognome()%> (<%=al.getTos_tipofinanziamento()%>)" /></div>
+                                                                                <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" 
+                                                                                                          disabled="disabled" type="text" value="-" name="recapfa_<%=al.getId()%>" id="recapfa_<%=al.getId()%>" /></div>
                                                                                 <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="-" name="recapfb_<%=al.getId()%>" id="recapfb_<%=al.getId()%>" /></div>
                                                                                 <div class="col-3"><input class="form-control info-input kt-font-io" style="font-weight: 500;" disabled="disabled" type="text" value="NO" name="recapmap_<%=al.getId()%>" id="recapmap_<%=al.getId()%>" /></div>
                                                                             </div>
@@ -785,44 +820,40 @@
                                                                     </div>
                                                                     <div class="row">        
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
-                                                                            <label>Totale Contributo FASE A (NEET)</label>
+                                                                            <label>Totale Contributo FASE A ALLIEVI PATTO</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_allievi_P" style="font-weight: 500;" />
+                                                                        </div>
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo FASE A ALLIEVI GOL</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_allievi_G" style="font-weight: 500;" />
+                                                                        </div>
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo FASE A ALLIEVI</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_allievi" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
-                                                                            <label>Totale Contributo FASE B (NEET)</label>
+                                                                            <label>Totale Contributo FASE B ALLIEVI PATTO</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
-                                                                            <label>Totale Fase A (Docenti)</label>
+                                                                            <label>Totale Contributo FASE B ALLIEVI GOL</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi" style="font-weight: 500;" />
+                                                                        </div>
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo FASE B ALLIEVI</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi" style="font-weight: 500;" />
+                                                                        </div>
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo Fase A DOCENZA PATTO</label>
                                                                             <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti" style="font-weight: 500;" />
                                                                         </div>
-                                                                    </div>
-                                                                    <div class="row">        
-                                                                        <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>Totale Massimo Ammissibile</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_maxammissibile" style="font-weight: 500;" />
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo Fase A DOCENZA GOL</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti" style="font-weight: 500;" />
                                                                         </div>
-                                                                        <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>30% a Condizionalità</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_cond30" style="font-weight: 500;" />
-                                                                        </div>
-                                                                        <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>70% VCR a Processo</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_vcr70" style="font-weight: 500;" />
-                                                                        </div>
-                                                                        <div class="form-group col-lg-3 col-sm-12 col-md-6">
-                                                                            <label>Valore Unitario Condizionalità</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_valunitario" style="font-weight: 500;" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="row">        
-                                                                        <div class="form-group col-lg-6 col-sm-12 col-md-6">
-                                                                            <label>N.ro Allievi con Output Conformi</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_allievi_output_ok" style="font-weight: 500;" />
-                                                                        </div>
-                                                                        <div class="form-group col-lg-6 col-sm-12 col-md-6">
-                                                                            <label>TOTALE CONTRIBUTO AMMESSO</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_tot_contributo_ammesso" style="font-weight: 500;" />
+                                                                        <div class="form-group col-lg-4 col-sm-12 col-md-4">
+                                                                            <label>Totale Contributo Fase A DOCENZA</label>
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti" style="font-weight: 500;" />
                                                                         </div>
                                                                     </div>
                                                                     <div class="kt-separator kt-separator--border kt-separator--space-xs" style="margin-top: 2rem; margin-bottom: 2rem;"></div>
@@ -849,7 +880,8 @@
 
                                                         </div>                    
                                                         <!--step: final-->
-                                                        <div class="kt-form__actions">
+                                                        <hr>
+                                                        <div class="kt-form__actions row col-md-12">
                                                             <div class="btn btn-io-n btn-md btn-tall btn-wide kt-font-bold kt-font-transform-u" data-ktwizard-type="action-prev">
                                                                 Indietro
                                                             </div>
@@ -860,15 +892,13 @@
                                                                 Avanti
                                                             </div>
                                                         </div>
+                                                        <hr><!-- comment -->
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>                        
                                     </div>
                                 </div>
-                                <%if (fancy) {%>
-                                <%@ include file="menu/footer.jsp"%>
-                                <%}%>
                             </div>
                         </div>
                     </div>
