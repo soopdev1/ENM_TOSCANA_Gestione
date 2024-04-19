@@ -286,9 +286,7 @@ public class Allievi implements Serializable {
     private String data_inizio_UD11;
     @Column(name = "data_fine_UD11")
     private String data_fine_UD11;
-    
-    
-    
+            
     public Allievi() {
         this.pregresso = false;
     }

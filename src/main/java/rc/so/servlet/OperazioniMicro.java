@@ -144,6 +144,9 @@ public class OperazioniMicro extends HttpServlet {
 
                 e.persist(pl1);
                 e.commit();
+                
+                insertTR("I", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), pl1.toString());
+                
                 Database db1 = new Database(false);
                 db1.ore_convalidateAllievi(String.valueOf(pl1.getAllievo().getId()));
                 db1.closeDB();
@@ -157,14 +160,15 @@ public class OperazioniMicro extends HttpServlet {
                 }
                 e.merge(pl1);
                 e.commit();
+                
+                insertTR("I", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), pl1.toString());
+                
                 Database db1 = new Database(false);
                 db1.ore_convalidateAllievi(String.valueOf(pl1.getAllievo().getId()));
                 db1.closeDB();
             }
 
-//            
             resp.addProperty("result", true);
-
         } catch (Exception ex) {
             e.rollBack();
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -173,9 +177,11 @@ public class OperazioniMicro extends HttpServlet {
         } finally {
             e.close();
         }
+
         response.getWriter().write(resp.toString());
         response.getWriter().flush();
         response.getWriter().close();
+
     }
 
     protected void SCARICAATTESTATI(HttpServletRequest request, HttpServletResponse response)
@@ -847,7 +853,7 @@ public class OperazioniMicro extends HttpServlet {
 
             e.begin();
             //creao il path
-            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", "DAG").replace("@folder", Utility.correctName(a.getCodicefiscale()));
+            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", Utility.correctName(a.getCodicefiscale()));
             File dir = new File(path);
             createDir(path);
             String file_path;

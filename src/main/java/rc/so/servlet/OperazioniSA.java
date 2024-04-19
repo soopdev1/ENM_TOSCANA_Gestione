@@ -1236,9 +1236,7 @@ public class OperazioniSA extends HttpServlet {
                     Long.valueOf(idmodello));
 
             if (a.getId().equals(m5.getAllievo().getId())) {
-                TipoDoc_Allievi tipodoc_m5;
-
-                tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
+                TipoDoc_Allievi tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
                         20L);
 
                 User us = (User) request.getSession().getAttribute("user");

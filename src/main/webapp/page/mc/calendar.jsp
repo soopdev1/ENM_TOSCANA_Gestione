@@ -31,6 +31,8 @@
             Entity e = new Entity();
             Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, Long.parseLong(request.getParameter("idcalendar")));
 
+            int idgruppo = Utility.parseIntR(Utility.getRequestValue(request, "idgruppo"));
+
             ProgettiFormativi p = lm.getModello().getProgetto();
 
             //  String idsedefisica = p.getSedefisica() != null ? String.valueOf(p.getSedefisica().getId()) : "";
@@ -285,7 +287,16 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                <%for (Allievi a1 : Utility.estraiAllieviOK(p)) {
+                                                                <%
+
+                                                                    List<Allievi> davis = Utility.estraiAllieviOK(p);
+                                                                    for (Allievi a1 : davis) {
+
+                                                                        if (idgruppo > 0) {
+                                                                            if (a1.getGruppo_faseB() != idgruppo) {
+                                                                                continue;
+                                                                            }
+                                                                        }
 
                                                                         boolean modifyallievo = false;
                                                                         String allievo_presente = "0";

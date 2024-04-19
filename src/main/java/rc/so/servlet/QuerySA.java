@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.File;
 import rc.so.db.Action;
 import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
@@ -38,6 +39,7 @@ import static rc.so.util.Utility.estraiEccezione;
 import static rc.so.util.Utility.writeJsonResponseR;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +51,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FilenameUtils;
 import rc.so.domain.SediFormazione;
 
 /**
@@ -230,16 +233,21 @@ public class QuerySA extends HttpServlet {
     protected void getDocAllievo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         try {
-            Allievi a = e.getEm().find(Allievi.class, Long.parseLong(request.getParameter("idallievo")));
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(request.getParameter("idallievo")));
             List<Documenti_Allievi> docs = e.getDocAllievo(a);
             MascheraM5 m5_allievo = e.getM5_byAllievo(a);
             if (m5_allievo != null) {
-                TipoDoc_Allievi dA = new TipoDoc_Allievi();
-                dA.setDescrizione("DOMANDA AMMISSIONE");
-                dA.setEstensione("pdf");
-                dA.setMimetype("application/pdf");
-                Documenti_Allievi domandaAmmissione = new Documenti_Allievi("", dA, null, a);
-                docs.add(domandaAmmissione);
+                if (m5_allievo.isBusinessplan_presente()) {
+                    File bp = new File(m5_allievo.getBusinessplan_path());
+                    if (bp.exists() && bp.canRead()) {
+                        TipoDoc_Allievi dA = new TipoDoc_Allievi();
+                        dA.setDescrizione("BUSINESS PLAN");
+                        dA.setEstensione(FilenameUtils.getExtension(bp.getName()));
+                        dA.setMimetype(Files.probeContentType(bp.toPath()));
+                        Documenti_Allievi domandaAmmissione = new Documenti_Allievi(m5_allievo.getBusinessplan_path(), dA, null, a);
+                        docs.add(domandaAmmissione);
+                    }
+                }
             }
             ObjectMapper mapper = new ObjectMapper();
             response.getWriter().write(mapper.writeValueAsString(docs));

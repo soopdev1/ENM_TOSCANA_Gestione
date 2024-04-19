@@ -1068,6 +1068,11 @@ public class Utility {
 
     public static double parseDouble(String f) {
         try {
+            
+            if(f.contains(",")){
+                f = StringUtils.replace(f, ",", "\\.");
+            }
+            
             BigDecimal bigDecimal = new BigDecimal(f);
             bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
             return bigDecimal.doubleValue();

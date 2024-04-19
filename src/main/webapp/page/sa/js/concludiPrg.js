@@ -655,14 +655,11 @@ $('button[id^=dichiarazione_]').click(function () {
 
 function misuraindividuata(idal) {
     var misura = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
-    alert(misura);
-
     if (misura === "NO") {
         $('#MISURANO_' + idal).toggle(true);
         $('#MISURASI_' + idal).toggle(false);
     } else {
         $('#MISURASI_' + idal).toggle(true);
         $('#MISURANO_' + idal).toggle(false);
-
     }
 }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.File;
 import rc.so.db.Action;
 import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
@@ -47,6 +48,7 @@ import static rc.so.util.Utility.writeJsonResponseR;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -57,6 +59,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -598,7 +602,6 @@ public class QueryMicro extends HttpServlet {
             }
 
 //            System.out.println(presenze_t);
-
             writeJsonResponse(response, presenze_t);
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -615,12 +618,19 @@ public class QueryMicro extends HttpServlet {
             List<Documenti_Allievi> docs = e.getDocAllievo(a);
             MascheraM5 m5_allievo = e.getM5_byAllievo(a);
             if (m5_allievo != null) {
-                TipoDoc_Allievi dA = new TipoDoc_Allievi();
-                dA.setDescrizione("DOMANDA AMMISSIONE");
-                dA.setEstensione("pdf");
-                dA.setMimetype("application/pdf");
-                Documenti_Allievi domandaAmmissione = new Documenti_Allievi("", dA, null, a);
-                docs.add(domandaAmmissione);
+
+                if (m5_allievo.isBusinessplan_presente()) {
+                    File bp = new File(m5_allievo.getBusinessplan_path());
+                    if (bp.exists() && bp.canRead()) {
+                        TipoDoc_Allievi dA = new TipoDoc_Allievi();
+                        dA.setDescrizione("BUSINESS PLAN");
+                        dA.setEstensione(FilenameUtils.getExtension(bp.getName()));
+                        dA.setMimetype(Files.probeContentType(bp.toPath()));
+                        Documenti_Allievi domandaAmmissione = new Documenti_Allievi(m5_allievo.getBusinessplan_path(), dA, null, a);
+                        docs.add(domandaAmmissione);
+                    }
+                }
+
             }
             ObjectMapper mapper = new ObjectMapper();
             response.getWriter().write(mapper.writeValueAsString(docs));
@@ -951,7 +961,6 @@ public class QueryMicro extends HttpServlet {
         Map mr = new HashMap();
         mr.put("cl", d.getChecklist_finale());
         mr.put("allievi", array.toString());
-
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(mr);
         response.getWriter().write(json);

@@ -30,7 +30,7 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "3";
+        String idpr = "18";
 //        String idall = "2469";
         String usernameSA = "TST";
 
@@ -116,12 +116,12 @@ public class GeneraDoc {
 //        File f7 = Pdf_new.MODELLO7(e, usernameSA, al, Utility.roundFloatAndFormat(oreRendicontabili.get(al.getId()), true),
 //                new DateTime(), true);
 //        System.out.println(f7.getPath());
-        String path = e.getPath("pathDocSA_Prg").replace("@rssa", prg.getSoggetto().getId().toString()).replace("@folder", prg.getId().toString());
-//        File CHECKLIST = Pdf_new.CHECKLIST(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
-//        System.out.println(CHECKLIST.getPath());
-        
-            File ev_pdf = Pdf_new.ESITOVALUTAZIONE(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
-            System.out.println(ev_pdf.getPath());
+//        String path = e.getPath("pathDocSA_Prg").replace("@rssa", prg.getSoggetto().getId().toString()).replace("@folder", prg.getId().toString());
+////        File CHECKLIST = Pdf_new.CHECKLIST(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
+////        System.out.println(CHECKLIST.getPath());
+//        
+//            File ev_pdf = Pdf_new.ESITOVALUTAZIONE(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
+//            System.out.println(ev_pdf.getPath());
         e.close();
 //        
 //        String o = Pdf_new.checkFirmaQRpdfA("MODELLO1", "", new File("C:\\Users\\Administrator\\Desktop\\da caricare\\INFO05_MOISE_CLAUDIASILVIA_041120211144476.M1_pdfA.pdf"), "", "20;0;60;60");

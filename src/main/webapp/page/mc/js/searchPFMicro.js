@@ -405,7 +405,11 @@ var DatatablesAllievi = function () {
                                 + '</button>'
                                 + '<div class="dropdown-menu dropdown-menu-left">';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ');"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
-                        option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPresenzeAllievo(' + row.id + ');"><i class="fa fa-calendar-alt"></i> Visualizza Presenze</a>';
+                        if (row.statopartecipazione.id === "9" || row.statopartecipazione.id === "11" || 
+                                row.statopartecipazione.id === "16" || row.statopartecipazione.id === "17") {
+                        }else{
+                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPresenzeAllievo(' + row.id + ');"><i class="fa fa-calendar-alt"></i> Visualizza Presenze</a>';
+                        }
                         option += '<a class="dropdown-item " href="javascript:void(0);" onclick="swalSigma(' + row.id + ',\'' + row.statopartecipazione.id +
                                 '\')"><i class="fa fa-user-check" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Stato '
                                 + row.statopartecipazione.descrizione + '"></i>Cambia stato di partecipazione</a>';

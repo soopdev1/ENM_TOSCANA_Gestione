@@ -120,7 +120,7 @@
                                             </div>
                                         <div class="form-group col-md-6">
                                             <form action="<%=request.getContextPath()%>/OperazioniGeneral" method="POST">
-                                                <input type="hidden" name="type" value="sendmailModello0" />
+                                                <input type="hidden" name="type" value="sendmailAttestato" />
                                                 <input type="hidden" name="idallievo" value="<%=a.getId()%>" />
                                                 <input type="hidden" name="maildest" value="<%=a.getEmail()%>" />
                                                 <input type="hidden" name="path" value="<%=attestatofirmato.getPath()%>" />
