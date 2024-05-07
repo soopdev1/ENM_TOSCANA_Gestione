@@ -345,7 +345,7 @@
                                                 + '   <i class="flaticon-more-1"></i>'
                                                 + '</button>'
                                                 + '<div class="dropdown-menu dropdown-menu-left">';
-                                        if (row.atridati !== undefined && row.atridati !== null && row.atridati !== 'null') {
+                                        if (row.atridati !== 'undefined' && row.atridati !== null && row.atridati !== 'null') {
                                             var formnuovo = '<form target="_blank" id="frfad_' + row.id + '" method="post" action="<%=request.getContextPath()%>/OperazioniMicro">' +
                                                     '<input type="hidden" name="type" value="scaricamodelloa1"/> ' +
                                                     '<input type="hidden" name="aula" value="' + row.id + '"/> ' +
@@ -358,7 +358,7 @@
                                         option += '<a class="dropdown-item kt-font-danger" href="javascript:void(0);" onclick="rejectAula(' + row.id + ')"><i class="flaticon2-delete kt-font-danger" style="margin-top:-2px"></i>Rigetta</a>';
                                         option += '</div></div>';
                                         return option;
-                                    } else if (row.atridati !== undefined && row.atridati !== null && row.atridati !== 'null') {
+                                    } else if (row.atridati !== 'undefined' && row.atridati !== null && row.atridati !== 'null') {
                                         var option = '<div class="dropdown dropdown-inline">'
                                                 + '<button type="button" class="btn btn-icon btn-sm btn-icon-md btn-circle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'
                                                 + '   <i class="flaticon-more-1"></i>'
