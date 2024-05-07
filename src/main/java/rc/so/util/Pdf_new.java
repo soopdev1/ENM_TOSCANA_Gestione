@@ -115,6 +115,11 @@ import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Store;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
+import rc.so.domain.SediFormazione;
+import static rc.so.util.Utility.checkPDF;
+import static rc.so.util.Utility.createDir;
+import static rc.so.util.Utility.estraiEccezione;
 import static rc.so.util.Utility.parseDouble;
 import static rc.so.util.Utility.sd1;
 
@@ -261,6 +266,22 @@ public class Pdf_new {
         }
         return null;
     }
+    
+        public static File ALLEGATOA1(
+            String pathdest,
+            Entity e,
+            String username,
+            SediFormazione sf,
+            DateTime dataconsegna) {
+        File out1 = ALLEGATOA1_BASE(pathdest, e, username, sf, dataconsegna);
+        if (out1 != null) {
+            File out2 = convertPDFA(out1, "ALLEGATOA1", e);
+            if (out2 != null) {
+                return out2;
+            }
+        }
+        return null;
+    }
 
     public static File ALLEGATOB1(
             String pathdest,
@@ -326,6 +347,91 @@ public class Pdf_new {
             if (out2 != null) {
                 return out2;
             }
+        }
+        return null;
+    }
+    
+    
+    
+    
+    private static File ALLEGATOA1_BASE(
+            String pathdest,
+            Entity e,
+            String username,
+            SediFormazione sf,
+            DateTime dataconsegna) {
+
+        try {
+
+            TipoDoc p = e.getEm().find(TipoDoc.class, 38L);
+            String contentb64 = p.getModello();
+
+            File pdfOut;
+            if (pathdest == null) {
+                String pathtemp = e.getPath("pathtemp");
+                createDir(pathtemp);
+                pdfOut = new File(pathtemp
+                        + username + "_"
+                        + StringUtils.deleteWhitespace(sf.getSoggetto().getRagionesociale()) + "_"
+                        + dataconsegna.toString("ddMMyyyyHHmmSSS") + ".A1.pdf");
+            } else {
+                pdfOut = new File(pathdest);
+            }
+
+            try (InputStream is = new ByteArrayInputStream(decodeBase64(contentb64)); PdfReader reader = new PdfReader(is); PdfWriter writer = new PdfWriter(pdfOut); PdfDocument pdfDoc = new PdfDocument(reader, writer)) {
+                PdfAcroForm form = getAcroForm(pdfDoc, true);
+                form.setGenerateAppearance(true);
+                Map<String, PdfFormField> fields = form.getAllFormFields();
+
+                //PAG.1
+                setFieldsValue(form, fields, "NOMESA", sf.getSoggetto().getRagionesociale().toUpperCase());
+                setFieldsValue(form, fields, "DD", sf.getSoggetto().getDd());
+                setFieldsValue(form, fields, "COGNOME", sf.getSoggetto().getCognome().toUpperCase());
+                setFieldsValue(form, fields, "NOME", sf.getSoggetto().getNome().toUpperCase());
+                setFieldsValue(form, fields, "CARICA", sf.getSoggetto().getCarica().toUpperCase());
+
+                setFieldsValue(form, fields, "regioneaula1", sf.getComune().getRegione().toUpperCase());
+                setFieldsValue(form, fields, "provincia1", sf.getComune().getNome_provincia().toUpperCase());
+                setFieldsValue(form, fields, "citta1", sf.getComune().getNome().toUpperCase());
+                setFieldsValue(form, fields, "indirizzo1", sf.getIndirizzo().toUpperCase());
+
+                setFieldsValue(form, fields, "responsabile1", sf.getReferente().toUpperCase());
+                setFieldsValue(form, fields, "mailresponsabile1", sf.getEmail().toLowerCase());
+                setFieldsValue(form, fields, "telresponsabile1", sf.getTelefono());
+
+                if (sf.getAltridati() != null) {
+                    try {
+                        JSONObject ad = new JSONObject(sf.getAltridati());
+                        setFieldsValue(form, fields, "titolo1", ad.getString("titolo").toUpperCase());
+                        setFieldsValue(form, fields, "estremi1", ad.getString("mq").toUpperCase());
+                        setFieldsValue(form, fields, "accreditamento1", ad.getString("accreditamento").toUpperCase());
+                        setFieldsValue(form, fields, "amministrativo1", ad.getString("amministrativo").toUpperCase());
+                        setFieldsValue(form, fields, "mailamministrativo1", ad.getString("mailamministrativo").toLowerCase());
+                        setFieldsValue(form, fields, "telamministrativo1", ad.getString("telamministrativo"));
+                    } catch (Exception ex3) {
+                        e.insertTracking("ERROR SYSTEM ", estraiEccezione(ex3));
+                    }
+                }
+
+                fields.forEach((KEY, VALUE) -> {
+                    form.partialFormFlattening(KEY);
+                });
+
+                form.flattenFields();
+                form.flush();
+
+                BarcodeQRCode barcode = new BarcodeQRCode(username + " / ALLEGATOA1 / "
+                        + dataconsegna.toString("ddMMyyyyHHmmSSS"));
+                printbarcode(barcode, pdfDoc);
+
+            }
+
+            if (checkPDF(pdfOut)) {
+                return pdfOut;
+            }
+
+        } catch (Exception ex) {
+            e.insertTracking("ERROR SYSTEM ", estraiEccezione(ex));
         }
         return null;
     }
@@ -661,7 +767,7 @@ public class Pdf_new {
                     setFieldsValue(form, fields, "NomeD_A" + indice2.get(),
                             d1.getNome().toUpperCase());
                     setFieldsValue(form, fields, "FASCIAD_A" + indice2.get(),
-                            d1.getFascia().getDescrizione());
+                            d1.getCodicefiscale().toUpperCase());
                     setFieldsValue(form, fields, "TOTALED_B" + indice2.get(),
                             roundDoubleAndFormat(d1.getOrec_faseA()));
                     indice2.addAndGet(1);

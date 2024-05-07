@@ -81,9 +81,19 @@ var KTDatatablesDataSourceAjaxServer = function () {
 
 
 
-                        if (row.stato.id === "P" || row.stato.id === "DC" || row.stato.id === "ATA" ||
-                                row.stato.id === "ATB" || row.stato.id === "SOA"
-                                || row.stato.id === "SOB") {
+                        if (row.stato.id === "P" || 
+                                row.stato.id === "DC" || 
+                                row.stato.id === "ATA" ||
+                                row.stato.id === "ATB" || 
+                                row.stato.id === "SOA" || 
+                                row.stato.id === "SOB" || 
+                                row.stato.id === "F" || 
+                                row.stato.id === "DVB" || 
+                                row.stato.id === "IV" || 
+                                row.stato.id === "CK" || 
+                                row.stato.id === "EVI" || 
+                                row.stato.id === "CO"
+                                ) {
                             option += '<a class="dropdown-item fancyBoxNoRef" href="showModelli.jsp?id=' + row.id + '"><i class="fa fa-file-alt"></i> Visualizza Lezioni Modelli 3 e 4</a>';
                         }
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTableStory(' + row.id + ')"><i class="fa fa-clipboard-list"></i> Visualizza Storico Progetto</a>';

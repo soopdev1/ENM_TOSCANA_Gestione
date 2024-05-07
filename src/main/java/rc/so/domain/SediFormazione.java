@@ -71,6 +71,11 @@ public class SediFormazione implements Serializable {
     @Transient
     String descrizionestato;
 
+    
+    @Column(name = "altridati", columnDefinition = "LONGTEXT")
+    private String altridati;
+    
+    
     public SediFormazione() {
     }
 
@@ -84,6 +89,14 @@ public class SediFormazione implements Serializable {
         this.comune = comune;
     }
 
+    public String getAltridati() {
+        return altridati;
+    }
+
+    public void setAltridati(String altridati) {
+        this.altridati = altridati;
+    }
+    
     public Long getId() {
         return id;
     }

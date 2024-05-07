@@ -39,6 +39,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
+import static java.sql.ResultSet.CONCUR_UPDATABLE;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -60,8 +61,10 @@ import static org.apache.commons.lang3.StringUtils.right;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 import org.joda.time.DateTime;
 import rc.so.domain.Presenze_Lezioni_Allievi;
+import static rc.so.util.Utility.LOGAPP;
 import static rc.so.util.Utility.calcolaintervallomillis;
 import static rc.so.util.Utility.conf;
+import static rc.so.util.Utility.estraiEccezione;
 
 /**
  *
@@ -1020,7 +1023,8 @@ public class Database {
         List<Registro_completo> registro = new ArrayList<>();
         try {
             //FAD
-            String sql = "SELECT * FROM registro_completo WHERE idprogetti_formativi = " + idpr + " GROUP BY ruolo,idutente,data ORDER BY data";
+            String sql = "SELECT * FROM registro_completo WHERE idprogetti_formativi = " + idpr + " GROUP BY ruolo,idutente,data,gruppofaseb ORDER BY data,gruppofaseb";
+            System.out.println("rc.so.db.Database.registro_modello6() "+sql);
             try (Statement st = this.c.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
 
@@ -1055,8 +1059,8 @@ public class Database {
             //PRESENZA
             String sql1 = "SELECT * FROM presenzelezioni p, progetti_formativi f, lezioni_modelli lm, lezione_calendario lc , docenti d "
                     + " WHERE d.iddocenti=p.iddocente AND lc.id_lezionecalendario=lm.id_lezionecalendario AND lm.id_lezionimodelli=p.idlezioneriferimento AND "
-                    + " p.idprogetto=f.idprogetti_formativi AND p.idprogetto = " + idpr + " ORDER BY p.datalezione,p.orainizio;";
-
+                    + " p.idprogetto=f.idprogetti_formativi AND p.idprogetto = " + idpr + " ORDER BY p.datalezione,p.orainizio;";            
+            System.out.println("rc.so.db.Database.registro_modello6() "+sql1);          
             try (Statement st1 = this.c.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY); ResultSet rs1 = st1.executeQuery(sql1)) {
                 while (rs1.next()) {
                     String sql2 = "SELECT * FROM presenzelezioniallievi a, allievi l WHERE a.idallievi=l.idallievi AND a.idpresenzelezioni = "
@@ -1417,8 +1421,7 @@ public class Database {
         return pla;
     }
 
-    public List<String> ore_convalidateAllievi(String idallievo) {
-        List<String> report = new ArrayList<>();
+    public void ore_convalidateAllievi(String idallievo) {
         String sql1 = (idallievo == null) ? "SELECT a.idallievi FROM allievi a WHERE a.id_statopartecipazione IN ('15','16','17')"
                 : "SELECT a.idallievi FROM allievi a WHERE a.idallievi=" + idallievo;
 
@@ -1426,17 +1429,14 @@ public class Database {
             while (rs1.next()) {
                 int idallievi = rs1.getInt(1);
                 String sql2 = "SELECT r.totaleorerendicontabili,r.fase FROM registro_completo r WHERE r.idutente='" + idallievi + "' AND r.ruolo='ALLIEVO'";
-//                String sql3 = "SELECT a.durataconvalidata FROM presenzelezioniallievi a WHERE a.idallievi = '" + idallievi + "' AND a.convalidata=1";
-                String sql3 = "SELECT p.durataconvalidata,z.codice_ud FROM presenzelezioniallievi p, presenzelezioni l, lezione_calendario z "
-                        + "WHERE p.idallievi = '" + idallievi + "' AND p.convalidata=1 AND l.idpresenzelezioni=p.idpresenzelezioni "
-                        + "AND l.idlezioneriferimento=z.id_lezionecalendario ";
+                String sql3 = "SELECT a.durataconvalidata FROM presenzelezioniallievi a WHERE a.idallievi = '"
+                        + idallievi + "' AND a.convalidata=1 AND a.durataconvalidata > 0";
 
                 Long presenze = 0L;
 
                 try (Statement st2 = this.c.createStatement(); ResultSet rs2 = st2.executeQuery(sql2)) {
 
                     while (rs2.next()) {
-                        report.add(idallievi + ";" + rs2.getString(2) + ";" + rs2.getLong(1));
                         presenze += rs2.getLong(1);
                     }
                 }
@@ -1444,7 +1444,6 @@ public class Database {
                 try (Statement st3 = this.c.createStatement(); ResultSet rs3 = st3.executeQuery(sql3)) {
                     while (rs3.next()) {
                         Long conv = rs3.getString(1) == null ? 0L : rs3.getLong(1);
-                        report.add(idallievi + ";" + StringUtils.substring(rs3.getString(2), 0, 1) + ";" + conv);
                         presenze += conv;
                     }
                 }
@@ -1463,7 +1462,6 @@ public class Database {
             LOGAPP.log(Level.SEVERE, estraiEccezione(ex1));
         }
 
-        return report;
     }
 
     public String[] estrai_dati_permodello6(Long idsoggetto) {
@@ -1486,6 +1484,21 @@ public class Database {
                     } else if (rs1.getString("a.consorzio").equals("SI")) {
                         out[1] = "Consorzio/Fondazione/Rete soggetto";
                     }
+                }
+            }
+        } catch (Exception ex1) {
+            LOGAPP.log(Level.SEVERE, estraiEccezione(ex1));
+        }
+        return out;
+    }
+    
+    public List<Item> query_disponibilita_rc() {
+        List<Item> out = new ArrayList<>();
+        try {
+            String sql = "SELECT * FROM disponibilita_rc";
+            try ( PreparedStatement ps1 = this.c.prepareStatement(sql, TYPE_SCROLL_INSENSITIVE, CONCUR_UPDATABLE);  ResultSet rs1 = ps1.executeQuery()) {
+                while (rs1.next()) {
+                    out.add(new Item(rs1.getInt(1), rs1.getString(2)));
                 }
             }
         } catch (Exception ex1) {

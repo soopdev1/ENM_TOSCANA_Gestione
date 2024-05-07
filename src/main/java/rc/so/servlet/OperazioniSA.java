@@ -8,8 +8,6 @@ package rc.so.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.gson.JsonObject;
-import rc.so.db.Action;
-import static rc.so.db.Action.insertTR;
 import rc.so.db.Database;
 import rc.so.db.Entity;
 import rc.so.domain.Allievi;
@@ -22,7 +20,6 @@ import rc.so.domain.Condizione_Lavorativa;
 import rc.so.domain.Docenti;
 import rc.so.domain.DocumentiPrg;
 import rc.so.domain.Documenti_Allievi;
-import rc.so.domain.Email;
 import rc.so.domain.Faq;
 import rc.so.domain.FasceDocenti;
 import rc.so.domain.Formagiuridica;
@@ -53,19 +50,13 @@ import rc.so.util.FaseA;
 import rc.so.util.FaseB;
 import rc.so.util.Lezione;
 import rc.so.util.Pdf_new;
-import static rc.so.util.Pdf_new.checkFirmaQRpdfA;
 import rc.so.util.Registro_completo;
-import rc.so.util.SendMailJet;
 import rc.so.util.Utility;
 import static rc.so.util.Utility.conversionText;
 import static rc.so.util.Utility.copyR;
-import static rc.so.util.Utility.createDir;
-import static rc.so.util.Utility.estraiEccezione;
-import static rc.so.util.Utility.getRequestValue;
 import static rc.so.util.Utility.getStartPath;
 import static rc.so.util.Utility.parseDouble;
 import static rc.so.util.Utility.patternComplete;
-import static rc.so.util.Utility.redirect;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -81,7 +72,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -93,17 +83,26 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import org.json.JSONObject;
+import static rc.so.db.Action.insertTR;
 import rc.so.domain.Presenze_Lezioni;
 import rc.so.domain.Presenze_Lezioni_Allievi;
+import rc.so.entity.Item;
+import static rc.so.util.Pdf_new.checkFirmaQRpdfA;
 import static rc.so.util.Utility.calcolaMillis;
+import static rc.so.util.Utility.createDir;
 import static rc.so.util.Utility.estraiAllieviOK;
+import static rc.so.util.Utility.estraiEccezione;
+import static rc.so.util.Utility.getRequestValue;
 import static rc.so.util.Utility.parseIntR;
 import static rc.so.util.Utility.parseLong;
+import static rc.so.util.Utility.redirect;
 
 /**
  *
@@ -144,7 +143,7 @@ public class OperazioniSA extends HttpServlet {
                 us.getSoggettoAttuatore().setCell_sa(request.getParameter("cell_sa"));
                 us.getSoggettoAttuatore().setIndirizzo(request.getParameter("indirizzo"));
                 us.getSoggettoAttuatore().setCap(request.getParameter("cap"));
-                us.getSoggettoAttuatore().setComune((Comuni) e.getEm().find(Comuni.class, Long.parseLong(request.getParameter("comune"))));
+                us.getSoggettoAttuatore().setComune((Comuni) e.getEm().find(Comuni.class, Long.valueOf(request.getParameter("comune"))));
                 us.getSoggettoAttuatore().setNome(request.getParameter("nome"));
                 us.getSoggettoAttuatore().setCognome(request.getParameter("cognome"));
                 us.getSoggettoAttuatore().setNro_documento(request.getParameter("nrodocumento"));
@@ -197,7 +196,7 @@ public class OperazioniSA extends HttpServlet {
         String idcomune = request.getParameter("idcomune");
         String cod;
         Entity e = new Entity();
-        Comuni comune = e.getComune(Long.parseLong(idcomune));
+        Comuni comune = e.getComune(Long.valueOf(idcomune));
         e.close();
         if (comune != null) {
             cod = comune.getIstat();
@@ -425,8 +424,6 @@ public class OperazioniSA extends HttpServlet {
 
         String qrcrop = e.getPath("qr_crop");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
         JsonObject resp = new JsonObject();
         User us = (User) request.getSession().getAttribute("user");
         try {
@@ -461,7 +458,7 @@ public class OperazioniSA extends HttpServlet {
                 a1.setStatopartecipazione((StatoPartecipazione) e.getEm().find(StatoPartecipazione.class,
                         "13"));
                 if (salvataggio) {
-                    boolean modello1OK = false;
+                    boolean modello1OK;
                     String erroremodello1OK = "MODELLO 1 ERRATO. CONTROLLARE.";
                     TipoDoc_Allievi modello1 = tipo_doc.stream().filter(m1 -> m1.getId() == 3L).findAny().orElse(null);
                     Part p = request.getPart("doc_" + modello1.getId());
@@ -578,10 +575,7 @@ public class OperazioniSA extends HttpServlet {
         Entity e = new Entity();
         e.begin();
         Allievi a = e.getEm().find(Allievi.class,
-                Long.parseLong(getRequestValue(request, "id")));
-        boolean domiciliouguale = a.getIndirizzodomicilio().equalsIgnoreCase(a.getIndirizzoresidenza())
-                && a.getCivicodomicilio().equalsIgnoreCase(a.getCivicoresidenza())
-                && a.getComune_domicilio().getId().equals(a.getComune_residenza().getId());
+                Long.valueOf(getRequestValue(request, "id")));
 
         User us = (User) request.getSession().getAttribute("user");
         File downloadFile = Pdf_new.MODELLO1(e, "3", us.getUsername(), us.getSoggettoAttuatore(), a, new DateTime(), true);
@@ -629,7 +623,7 @@ public class OperazioniSA extends HttpServlet {
         String today = sdf2.format(new Date());
 
         Allievi a = e.getEm().find(Allievi.class,
-                Long.parseLong(getRequestValue(request, "id")));
+                Long.valueOf(getRequestValue(request, "id")));
 
         boolean modello1OK = false;
         String erroremodello1OK = "MODELLO 1 ERRATO. CONTROLLARE.";
@@ -688,10 +682,10 @@ public class OperazioniSA extends HttpServlet {
         e.begin();
         String qrcrop = e.getPath("qr_crop");
         ModelliPrg m = e.getEm().find(ModelliPrg.class,
-                Long.parseLong(getRequestValue(request, "idmodello")));
+                Long.valueOf(getRequestValue(request, "idmodello")));
         String idpr = getRequestValue(request, "idpr");
         ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
-                Long.parseLong(idpr));
+                Long.valueOf(idpr));
 
         //verifica se ci sono almeno 4 allievi totali - almeno un allievo deve fare la fase B
         int size = pr.getAllievi().stream().filter(al1 -> al1.getGruppo_faseB() > 0).collect(Collectors.toList()).size();
@@ -1133,7 +1127,7 @@ public class OperazioniSA extends HttpServlet {
                 Entity e = new Entity();
                 e.begin();
                 DocumentiPrg mod = e.getEm().find(ProgettiFormativi.class,
-                        Long.parseLong(idpr)).getDocumenti().stream().filter(d1
+                        Long.valueOf(idpr)).getDocumenti().stream().filter(d1
                         -> d1.getTipo().getId() == 33L).findAny().orElse(null);
                 if (mod != null) {
                     downloadFile = new File(mod.getPath());
@@ -1355,7 +1349,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
 
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("idal")));
+                    Long.valueOf(request.getParameter("idal")));
             String codicefiscale = request.getParameter("codicefiscale");
             if (e.getAllievoCF(codicefiscale) == null || codicefiscale.equals(a.getCodicefiscale())) {
 
@@ -1366,18 +1360,18 @@ public class OperazioniSA extends HttpServlet {
 //                    p.write(path);
 //                }
                 Nazioni_rc nazionenascita = (Nazioni_rc) e.getEm().find(Nazioni_rc.class,
-                        Long.parseLong(request.getParameter("cittadinanza")));
+                        Long.valueOf(request.getParameter("cittadinanza")));
                 a.setCittadinanza(nazionenascita);
 
 //                if (request.getParameter("stato").equalsIgnoreCase("99")) {
-//                    a.setComune_nascita((Comuni) e.getEm().find(Comuni.class, Long.parseLong(request.getParameter("comunenascita"))));
+//                    a.setComune_nascita((Comuni) e.getEm().find(Comuni.class, Long.valueOf(request.getParameter("comunenascita"))));
 //                } else {
 //                    a.setComune_nascita(e.getComunibyIstat(nazionenascita));
 //                }
                 a.setStato_nascita(request.getParameter("stato").equalsIgnoreCase("-") ? "100" : request.getParameter("stato"));
                 if (a.getStato_nascita().equals("100")) {
                     a.setComune_nascita(e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comunenascita"))));
+                            Long.valueOf(request.getParameter("comunenascita"))));
                 } else {
                     Comuni statoEstero = e.byIstatEstero(a.getStato_nascita());
                     if (statoEstero == null) {
@@ -1405,20 +1399,20 @@ public class OperazioniSA extends HttpServlet {
                 a.setIndirizzoresidenza(conversionText(request.getParameter("indirizzores")));
                 a.setCapresidenza(request.getParameter("capres"));
                 a.setComune_residenza((Comuni) e.getEm().find(Comuni.class,
-                        Long.parseLong(request.getParameter("comuneres"))));
+                        Long.valueOf(request.getParameter("comuneres"))));
 
                 if (request.getParameter("checkind") != null) {
                     a.setIndirizzodomicilio(conversionText(request.getParameter("indirizzores")));
                     a.setCivicodomicilio(request.getParameter("civicores").toUpperCase());
                     a.setCapdomicilio(request.getParameter("capres"));
                     a.setComune_domicilio((Comuni) e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comuneres"))));
+                            Long.valueOf(request.getParameter("comuneres"))));
                 } else {
                     a.setCapdomicilio(request.getParameter("capdom"));
                     a.setIndirizzodomicilio(conversionText(request.getParameter("indirizzodom").toUpperCase()));
                     a.setCivicodomicilio(request.getParameter("civicodom").toUpperCase());
                     a.setComune_domicilio((Comuni) e.getEm().find(Comuni.class,
-                            Long.parseLong(request.getParameter("comunedom"))));
+                            Long.valueOf(request.getParameter("comunedom"))));
                 }
 
 //                a.setDocid(path);
@@ -1431,16 +1425,16 @@ public class OperazioniSA extends HttpServlet {
                 a.setDatacpi(sdf.parse(request.getParameter("datacpi")));
                 //29-04-2020 MODIFICA - CONDIZIONE LAVORATIVA PRECEDENTE
                 a.setCondizione_lavorativa((Condizione_Lavorativa) e.getEm().find(Condizione_Lavorativa.class,
-                        Integer.parseInt(request.getParameter("condizione_lavorativa"))));
+                        parseIntR(request.getParameter("condizione_lavorativa"))));
                 a.setNeet(e.getEm().find(Condizione_Lavorativa.class,
-                        Integer.parseInt(request.getParameter("condizione_lavorativa"))).getDescrizione());
+                        parseIntR(request.getParameter("condizione_lavorativa"))).getDescrizione());
                 a.setEmail(request.getParameter("email"));
                 a.setSesso(Integer.parseInt(request.getParameter("codicefiscale").substring(9, 11)) > 40 ? "F" : "M");
 
                 a.setCanale((Canale) e.getEm().find(Canale.class,
-                        Integer.parseInt(request.getParameter("conoscenza"))));
+                        parseIntR(request.getParameter("conoscenza"))));
                 a.setMotivazione((Motivazione) e.getEm().find(Motivazione.class,
-                        Integer.parseInt(request.getParameter("motivazione"))));
+                        parseIntR(request.getParameter("motivazione"))));
                 a.setPrivacy2(request.getParameter("prv2") != null ? "SI" : "NO");
                 a.setPrivacy3(request.getParameter("prv3") != null ? "SI" : "NO");
                 e.merge(a);
@@ -1472,7 +1466,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
 
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             Part p = request.getPart("cartaid");
             String path = a.getDocid();
             File dir = new File(path);
@@ -1566,7 +1560,7 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             Docenti d = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
 
             String path = e.getPath("pathDoc_Docenti").replace("@docente", d.getCodicefiscale());
             createDir(path);
@@ -1602,7 +1596,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             Date scadenza = request.getParameter("scadenza") != null ? new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("scadenza")) : null;
             DocumentiPrg d = e.getEm().find(DocumentiPrg.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             p.write(d.getPath());
             d.setScadenza(scadenza);
 
@@ -1637,9 +1631,9 @@ public class OperazioniSA extends HttpServlet {
         Entity e = new Entity();
         try {
             ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("idprogetto")));
+                    Long.valueOf(request.getParameter("idprogetto")));
             TipoDoc tipo = e.getEm().find(TipoDoc.class,
-                    Long.parseLong(request.getParameter("id_tipo")));
+                    Long.valueOf(request.getParameter("id_tipo")));
             List<TipoDoc> tipo_obb = e.getTipoDocObbl(prg.getStato());
             List<DocumentiPrg> doc_list = e.getDocPrg(prg);
             User us = (User) request.getSession().getAttribute("user");
@@ -1766,11 +1760,11 @@ public class OperazioniSA extends HttpServlet {
 //        boolean dates_modified = false;
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("id_progetto")));
+                    Long.valueOf(request.getParameter("id_progetto")));
 
             if (p.getStato().getModifiche().getNome() == 1) {
                 p.setNome(e.getEm().find(NomiProgetto.class,
-                        Long.parseLong(request.getParameter("nome_pf"))));
+                        Long.valueOf(request.getParameter("nome_pf"))));
             }
             if (p.getStato().getModifiche().getDescrizione() == 1) {
                 p.setDescrizione(request.getParameter("descrizione_pf"));
@@ -1786,7 +1780,7 @@ public class OperazioniSA extends HttpServlet {
             }
             if (p.getStato().getModifiche().getSede() == 1) {
                 p.setSede(e.getEm().find(SediFormazione.class,
-                        Long.parseLong(request.getParameter("sede"))));
+                        Long.valueOf(request.getParameter("sede"))));
             }
             if (p.getStato().getModifiche().getAllievi() == 1) {
                 List<Allievi> allievi_old = e.getAllieviProgettiFormativi(p);
@@ -1795,7 +1789,7 @@ public class OperazioniSA extends HttpServlet {
                 for (String s : request.getParameterValues("allievi[]")) {
                     now_allievi++;
                     Allievi a = e.getEm().find(Allievi.class,
-                            Long.parseLong(s));
+                            Long.valueOf(s));
                     a.setProgetto(p);
                     allievi_old.remove(a);
                     e.merge(a);
@@ -1804,7 +1798,7 @@ public class OperazioniSA extends HttpServlet {
                     al.setProgetto(null);
                     e.merge(al);
                 }
-                modified = modified ? true : allievi_old.size() > 0;
+                modified = modified ? true : !allievi_old.isEmpty();
                 modified = modified ? true : now_allievi > prev_allievi;
             }
 
@@ -1867,7 +1861,7 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("id_progetto")));
+                    Long.valueOf(request.getParameter("id_progetto")));
             List<Docenti> docenti_old = e.getDocentiPrg(p);
             List<Docenti> docenti_list = new ArrayList();
             ArrayList<DocumentiPrg> documenti = new ArrayList();
@@ -1886,7 +1880,7 @@ public class OperazioniSA extends HttpServlet {
 
             for (String s : request.getParameterValues("docenti[]")) {
                 d = e.getEm().find(Docenti.class,
-                        Long.parseLong(s));
+                        Long.valueOf(s));
                 docenti_list.add(d);
                 if (!docenti_old.contains(d)) {
                     name = "DocId_" + today + "_" + d.getId() + d.getDocId().substring(d.getDocId().lastIndexOf("."));
@@ -1959,7 +1953,7 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             Date today = new Date();
             checkResult check = checkScadenze(p);
             if (p.getStato().getId().equals("ATA") || check.result) {
@@ -2013,7 +2007,7 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             //String stato = p.getStato().getId().replace("E", "");
             a.setEsito(request.getParameter("esito"));
             e.merge(a);
@@ -2039,9 +2033,9 @@ public class OperazioniSA extends HttpServlet {
         Entity e = new Entity();
         try {
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("idallievo")));
+                    Long.valueOf(request.getParameter("idallievo")));
             TipoDoc_Allievi tipo = e.getEm().find(TipoDoc_Allievi.class,
-                    Long.parseLong("5"));  //da cambiare
+                    Long.valueOf("5"));  //da cambiare
             List<TipoDoc_Allievi> tipo_obb = e.getTipoDocAllieviObbl(a.getProgetto().getStato());
             List<TipoDoc> tipo_obb_prg = e.getTipoDocObbl(a.getProgetto().getStato());
             Documenti_Allievi doc_a = new Documenti_Allievi();
@@ -2052,7 +2046,7 @@ public class OperazioniSA extends HttpServlet {
             Date orariostart_pomeriggio = request.getParameter("orario2_start") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
             Date orarioend_pomeriggio = request.getParameter("orario2_end") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
             Docenti docente = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("docente")));
+                    Long.valueOf(request.getParameter("docente")));
 
             User us = (User) request.getSession().getAttribute("user");
 
@@ -2163,11 +2157,11 @@ public class OperazioniSA extends HttpServlet {
             Date orariostart_pomeriggio = request.getParameter("orario2_start") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
             Date orarioend_pomeriggio = request.getParameter("orario2_end") != null && Boolean.parseBoolean(request.getParameter("check")) ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
             Docenti docente = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("docente")));
+                    Long.valueOf(request.getParameter("docente")));
 
             e.begin();
             Documenti_Allievi doc = e.getEm().find(Documenti_Allievi.class,
-                    Long.parseLong(request.getParameter("iddocumento")));
+                    Long.valueOf(request.getParameter("iddocumento")));
             List<Allievi> allieviprg = e.getAllieviProgettiFormativi(doc.getAllievo().getProgetto());
             List<TipoDoc> tipo_obb_prg = e.getTipoDocObbl(doc.getAllievo().getProgetto().getStato());
             //se è cambiato, scrivo il file su disco
@@ -2255,10 +2249,10 @@ public class OperazioniSA extends HttpServlet {
         Entity e = new Entity();
         try {
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("idallievo")));
+                    Long.valueOf(request.getParameter("idallievo")));
             //ProgettiFormativi prg = a.getProgetto();
             TipoDoc_Allievi tipo = e.getEm().find(TipoDoc_Allievi.class,
-                    Long.parseLong(request.getParameter("id_tipo")));
+                    Long.valueOf(request.getParameter("id_tipo")));
             List<TipoDoc_Allievi> tipo_obb = e.getTipoDocAllieviObbl(a.getProgetto().getStato());
             List<TipoDoc> tipo_obb_prg = e.getTipoDocObbl(a.getProgetto().getStato());
             User us = (User) request.getSession().getAttribute("user");
@@ -2285,7 +2279,7 @@ public class OperazioniSA extends HttpServlet {
             if (request.getParameter("prestiti") != null && request.getParameter("protocollo") != null) {
                 a.setProtocollo(request.getParameter("protocollo"));
                 a.setSelfiemployement((Selfiemployment_Prestiti) e.getEm().find(Selfiemployment_Prestiti.class,
-                        Long.parseLong(request.getParameter("prestiti"))));
+                        Long.valueOf(request.getParameter("prestiti"))));
                 e.merge(a);
             }
             //se carico il MODELLO 8 setto il valore in Allievo
@@ -2378,12 +2372,12 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             //se carico il MODELLO SE setto il valore in Allievo
             Documenti_Allievi d = e.getEm().find(Documenti_Allievi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             Allievi a = e.getEm().find(Allievi.class,
                     d.getAllievo().getId());
             if (request.getParameter("prestiti") != null && request.getParameter("protocollo") != null) {
                 a.setSelfiemployement((Selfiemployment_Prestiti) e.getEm().find(Selfiemployment_Prestiti.class,
-                        Long.parseLong(request.getParameter("prestiti"))));
+                        Long.valueOf(request.getParameter("prestiti"))));
                 a.setProtocollo(request.getParameter("protocollo"));
                 e.merge(a);
             }
@@ -2418,7 +2412,7 @@ public class OperazioniSA extends HttpServlet {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         try {
             List<Documenti_Allievi> docs = e.getDocAllievo(e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("idallievo"))));
+                    Long.valueOf(request.getParameter("idallievo"))));
             for (Documenti_Allievi registro : docs) {
                 if (registro.getTipo().getId() == 5 && registro.getDeleted() == 0) {
                     if (sdf.format(registro.getGiorno()).equals(sdf.format(new Date()))) {
@@ -2451,9 +2445,9 @@ public class OperazioniSA extends HttpServlet {
             TipoDoc t = e.getEm().find(TipoDoc.class,
                     10L);//10 id tipo registro aula.
             ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("idprogetto")));
+                    Long.valueOf(request.getParameter("idprogetto")));
             Docenti docente = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("docente")));
+                    Long.valueOf(request.getParameter("docente")));
             String[] date = request.getParameter("range").split("-");
 
             SimpleDateFormat sdf_time = new SimpleDateFormat("HH:mm");
@@ -2496,7 +2490,7 @@ public class OperazioniSA extends HttpServlet {
             sdf_time.setTimeZone(TimeZone.getTimeZone("CET"));//per fixare l'ora dei presenti
             for (String s : request.getParameterValues("allievi[]")) {
                 a = e.getEm().find(Allievi.class,
-                        Long.parseLong(s));
+                        Long.valueOf(s));
                 in = sdf_time.parse(request.getParameter("time_start_" + a.getId()));
                 out = sdf_time.parse(request.getParameter("time_end_" + a.getId()));
                 presenti.add(new Presenti(a.getId(), a.getNome(), a.getCognome(), in, out, getHour(in, out)));
@@ -2541,14 +2535,14 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             Docenti docente = e.getEm().find(Docenti.class,
-                    Long.parseLong(request.getParameter("docente")));
+                    Long.valueOf(request.getParameter("docente")));
             String[] date = request.getParameter("range").split("-");
 
             SimpleDateFormat sdf_time = new SimpleDateFormat("HH:mm");
             SimpleDateFormat sdf_date = new SimpleDateFormat("dd/MM/yyyy");
 
             DocumentiPrg doc = e.getEm().find(DocumentiPrg.class,
-                    Long.parseLong(request.getParameter("iddoc")));
+                    Long.valueOf(request.getParameter("iddoc")));
 
             doc.setDocente(docente);
             doc.setOrariostart(sdf_time.parse(date[1].trim()));
@@ -2571,7 +2565,7 @@ public class OperazioniSA extends HttpServlet {
             Date in, out;
             for (String s : request.getParameterValues("allievi[]")) {
                 a = e.getEm().find(Allievi.class,
-                        Long.parseLong(s));
+                        Long.valueOf(s));
                 in = sdf_time.parse(request.getParameter("time_start_" + a.getId()));
                 out = sdf_time.parse(request.getParameter("time_end_" + a.getId()));
                 presenti.add(new Presenti(a.getId(), a.getNome(), a.getCognome(), in, out, getHour(in, out)));
@@ -2826,12 +2820,12 @@ public class OperazioniSA extends HttpServlet {
             Date giorno, orariostart, orarioend;
             if (tipo_modello.equalsIgnoreCase("m3_single") || tipo_modello.equalsIgnoreCase("m4_single")) {
                 d = e.getEm().find(Docenti.class,
-                        Long.parseLong(request.getParameter("docente1")));
+                        Long.valueOf(request.getParameter("docente1")));
                 giorno = request.getParameter("giorno") != null ? new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("giorno")) : null;
                 orariostart = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
                 orarioend = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
                 lm = e.getEm().find(Lezioni_Modelli.class,
-                        Long.parseLong(request.getParameter("id1")));
+                        Long.valueOf(request.getParameter("id1")));
                 lm.setDocente(d);
                 lm.setGiorno(giorno);
                 lm.setOrario_start(orariostart);
@@ -2842,23 +2836,23 @@ public class OperazioniSA extends HttpServlet {
                 giorno = request.getParameter("giorno") != null ? new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("giorno")) : null;
                 //Parte 1 Lezione
                 d = e.getEm().find(Docenti.class,
-                        Long.parseLong(request.getParameter("docente1")));
+                        Long.valueOf(request.getParameter("docente1")));
                 orariostart = request.getParameter("orario1_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_start")) : null;
                 orarioend = request.getParameter("orario1_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario1_end")) : null;
 
                 lm = e.getEm().find(Lezioni_Modelli.class,
-                        Long.parseLong(request.getParameter("id1")));
+                        Long.valueOf(request.getParameter("id1")));
                 lm.setDocente(d);
                 lm.setGiorno(giorno);
                 lm.setOrario_start(orariostart);
                 lm.setOrario_end(orarioend);
                 //Parte 2 Lezione
                 d = unico_docente ? d : e.getEm().find(Docenti.class,
-                        Long.parseLong(request.getParameter("docente2")));
+                        Long.valueOf(request.getParameter("docente2")));
                 orariostart = request.getParameter("orario2_start") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_start")) : null;
                 orarioend = request.getParameter("orario2_end") != null ? new SimpleDateFormat("HH:mm").parse(request.getParameter("orario2_end")) : null;
                 Lezioni_Modelli lm2 = e.getEm().find(Lezioni_Modelli.class,
-                        Long.parseLong(request.getParameter("id2")));
+                        Long.valueOf(request.getParameter("id2")));
                 lm2.setDocente(d);
                 lm2.setGiorno(giorno);
                 lm2.setOrario_start(orariostart);
@@ -2891,7 +2885,7 @@ public class OperazioniSA extends HttpServlet {
             String[] gruppi = request.getParameter("gruppi[]").split(",");
             e.begin();
             ModelliPrg m = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("id_modello")));
+                    Long.valueOf(request.getParameter("id_modello")));
 //            ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class, m.getProgetto().getId());
             Allievi a;
 //            int numallievi = 0;
@@ -2949,7 +2943,7 @@ public class OperazioniSA extends HttpServlet {
             Entity e = new Entity();
             e.begin();
             ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("id_prg")));
+                    Long.valueOf(request.getParameter("id_prg")));
 
             File downloadFile = Pdf_new.MODELLO2(e, getRequestValue(request, "modello"), us.getUsername(),
                     us.getSoggettoAttuatore(), p,
@@ -2994,9 +2988,9 @@ public class OperazioniSA extends HttpServlet {
 
                 e.begin();
                 ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                        Long.parseLong(request.getParameter("id_prg")));
+                        Long.valueOf(request.getParameter("id_prg")));
                 DocumentiPrg d = e.getEm().find(DocumentiPrg.class,
-                        Long.parseLong(request.getParameter("idfile")));
+                        Long.valueOf(request.getParameter("idfile")));
                 String newpath = d.getPath() + "_v_" + new DateTime().toString(patternComplete) + "."
                         + ext;
 
@@ -3027,6 +3021,186 @@ public class OperazioniSA extends HttpServlet {
             response.getWriter().close();
         }
 
+    }
+
+    protected void addAula(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String save = getRequestValue(request, "save");
+        String today = new SimpleDateFormat("yyyyMMddHHssSSS").format(new Date());
+        File downloadFile = null;
+        boolean salvataggio = false;
+        if (save.equals("1")) {//MODELLO
+            salvataggio = false;
+        } else if (save.equals("0")) {
+            salvataggio = true;
+        }
+        Database db = new Database(true);
+        List<Item> dispo = db.query_disponibilita_rc();
+        db.closeDB();
+
+        Entity e = new Entity();
+        JsonObject resp = new JsonObject();
+        User us = (User) request.getSession().getAttribute("user");
+        try {
+            e.begin();
+
+            SediFormazione sf = new SediFormazione();
+            sf.setSoggetto(us.getSoggettoAttuatore());
+            sf.setStato("DV");
+            sf.setDenominazione(us.getSoggettoAttuatore().getRagionesociale() + " - SEDE G" + RandomStringUtils.randomNumeric(3));
+
+            Comuni csf = null;
+            try {
+                csf = e.getComune(Long.valueOf(getRequestValue(request, "comune")));
+            } catch (Exception ex2) {
+            }
+            sf.setComune(csf);
+
+            sf.setIndirizzo(new String(getRequestValue(request, "indirizzo").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+
+            sf.setReferente(new String(getRequestValue(request, "responsabile").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            sf.setTelefono(getRequestValue(request, "telresponsabile"));
+            sf.setCellulare(getRequestValue(request, "telresponsabile"));
+            sf.setEmail(getRequestValue(request, "mailresponsabile"));
+
+            JSONObject altridati = new JSONObject();
+            try {
+                int t1 = parseIntR(getRequestValue(request, "titolo"));
+                altridati.put("titolo", dispo.stream().filter(d1 -> d1.getCodice() == (t1)).findAny().get().getDescrizione());
+            } catch (Exception ex2) {
+                altridati.put("titolo", new String(getRequestValue(request, "titolo").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            }
+
+            altridati.put("titolo", new String(getRequestValue(request, "responsabile").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            altridati.put("mq", new String(getRequestValue(request, "mq").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+
+            boolean accreditata = getRequestValue(request, "accr").toUpperCase().equals("SI");
+
+            altridati.put("accreditamento", new String(getRequestValue(request, "accr").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            altridati.put("amministrativo", new String(getRequestValue(request, "responsabileAmm").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            altridati.put("mailamministrativo", new String(getRequestValue(request, "mailresponsabileAmm").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+            altridati.put("telamministrativo", new String(getRequestValue(request, "telresponsabileAmm").toUpperCase().getBytes(Charsets.ISO_8859_1), Charsets.UTF_8));
+
+            String path = e.getPath("pathDocSA_Prg").replace("@rssa",
+                    us.getSoggettoAttuatore().getId().toString()).replace("@folder",
+                    "RQ");
+
+            File dir = new File(path);
+            createDir(path);
+
+            //CREA DOCUMENTO
+            if (salvataggio) {
+                String qrcrop = e.getPath("qr_crop");
+                boolean all1OK;
+                String erroreall1OK = "RICHIESTA ACCREDITAMENTO AULA ERRATA. CONTROLLARE.";
+                try {
+                    TipoDoc richiesta = e.getEm().find(TipoDoc.class, 38L);
+                    Part p = request.getPart("doc_" + richiesta.getId());
+                    String ext1 = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
+                    String destpath = dir.getAbsolutePath() + File.separator
+                            + Utility.correctName(richiesta.getDescrizione())
+                            + today + ext1;
+                    p.write(destpath);
+                    File pdfdest = new File(destpath);
+                    String res = checkFirmaQRpdfA("ALLEGATOA1", us.getUsername(),
+                            pdfdest, us.getSoggettoAttuatore().getCodicefiscale(), qrcrop);
+                    if (!res.equals("OK")) {
+                        all1OK = false;
+                        erroreall1OK = res;
+                    } else {
+                        all1OK = true;
+                    }
+
+                    if (all1OK && !accreditata) {
+                        try {
+
+                            TipoDoc allegatoF = e.getEm().find(TipoDoc.class, 12L);
+                            Part p2 = request.getPart("doc_" + allegatoF.getId());
+                            String ext2 = p2.getSubmittedFileName().substring(p2.getSubmittedFileName().lastIndexOf("."));
+                            String destpath2 = dir.getAbsolutePath() + File.separator
+                                    + Utility.correctName(allegatoF.getDescrizione())
+                                    + today + ext2;
+                            p2.write(destpath2);
+                            File pdfdest2 = new File(destpath2);
+                            if (pdfdest2.exists() && pdfdest2.canRead() && pdfdest2.length() > 0) {
+                                all1OK = true;
+                                altridati.put("allegatoF", destpath2.replace("\\", "/"));
+                            } else {
+                                all1OK = false;
+                                erroreall1OK = "ERRORE DURANTE UPLOAD ALLEGATO F.";
+                            }
+                        } catch (Exception ex2) {
+                            e.insertTracking(String.valueOf(us.getId()), "OperazioniSA AddAula: " + ex2.getMessage());
+                            all1OK = false;
+                            erroreall1OK = "ERRORE DURANTE UPLOAD ALLEGATO F.";
+                        }
+
+                    }
+
+                    if (all1OK) {
+                        altridati.put("pathdoc", destpath.replace("\\", "/"));
+                        sf.setAltridati(altridati.toString());
+                        e.persist(sf);
+                        e.commit();
+                        resp.addProperty("result", true);
+                    } else {
+                        e.rollBack();
+                        resp.addProperty("result", false);
+                        resp.addProperty("message", erroreall1OK);
+                    }
+
+                } catch (Exception ex) {
+                    e.rollBack();
+                    resp.addProperty("result", false);
+                    resp.addProperty("message", "RICHIESTA ACCREDITAMENTO AULA ERRATA. " + ex.getMessage() + ". CONTROLLARE.");
+                    insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+                }
+            } else {
+                sf.setAltridati(altridati.toString());
+                String richiesta_accr = dir.getAbsolutePath() + File.separator + "RICH_ACCR_AULA_"
+                        + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".pdf";
+                e.rollBack();
+                downloadFile = Pdf_new.ALLEGATOA1(richiesta_accr, e, us.getUsername(), sf, new DateTime());
+                resp.addProperty("result", true);
+            }
+        } catch (Exception ex) {
+            e.insertTracking(String.valueOf(us.getId()), "OperazioniSA AddAula: " + ex.getMessage());
+            resp.addProperty("result", false);
+            resp.addProperty("message", "Errore: non &egrave; stato possibile aggiungere l'aula.");
+        } finally {
+            e.close();
+        }
+
+        if (salvataggio) {
+            response.getWriter()
+                    .write(resp.toString());
+            response.getWriter()
+                    .flush();
+            response.getWriter()
+                    .close();
+        } else {
+            if (downloadFile != null && downloadFile.exists()) {
+                OutputStream outStream;
+                try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                    String mimeType = probeContentType(downloadFile.toPath());
+                    if (mimeType == null) {
+                        mimeType = "application/octet-stream";
+                    }
+                    response.setContentType(mimeType);
+                    String headerKey = "Content-Disposition";
+                    String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                    response.setHeader(headerKey, headerValue);
+                    outStream = response.getOutputStream();
+                    byte[] buffer = new byte[4096 * 4096];
+                    int bytesRead;
+                    while ((bytesRead = inStream.read(buffer)) != -1) {
+                        outStream.write(buffer, 0, bytesRead);
+                    }
+                }
+                outStream.close();
+            } else {
+                redirect(request, response, request.getContextPath() + "/404.jsp");
+            }
+        }
     }
 
     protected void addDocente(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -3275,12 +3449,12 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             String row = request.getParameter("row");
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf" + row)));
+                    Long.valueOf(request.getParameter("pf" + row)));
             if (request.getParameter("mid_" + row) != null && !request.getParameter("mid_" + row).equalsIgnoreCase("")) {
                 //Aggiornamento Membro
                 title = "Modifica Membro";
                 StaffModelli s = e.getEm().find(StaffModelli.class,
-                        Long.parseLong(request.getParameter("mid_" + row)));
+                        Long.valueOf(request.getParameter("mid_" + row)));
                 s.setNome(request.getParameter("nome" + row));
                 s.setCognome(request.getParameter("cognome" + row));
                 s.setEmail(request.getParameter("email" + row));
@@ -3323,7 +3497,7 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             StaffModelli sm = e.getEm().find(StaffModelli.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             sm.setAttivo(0);
             e.merge(sm);
             e.commit();
@@ -3393,7 +3567,7 @@ public class OperazioniSA extends HttpServlet {
                     File bupl = new File(dir.getAbsolutePath() + File.separator + "business_plan_"
                             + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
                     p.write(bupl.getPath());
-                    
+
                     datimodello.setBusinessplan_presente(true);
                     datimodello.setBusinessplan_path(path.replace("\\", "/"));
                 } catch (Exception ex1) {
@@ -3506,7 +3680,7 @@ public class OperazioniSA extends HttpServlet {
 
             e.begin();
             Docenti d = e.getEm().find(Docenti.class,
-                    Long.parseLong(iddocente));
+                    Long.valueOf(iddocente));
             d.setEmail(email);
             e.merge(d);
             e.commit();
@@ -3538,7 +3712,7 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             MascheraM5 m5 = e.getEm().find(MascheraM5.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             Allievi a = m5.getAllievo();
             TipoDoc_Allievi tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
                     20L);
@@ -3582,7 +3756,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             String qrcrop = e.getPath("qr_crop");
             Allievi a = e.getEm().find(Allievi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             TipoDoc_Allievi tipodoc_m5 = e.getEm().find(TipoDoc_Allievi.class,
                     20L);
             Documenti_Allievi modello5_allievo = a.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0
@@ -3718,7 +3892,7 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             String qrcrop = e.getPath("qr_crop");
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("id")));
+                    Long.valueOf(request.getParameter("id")));
             DocumentiPrg registroComplessivoPresente = pf.getDocumenti().stream().filter(dc -> dc.getDeleted() == 0 && dc.getTipo().getId() == 30L).findFirst().orElse(null);
 
             boolean registroOK;
@@ -3808,7 +3982,7 @@ public class OperazioniSA extends HttpServlet {
 
         try {
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             boolean m6_exist = true;
             int step3_scelta = Integer.parseInt(request.getParameter("scelta_step3"));
             ModelliPrg mod6 = pf.getModelli().stream().filter(s -> s.getModello() == 6).findFirst().orElse(null);
@@ -3823,7 +3997,7 @@ public class OperazioniSA extends HttpServlet {
             if (step3_scelta == 2) {
                 mod6.setIndirizzo_modello6(conversionText(request.getParameter("indirizzo_step3")));
                 mod6.setCivico_modello6(request.getParameter("civico_step3") != null ? request.getParameter("civico_step3") : "");
-                mod6.setComune_modello6(e.getComune(Long.parseLong(request.getParameter("comune_step3"))));
+                mod6.setComune_modello6(e.getComune(Long.valueOf(request.getParameter("comune_step3"))));
             } else {
                 mod6.setIndirizzo_modello6("");
                 mod6.setCivico_modello6("");
@@ -3857,9 +4031,9 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             ModelliPrg m3 = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("modello")));
+                    Long.valueOf(request.getParameter("modello")));
             StatiPrg SOA = e.getEm().find(StatiPrg.class,
                     "SOA");
             pf.setStato(SOA);
@@ -3887,9 +4061,9 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             ModelliPrg m4 = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("modello")));
+                    Long.valueOf(request.getParameter("modello")));
             StatiPrg SOA = e.getEm().find(StatiPrg.class,
                     "SOB");
             pf.setStato(SOA);
@@ -3920,9 +4094,9 @@ public class OperazioniSA extends HttpServlet {
             e.begin();
             String tipo = request.getParameter("tipo");
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             ModelliPrg m = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("modello")));
+                    Long.valueOf(request.getParameter("modello")));
             String track = "deleteAllLessons. Cancellazione lezioni del PF (" + pf.getId() + " - " + tipo + " " + m.getId() + "): ";
 
             for (Lezioni_Modelli l : m.getLezioni()) {
@@ -3963,11 +4137,11 @@ public class OperazioniSA extends HttpServlet {
         try {
             e.begin();
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             ModelliPrg m3 = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("modello")));
+                    Long.valueOf(request.getParameter("modello")));
             Date cancellaDa = e.getEm().find(Lezioni_Modelli.class,
-                    Long.parseLong(request.getParameter("idlezione"))).getGiorno();
+                    Long.valueOf(request.getParameter("idlezione"))).getGiorno();
             String track = "deleteByLesson. Cancellazione lezioni del PF (" + pf.getId() + " - M3 " + m3.getId() + "): ";
             for (Lezioni_Modelli l : m3.getLezioni()) {
                 if (dateTimeComparator.compare(l.getGiorno(), cancellaDa) > -1) {
@@ -4005,15 +4179,15 @@ public class OperazioniSA extends HttpServlet {
             String tipo = request.getParameter("tipo");
             int gruppo = Integer.parseInt(request.getParameter("gruppo"));
             ProgettiFormativi pf = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(request.getParameter("pf")));
+                    Long.valueOf(request.getParameter("pf")));
             ModelliPrg m4 = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(request.getParameter("modello")));
+                    Long.valueOf(request.getParameter("modello")));
             String track = "deleteByGroup. Cancellazione lezioni del PF (" + pf.getId() + " - M4 " + m4.getId() + "): ";
             List<Lezioni_Modelli> lezioni_gruppo = m4.getLezioni().stream().filter(l -> l.getGruppo_faseB() == gruppo).collect(Collectors.toList());
             Date cancellaDa = new Date();
             if (tipo.equalsIgnoreCase("Forward")) {
                 cancellaDa = e.getEm().find(Lezioni_Modelli.class,
-                        Long.parseLong(request.getParameter("idlezione"))).getGiorno();
+                        Long.valueOf(request.getParameter("idlezione"))).getGiorno();
             }
             for (Lezioni_Modelli l : lezioni_gruppo) {
                 if (dateTimeComparator.compare(l.getGiorno(), cancellaDa) > -1) {
@@ -4056,7 +4230,7 @@ public class OperazioniSA extends HttpServlet {
             String idpr = getRequestValue(request, "idpr");
 
             ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(idpr));
+                    Long.valueOf(idpr));
 
             ModelliPrg m4 = Utility.filterModello4(pr.getModelli());
 
@@ -4096,7 +4270,7 @@ public class OperazioniSA extends HttpServlet {
             String idpr = getRequestValue(request, "idpr");
 
             ProgettiFormativi pr = e.getEm().find(ProgettiFormativi.class,
-                    Long.parseLong(idpr));
+                    Long.valueOf(idpr));
 
             ModelliPrg m3 = Utility.filterModello3(pr.getModelli());
 
@@ -4151,7 +4325,7 @@ public class OperazioniSA extends HttpServlet {
             String idmodello = getRequestValue(request, "idmodello");
 
             ModelliPrg m = e.getEm().find(ModelliPrg.class,
-                    Long.parseLong(idmodello));
+                    Long.valueOf(idmodello));
 
             List<LezioneCalendario> lezioniCalendario_m3 = e.getLezioniByModello(3);
             List<LezioneCalendario> lezioniCalendario_m4 = e.getLezioniByModello(4);
@@ -4351,7 +4525,7 @@ public class OperazioniSA extends HttpServlet {
         try {
 
             Entity e = new Entity();
-            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(idpr));
+            ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.valueOf(idpr));
             List<Allievi> allievi = p.getAllievi().stream().filter(al -> al.getStatopartecipazione().getId()
                     .equalsIgnoreCase("13") || al.getStatopartecipazione().getId()
                     .equalsIgnoreCase("14") || al.getStatopartecipazione().getId()
@@ -4419,7 +4593,7 @@ public class OperazioniSA extends HttpServlet {
                             if (user[1].equals(lez)) {
                                 if (Long.parseLong(user[3]) > 0) {
                                     numpartecipanti.addAndGet(1);
-                                    if (Boolean.valueOf(user[2])) {
+                                    if (Boolean.parseBoolean(user[2])) {
                                         orafinedocenti.addAndGet(Double.parseDouble(user[3]));
                                     }
                                 }
@@ -4701,7 +4875,7 @@ public class OperazioniSA extends HttpServlet {
 
         update.stream().filter(up1 -> up1[2].equals("true")).forEach(up1 -> {
             try {
-                Long new_millisrend = Long.parseLong(up1[1]);
+                Long new_millisrend = Long.valueOf(up1[1]);
                 addstart.addAndGet(new_millisrend.doubleValue());
             } catch (Exception ex) {
                 insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
@@ -4716,7 +4890,7 @@ public class OperazioniSA extends HttpServlet {
 
         update.stream().forEach(up1 -> {
             try {
-                Long new_millisrend = Long.parseLong(up1[1]);
+                Long new_millisrend = Long.valueOf(up1[1]);
 
                 DateTime res_datalogout = new DateTime(1, 1, 1, Integer.parseInt(start.split(":")[0]),
                         Integer.parseInt(start.split(":")[1])).plusMillis(new_millisrend.intValue());
@@ -4751,218 +4925,150 @@ public class OperazioniSA extends HttpServlet {
             String type = request.getParameter("type");
             response.setContentType("text/html;charset=UTF-8");
             switch (type) {
-                case "editregistro":
+                case "editregistro" ->
                     editregistro(request, response);
-                    break;
-                case "addregistro":
+                case "addregistro" ->
                     addregistro(request, response);
-                    break;
-                case "modifyEmail":
+                case "modifyEmail" ->
                     modifyEmail(request, response);
-                    break;
-                case "downloadregistro":
+                case "downloadregistro" ->
                     downloadregistro(request, response);
-                    break;
-                case "salvamodello3":
+                case "salvamodello3" ->
                     salvamodello3(request, response);
-                    break;
-                case "scaricamodello3":
+                case "scaricamodello3" ->
                     scaricamodello3(request, response);
-                    break;
-                case "salvamodello4":
+                case "salvamodello4" ->
                     salvamodello4(request, response);
-                    break;
-                case "scaricamodello4":
+                case "scaricamodello4" ->
                     scaricamodello4(request, response);
-                    break;
-                case "updtProfile":
+                case "updtProfile" ->
                     updtProfile(request, response);
-                    break;
-                case "checkCF":
+                case "checkCF" ->
                     checkCF(request, response);
-                    break;
-                case "newAllievo":
+                case "newAllievo" ->
                     newAllievo(request, response);
-                    break;
-                case "updtCartaID":
+                case "updtCartaID" ->
                     updtCartaID(request, response);
-                    break;
-                case "updtAllievo":
+                case "updtAllievo" ->
                     updtAllievo(request, response);
-                    break;
-                case "uploadDocIdDocente":
+                case "uploadDocIdDocente" ->
                     uploadDocIdDocente(request, response);
-                    break;
-                case "uploadCurriculumDocente":
+                case "uploadCurriculumDocente" ->
                     uploadCurriculumDocente(request, response);
-                    break;
-                case "newProgettoFormativo":
+                case "newProgettoFormativo" ->
                     newProgettoFormativo(request, response);
-                    break;
-                case "modifyDoc":
+                case "modifyDoc" ->
                     modifyDoc(request, response);
-                    break;
-                case "uploadDocPrg":
+                case "uploadDocPrg" ->
                     uploadDocPrg(request, response);
-                    break;
-                case "modifyPrg":
+                case "modifyPrg" ->
                     modifyPrg(request, response);
-                    break;
-                case "modifyDocenti":
+                case "modifyDocenti" ->
                     modifyDocenti(request, response);
-                    break;
-                case "goNext":
+                case "goNext" ->
                     goNext(request, response);
-                    break;
-                case "setEsitoAllievo":
+                case "setEsitoAllievo" ->
                     setEsitoAllievo(request, response);
-                    break;
-                case "uploadRegistro":
+                case "uploadRegistro" ->
                     uploadRegistro(request, response);
-                    break;
-                case "modifyRegistro":
+                case "modifyRegistro" ->
                     modifyRegistro(request, response);
-                    break;
-                case "getTotalHoursRegistriByAllievo":
+                case "getTotalHoursRegistriByAllievo" ->
                     getTotalHoursRegistriByAllievo(request, response);
-                    break;
-                case "uploadDocPrg_FaseB":
+                case "uploadDocPrg_FaseB" ->
                     uploadDocPrg_FaseB(request, response);
-                    break;
-                case "modifyDocPrg_FaseB":
+                case "modifyDocPrg_FaseB" ->
                     modifyDocPrg_FaseB(request, response);
-                    break;
-                case "uploadRegistrioAula":
+                case "uploadRegistrioAula" ->
                     uploadRegistrioAula(request, response);
-                    break;
-                case "modifyRegistrioAula":
+                case "modifyRegistrioAula" ->
                     modifyRegistrioAula(request, response);
-                    break;
-                case "checkEmail":
+                case "checkEmail" ->
                     checkEmail(request, response);
-                    break;
-                case "updtCartaIDAD":
+                case "updtCartaIDAD" ->
                     updtCartaIDAD(request, response);
-                    break;
-                case "getCodiceCatastaleComune":
+                case "getCodiceCatastaleComune" ->
                     getCodiceCatastaleComune(request, response);
-                    break;
-                case "deleteRegister":
+                case "deleteRegister" ->
                     deleteRegister(request, response);
-                    break;
-                case "sendAsk":
+                case "sendAsk" ->
                     sendAsk(request, response);
-                    break;
-                case "uploadLezione":
+                case "uploadLezione" ->
                     uploadLezione(request, response);
-                    break;
-                case "updateLezione":
+                case "updateLezione" ->
                     updateLezione(request, response);
-                    break;
-                case "creaGruppi":
+                case "creaGruppi" ->
                     creaGruppi(request, response);
-                    break;
-                case "manageM2":
+                case "manageM2" ->
                     manageM2(request, response);
-                    break;
-                case "addDocente":
+                case "addDocente" ->
                     addDocente(request, response);
-                    break;
-                case "checkEmail_Docente":
+                case "addAula" ->
+                    addAula(request, response);
+                case "checkEmail_Docente" ->
                     checkEmail_Docente(request, response);
-                    break;
-                case "checkCF_Docente":
+                case "checkCF_Docente" ->
                     checkCF_Docente(request, response);
-                    break;
-                case "manageMembriStaff":
+                case "manageMembriStaff" ->
                     manageMembriStaff(request, response);
-                    break;
-                case "deleteMembroStaff":
+                case "deleteMembroStaff" ->
                     deleteMembroStaff(request, response);
-                    break;
-                case "salvamodello5":
+                case "salvamodello5" ->
                     salvamodello5(request, response);
-                    break;
-                case "concludiPrg":
+                case "concludiPrg" ->
                     concludiPrg(request, response);
-                    break;
-                case "deleteModello5Alunno":
+                case "deleteModello5Alunno" ->
                     deleteModello5Alunno(request, response);
-                    break;
-                case "uploadM5Alunno":
+                case "uploadM5Alunno" ->
                     uploadM5Alunno(request, response);
-                    break;
-                case "scaricaModello5":
+                case "scaricaModello5" ->
                     scaricaModello5(request, response);
-                    break;
-                case "scaricaregistrotemp":
+                case "scaricaregistrotemp" ->
                     scaricaregistrotemp(request, response);
-                    break;
-                case "uploadRegistroComplessivo":
+                case "uploadRegistroComplessivo" ->
                     uploadRegistroComplessivo(request, response);
-                    break;
-                case "scaricamodello6temp":
+                case "scaricamodello6temp" ->
                     scaricamodello6temp(request, response);
-                    break;
-                case "uploadDichiarazioneM6":
+                case "uploadDichiarazioneM6" ->
                     uploadDichiarazioneM6(request, response);
-                    break;
-                case "scaricaModello7":
+                case "scaricaModello7" ->
                     scaricaModello7(request, response);
-                    break;
-                case "abilitaModificaCalendarM3":
+                case "abilitaModificaCalendarM3" ->
                     abilitaModificaCalendarM3(request, response);
-                    break;
-                case "abilitaModificaCalendarM4":
+                case "abilitaModificaCalendarM4" ->
                     abilitaModificaCalendarM4(request, response);
-                    break;
-                case "deleteAllLessons":
+                case "deleteAllLessons" ->
                     deleteAllLessons(request, response);
-                    break;
-                case "deleteByLesson":
+                case "deleteByLesson" ->
                     deleteByLesson(request, response);
-                    break;
-                case "deleteByGroup":
+                case "deleteByGroup" ->
                     deleteByGroup(request, response);
-                    break;
-                case "scaricaModello1":
+                case "scaricaModello1" ->
                     scaricaModello1(request, response);
-                    break;
-                case "uploadModello1":
+                case "uploadModello1" ->
                     uploadModello1(request, response);
-                    break;
-                case "simulacalendario":
+                case "simulacalendario" ->
                     simulacalendario(request, response);
-                    break;
-                case "simulafasea":
+                case "simulafasea" ->
                     simulafasea(request, response);
-                    break;
-                case "simulafaseb":
+                case "simulafaseb" ->
                     simulafaseb(request, response);
-                    break;
-                case "simulaconcludi":
+                case "simulaconcludi" ->
                     simulaconcludi(request, response);
-                    break;
-                case "generaterandomAllievi":
+                case "generaterandomAllievi" ->
                     generaterandomAllievi(request, response);
-                    break;
-                case "generaterandomDocenti":
+                case "generaterandomDocenti" ->
                     generaterandomDocenti(request, response);
-                    break;
-                case "resetdatidemo":
+                case "resetdatidemo" ->
                     resetdatidemo(request, response);
-                    break;
-                case "SALVAPRESENZELEZIONE":
+                case "SALVAPRESENZELEZIONE" ->
                     SALVAPRESENZELEZIONE(request, response);
-                    break;
-                case "SCARICAREGISTROCARTACEOBASE":
+                case "SCARICAREGISTROCARTACEOBASE" ->
                     SCARICAREGISTROCARTACEOBASE(request, response);
-                    break;
-                case "SCARICAREGISTROCARTACEO":
+                case "SCARICAREGISTROCARTACEO" ->
                     SCARICAREGISTROCARTACEO(request, response);
-                    break;
-                default:
-                    break;
+                default -> {
+                }
 
             }
         }

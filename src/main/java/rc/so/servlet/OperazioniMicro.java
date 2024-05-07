@@ -86,6 +86,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.nio.file.Files;
 import static java.nio.file.Files.probeContentType;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
 import static rc.so.db.Action.insertTR;
@@ -849,11 +850,17 @@ public class OperazioniMicro extends HttpServlet {
             //ProgettiFormativi prg = a.getProgetto();
             TipoDoc_Allievi tipo = e.getEm().find(TipoDoc_Allievi.class,
                     Long.valueOf(request.getParameter("id_tipo")));
-            User us = (User) request.getSession().getAttribute("user");
-
+            String idS;
+            try {
+                idS = a.getSoggetto().getId().toString();
+            } catch (Exception ex2) {
+                idS  = RandomStringUtils.random(3);
+            }
+            
             e.begin();
             //creao il path
-            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", us.getSoggettoAttuatore().getId().toString()).replace("@folder", Utility.correctName(a.getCodicefiscale()));
+            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", 
+                    idS).replace("@folder", Utility.correctName(a.getCodicefiscale()));
             File dir = new File(path);
             createDir(path);
             String file_path;

@@ -339,16 +339,37 @@
                                 className: 'text-center',
                                 orderable: false,
                                 render: function (data, type, row, meta) {
-
                                     if (tipouser === "2" && row.stato === "DV") {
                                         var option = '<div class="dropdown dropdown-inline">'
                                                 + '<button type="button" class="btn btn-icon btn-sm btn-icon-md btn-circle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'
                                                 + '   <i class="flaticon-more-1"></i>'
                                                 + '</button>'
                                                 + '<div class="dropdown-menu dropdown-menu-left">';
+                                        if (row.atridati !== undefined && row.atridati !== null && row.atridati !== 'null') {
+                                            var formnuovo = '<form target="_blank" id="frfad_' + row.id + '" method="post" action="<%=request.getContextPath()%>/OperazioniMicro">' +
+                                                    '<input type="hidden" name="type" value="scaricamodelloa1"/> ' +
+                                                    '<input type="hidden" name="aula" value="' + row.id + '"/> ' +
+                                                    '</form>';
+                                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="return document.getElementById(\'frfad_' + row.id +
+                                                    '\').submit();"><i class="fa fa-file-pdf" style="margin-top:-2px"></i> Visualizza Richiesta</a>' + formnuovo;
+                                        }
                                         option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="validateAula(' + row.id + ',1)"><i class="fa fa-check kt-font-success" style="margin-top:-2px"></i>Accredita</a>';
                                         option += '<a class="dropdown-item kt-font-success" href="javascript:void(0);" onclick="validateAula(' + row.id + ',2)"><i class="fa fa-check kt-font-success" style="margin-top:-2px"></i>Accredita per massimo 8 allievi</a>';
                                         option += '<a class="dropdown-item kt-font-danger" href="javascript:void(0);" onclick="rejectAula(' + row.id + ')"><i class="flaticon2-delete kt-font-danger" style="margin-top:-2px"></i>Rigetta</a>';
+                                        option += '</div></div>';
+                                        return option;
+                                    } else if (row.atridati !== undefined && row.atridati !== null && row.atridati !== 'null') {
+                                        var option = '<div class="dropdown dropdown-inline">'
+                                                + '<button type="button" class="btn btn-icon btn-sm btn-icon-md btn-circle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'
+                                                + '   <i class="flaticon-more-1"></i>'
+                                                + '</button>'
+                                                + '<div class="dropdown-menu dropdown-menu-left">';
+                                        var formnuovo = '<form target="_blank" id="frfad_' + row.id + '" method="post" action="<%=request.getContextPath()%>/OperazioniMicro">' +
+                                                '<input type="hidden" name="type" value="scaricamodelloa1"/> ' +
+                                                '<input type="hidden" name="aula" value="' + row.id + '"/> ' +
+                                                '</form>';
+                                        option += '<a class="dropdown-item" href="javascript:void(0);" onclick="return document.getElementById(\'frfad_' + row.id +
+                                                '\').submit();"><i class="fa fa-file-pdf" style="margin-top:-2px"></i> Visualizza Richiesta</a>' + formnuovo;
                                         option += '</div></div>';
                                         return option;
                                     } else {

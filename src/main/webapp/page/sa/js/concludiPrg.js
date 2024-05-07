@@ -658,6 +658,7 @@ function misuraindividuata(idal) {
     if (misura === "NO") {
         $('#MISURANO_' + idal).toggle(true);
         $('#MISURASI_' + idal).toggle(false);
+        
     } else {
         $('#MISURASI_' + idal).toggle(true);
         $('#MISURANO_' + idal).toggle(false);
