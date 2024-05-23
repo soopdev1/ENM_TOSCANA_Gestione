@@ -1435,7 +1435,7 @@ public class Pdf_new {
                                 setFieldsValue(form, fields, "DATAB" + indiceb.get() + "_" + indicigiorniB.get(), lezione);
 
                                 Lezioni_Modelli lm1 = m4.getLezioni().stream().filter(l1 -> new DateTime(l1.getGiorno())
-                                        .toString("dd/MM/yyyy").equals(lezione)).findAny().orElse(null);
+                                        .toString("dd/MM/yyyy").equals(lezione) && indiceb.get() == l1.getGruppo_faseB()).findAny().orElse(null);
                                 if (lm1 == null) {
                                     setFieldsValue(form, fields, "TIPOB" + indiceb.get() + "_" + indicigiorniB.get(), "-");
                                 } else {

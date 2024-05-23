@@ -274,6 +274,15 @@ function step2_load(dati) {
     }
 }
 
+$('input[type="checkbox"][id^=output_]').on('change', function () {
+    step3_calc();
+});
+
+function step3_calc() {
+    let allievi_output_ok = $('input[type="checkbox"][id^=output_]:checked').length;
+    $('#allievi_output_ok').val(allievi_output_ok);
+}
+
 function step3_load(dati) {
     let tempID = 0;
     $('a[id^=ammissione_]').each(function () {
@@ -311,6 +320,7 @@ function step3_load(dati) {
     } else {
         $('#step3_ko').show();
     }
+    step3_calc();
     resizeNota();
 }
 

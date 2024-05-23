@@ -695,7 +695,10 @@
                                                                     <div class="form-group">
                                                                         <div class="row" id="totalsrow">
                                                                             <div class="col-lg-6 col-sm-12 col-md-6"><b>Numero Allievi con output conforme</b></div>
-                                                                            <div class="col-lg-6 col-sm-12 col-md-6"><input style="background-color: #e8f0ff!important; font-weight: 600;" class="form-control kt-font-io" disabled="disabled" type="text" id="allievi_output_ok" name="allievi_output_ok" /></div>
+                                                                            <div class="col-lg-6 col-sm-12 col-md-6">
+                                                                                <input style="background-color: #e8f0ff!important; font-weight: 600;" 
+                                                                                       class="form-control kt-font-io" disabled="disabled" 
+                                                                                       type="text" id="allievi_output_ok" name="allievi_output_ok" /></div>
                                                                         </div>
                                                                     </div> 
                                                                     <br>
@@ -936,8 +939,7 @@
         <script src="<%=src%>/assets/vendors/general/inputmask/dist/inputmask/jquery.inputmask.js" type="text/javascript"></script>
         <script src="<%=src%>/resource/jquery.maskMoney.js" type="text/javascript"></script>
 
-        <script src="https://cdn.tiny.cloud/1/x58q84nl0ol5hipr98106p13ns8tn6unummy0pcynuezjrhf/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-
+        <script src="https://cdn.tiny.cloud/1/<%=Action.getTinyMCE()%>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
         <script id="compileCL" src="<%=src%>/page/mc/js/compileCL.js<%="?dummy=" + String.valueOf(new Date().getTime())%>" data-context="<%=request.getContextPath()%>" type="text/javascript"></script>
         <script type="text/javascript">
 

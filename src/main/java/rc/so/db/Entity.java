@@ -710,6 +710,11 @@ public class Entity {
         q.setParameter("progetto", p);
         return q.getResultList();
     }
+    public List<Allievi> getAllieviOK(ProgettiFormativi p) {
+        TypedQuery<Allievi> q = em.createNamedQuery("a.byProgettoOK", Allievi.class);
+        q.setParameter("progetto", p);
+        return q.getResultList();
+    }
 
     public List<StatiPrg> getStatiPrg() {
         return (List<StatiPrg>) this.em.createNamedQuery("statiPrg.Tipo").getResultList();

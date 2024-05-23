@@ -30,9 +30,9 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "13";
+        String idpr = "39";
 //        String idall = "2469";
-        String usernameSA = "TST";
+        String usernameSA = "STST";
 
         Entity e = new Entity();
         e.begin();
@@ -104,12 +104,13 @@ public class GeneraDoc {
 //        });
         ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
         if (m6 != null) {
-            File f6 = Pdf_new.MODELLO6(e,
+            File f6 = Pdf_new.MODELLO6(                    
+                    e,
                     usernameSA,
                     prg.getSoggetto(),
                     prg, m6, 
-                    new DateTime(), true);
-
+                    new DateTime(),
+                    true);
             System.out.println(f6.getPath());
         }
 //        Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) prg.getId());

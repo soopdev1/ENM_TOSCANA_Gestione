@@ -377,6 +377,12 @@ public class Action {
         db.closeDB();
         return listuser.toLowerCase().contains(listuser.toLowerCase());
     }
+    public static String getTinyMCE() {
+        Database db = new Database(false);
+        String tiny = db.getPathtemp("tiny.mce");
+        db.closeDB();
+        return tiny;
+    }
 
     public static List<Registro_completo> registro_modello6(String idpr) {
         Database db = new Database(false);

@@ -427,13 +427,14 @@ public class QueryMicro extends HttpServlet {
                         NONINSERITA.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
                         presenze_t.add(NONINSERITA);
                     } else {
-                        Presenze_Lezioni_Allievi pla;
-                        try {
-                            pla = presenze_pr.stream().filter(p1
-                                    -> p1.getPresenzelezioni().getIdpresenzelezioni()
-                                            .equals(pl1.getIdpresenzelezioni())).findAny().orElse(null);
-                        } catch (Exception ex2) {
-                            pla = null;
+                        Presenze_Lezioni_Allievi pla = null;
+                        for(Presenze_Lezioni_Allievi l1 : presenze_pr){
+                            if (l1.getPresenzelezioni() != null && l1.getPresenzelezioni().getIdpresenzelezioni() != null) {
+                                if(l1.getPresenzelezioni().getIdpresenzelezioni().equals(pl1.getIdpresenzelezioni())){
+                                    pla = l1;
+                                    break;
+                                }
+                            }
                         }
                         
                       

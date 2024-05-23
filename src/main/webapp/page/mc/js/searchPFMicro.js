@@ -346,7 +346,7 @@ var DatatablesAllievi = function () {
                                 var select = "<select class='form-control kt-select2-general' id='" + idselect + "' name='presenzeconvalidate' style='width: 100%'>";
                                 select += "<option value='-1'>ASSENZA NON GIUSTIFICATA</option>";
                                 select += "<option value='0'>ASSENZA GIUSTIFICATA</option>";
-                                for (var i = 0.5; i < 8.5; i = i + 0.5) {
+                                for (var i = 0; i < 6; i = i + 1) {
                                     if (i <= row.durata / 3600000) {
                                         select += "<option value='" + i + "'>" + Number(i + "").toLocaleString("it-IT", {minimumFractionDigits: 1}).replace(/[.,]0$/, "") + "</option>";
                                     }
