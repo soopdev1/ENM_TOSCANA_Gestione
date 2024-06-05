@@ -216,7 +216,12 @@ function recap() {
     $('#recap_totfa_allievi_P').val($('#fa_total_P').val());
     
     $('#recap_totfb_allievi').val($('#fb_total').val());
+    $('#recap_totfb_allievi_G').val($('#fb_total_G').val());
+    $('#recap_totfb_allievi_P').val($('#fb_total_P').val());
+
     $('#recap_totfa_docenti').val($('#dc_total').val());
+    $('#recap_totfa_docenti_G').val($('#dc_total_G').val());
+    $('#recap_totfa_docenti_P').val($('#dc_total_P').val());
 
     $('#recap_maxammissibile').val($('#maxammissibile').val());
     $('#recap_cond30').val($('#cond30').val());

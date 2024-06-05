@@ -30,17 +30,23 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "39";
-//        String idall = "2469";
-        String usernameSA = "STST";
+        String idpr = "213";
+        String idall = "597";
+        String usernameSA = "ASUDPALERMO";
 
         Entity e = new Entity();
         e.begin();
         ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
                 Long.valueOf(idpr));
 
-//        Allievi al = e.getEm().find(Allievi.class, 
-//                Long.valueOf(idall));
+        Allievi al = e.getEm().find(Allievi.class,
+                Long.valueOf(idall));
+
+        File m1 = Pdf_new.MODELLO1(e, "3", usernameSA,
+                al.getSoggetto(), al,
+                new DateTime(),
+                true);
+        System.out.println(m1.getPath());
 //            Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, 2L);
 //            File f1 = Pdf_new.REGISTROCARTACEO(e, "rcc", lm, new DateTime());
 //        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
@@ -102,17 +108,17 @@ public class GeneraDoc {
 //            }
 //
 //        });
-        ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
-        if (m6 != null) {
-            File f6 = Pdf_new.MODELLO6(                    
-                    e,
-                    usernameSA,
-                    prg.getSoggetto(),
-                    prg, m6, 
-                    new DateTime(),
-                    true);
-            System.out.println(f6.getPath());
-        }
+//        ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
+//        if (m6 != null) {
+//            File f6 = Pdf_new.MODELLO6(                    
+//                    e,
+//                    usernameSA,
+//                    prg.getSoggetto(),
+//                    prg, m6, 
+//                    new DateTime(),
+//                    true);
+//            System.out.println(f6.getPath());
+//        }
 //        Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) prg.getId());
 //        File f7 = Pdf_new.MODELLO7(e, usernameSA, al, Utility.roundFloatAndFormat(oreRendicontabili.get(al.getId()), true),
 //                new DateTime(), true);

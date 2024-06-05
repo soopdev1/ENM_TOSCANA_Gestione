@@ -81,17 +81,17 @@ var KTDatatablesDataSourceAjaxServer = function () {
 
 
 
-                        if (row.stato.id === "P" || 
-                                row.stato.id === "DC" || 
+                        if (row.stato.id === "P" ||
+                                row.stato.id === "DC" ||
                                 row.stato.id === "ATA" ||
-                                row.stato.id === "ATB" || 
-                                row.stato.id === "SOA" || 
-                                row.stato.id === "SOB" || 
-                                row.stato.id === "F" || 
-                                row.stato.id === "DVB" || 
-                                row.stato.id === "IV" || 
-                                row.stato.id === "CK" || 
-                                row.stato.id === "EVI" || 
+                                row.stato.id === "ATB" ||
+                                row.stato.id === "SOA" ||
+                                row.stato.id === "SOB" ||
+                                row.stato.id === "F" ||
+                                row.stato.id === "DVB" ||
+                                row.stato.id === "IV" ||
+                                row.stato.id === "CK" ||
+                                row.stato.id === "EVI" ||
                                 row.stato.id === "CO"
                                 ) {
                             option += '<a class="dropdown-item fancyBoxNoRef" href="showModelli.jsp?id=' + row.id + '"><i class="fa fa-file-alt"></i> Visualizza Lezioni Modelli 3 e 4</a>';
@@ -99,9 +99,11 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalTableStory(' + row.id + ')"><i class="fa fa-clipboard-list"></i> Visualizza Storico Progetto</a>';
 
                         if (typeuser === "2") {
-                            //if (row.pdfunico !== null) {
-                            //    option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPdfUnicoAllievi(' + row.id + ')"><i class="fa fa-file-pdf" style="margin-top:-2px"></i> Scarica PDF per ANPAL</a>';
-                            //}
+                            if (row.pdfunico !== null) {
+                                option += '<a class="dropdown-item" href="'
+                                        + context + '/OperazioniGeneral?type=downloadDoc&path='
+                                        + row.pdfunico + '"><i class="fa fa-file-archive" style="margin-top:-2px"></i> Scarica Archivio Documenti</a>';
+                            }
                             if (row.stato.id === "IV") {
                                 //option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalMappaAllievi(' + row.id + ')"><i class="fa fa-check" style="margin-top:-2px"></i> Mappatura</a>';
                                 option += '<a class="dropdown-item kt-font-success" href="compileCL.jsp?id=' + row.id + '" ><i class="fa fa-file-excel kt-font-success"></i> Compila Checklist Finale</a>';
@@ -346,7 +348,7 @@ var DatatablesAllievi = function () {
                                 var select = "<select class='form-control kt-select2-general' id='" + idselect + "' name='presenzeconvalidate' style='width: 100%'>";
                                 select += "<option value='-1'>ASSENZA NON GIUSTIFICATA</option>";
                                 select += "<option value='0'>ASSENZA GIUSTIFICATA</option>";
-                                for (var i = 0; i < 6; i = i + 1) {
+                                for (var i = 1; i < 6; i = i + 1) {
                                     if (i <= row.durata / 3600000) {
                                         select += "<option value='" + i + "'>" + Number(i + "").toLocaleString("it-IT", {minimumFractionDigits: 1}).replace(/[.,]0$/, "") + "</option>";
                                     }
@@ -415,9 +417,9 @@ var DatatablesAllievi = function () {
                                 + '</button>'
                                 + '<div class="dropdown-menu dropdown-menu-left">';
                         option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalDocumentAllievo(' + row.id + ');"><i class="fa fa-file-alt"></i> Visualizza Documenti</a>';
-                        if (row.statopartecipazione.id === "9" || row.statopartecipazione.id === "11" || 
+                        if (row.statopartecipazione.id === "9" || row.statopartecipazione.id === "11" ||
                                 row.statopartecipazione.id === "16" || row.statopartecipazione.id === "17") {
-                        }else{
+                        } else {
                             option += '<a class="dropdown-item" href="javascript:void(0);" onclick="swalPresenzeAllievo(' + row.id + ');"><i class="fa fa-calendar-alt"></i> Visualizza Presenze</a>';
                         }
                         option += '<a class="dropdown-item " href="javascript:void(0);" onclick="swalSigma(' + row.id + ',\'' + row.statopartecipazione.id +

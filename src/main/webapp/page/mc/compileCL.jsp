@@ -836,11 +836,11 @@
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo FASE B ALLIEVI PATTO</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi" style="font-weight: 500;" />
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi_P" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo FASE B ALLIEVI GOL</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi" style="font-weight: 500;" />
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfb_allievi_G" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo FASE B ALLIEVI</label>
@@ -848,11 +848,11 @@
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo Fase A DOCENZA PATTO</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti" style="font-weight: 500;" />
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti_P" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo Fase A DOCENZA GOL</label>
-                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti" style="font-weight: 500;" />
+                                                                            <input type="text" disabled class="form-control info-input kt-font-io" id="recap_totfa_docenti_G" style="font-weight: 500;" />
                                                                         </div>
                                                                         <div class="form-group col-lg-4 col-sm-12 col-md-4">
                                                                             <label>Totale Contributo Fase A DOCENZA</label>
