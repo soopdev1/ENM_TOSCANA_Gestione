@@ -2676,6 +2676,7 @@ public class OperazioniMicro extends HttpServlet {
                     cfinal.setDc_total_P(parseDouble(getRequestValue(request, "dc_total_P")));
                     cfinal.setTab_neet_fa(Utility.createJsonCL(request.getParameter("fa_controllo_ore")));
                     cfinal.setTab_neet_fb(Utility.createJsonCL(request.getParameter("fb_controllo_ore")));
+                    cfinal.setTab_docenza_fa(Utility.createJsonCL(request.getParameter("dc_controllo_ore")));
                     if (cfinal.getStep() < 3) {
                         cfinal.setStep(3);
                     }

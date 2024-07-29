@@ -479,7 +479,7 @@ public class QueryMicro extends HttpServlet {
                             if (pla == null) {
 
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
-                                        -> new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
+                                        -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
 
                                 Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
                                 ASSENTE.setDatalezione(temp.getGiorno());
@@ -579,7 +579,7 @@ public class QueryMicro extends HttpServlet {
                             if (pla == null) {
 
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
-                                        -> new DateTime(p1.getDatainserimento()).withMillisOfDay(0)
+                                        -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0)
                                                 .isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0)))
                                         .findAny().orElse(null);
 

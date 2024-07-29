@@ -610,18 +610,28 @@
                                                                     <div class="form-group" id="allievi_faseA">
                                                                         <div class="row">
                                                                             <div class="col-4"><b>Docenti</b></div>
-                                                                            <div class="col-3"><b>Controllo Ore Presenze Docente</b></div>
-                                                                            <div class="col-3"><b>Importo Orario Riconosciuto</b></div>
+                                                                            <div class="col-2"><b>Ore Presenze Docente</b></div>
+                                                                            <div class="col-2"><b>Controllo Ore Presenze Docente</b></div>
+                                                                            <div class="col-2"><b>Importo Orario Riconosciuto</b></div>
                                                                             <div class="col-2"><b>Totale</b></div>
                                                                         </div>
                                                                         <%for (Docenti al : docenti_tab) {
                                                                         %>
                                                                         <div class="row" id="dcrow_<%=al.getId()%>">
                                                                             <div class="col-4"><%=al.getNome()%> <%=al.getCognome()%></div>
-                                                                            <div class="col-3"><input class="form-control decimal_custom" disabled="disabled" type="text" 
+                                                                            <div class="col-2"><input class="form-control decimal_custom" disabled="disabled" type="text" 
                                                                                                       value="<%=al.getOrec_faseA()%>" name="dc_ore_<%=al.getId()%>" id="dc_ore_<%=al.getId()%>" /></div>
-                                                                            <div class="col-3"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom"  disabled="disabled" type="text" value="<%=fasceDocenti.get(al.getFascia().getId())%>" name="dc_coeff_<%=al.getId()%>" id="dc_coeff_<%=al.getId()%>" /></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" class="form-control decimal_custom" disabled="disabled" type="text" name="dc_tot_<%=al.getId()%>" id="dc_tot_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input class="form-control decimal_custom obbligatory kt-font-bold kt-font-danger ctrl" type="text" 
+                                                                                                      value="<%=al.getOrec_faseA()%>" 
+                                                                                                      name="dc_controllo_ore_<%=al.getId()%>" 
+                                                                                                      id="dc_controllo_ore_<%=al.getId()%>" /></div>                          
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" 
+                                                                                                      class="form-control decimal_custom"  disabled="disabled" type="text" 
+                                                                                                      value="<%=fasceDocenti.get(al.getFascia().getId())%>" 
+                                                                                                      name="dc_coeff_<%=al.getId()%>" id="dc_coeff_<%=al.getId()%>" /></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(237, 243, 255)!important;" 
+                                                                                                      class="form-control decimal_custom" disabled="disabled" type="text" 
+                                                                                                      name="dc_tot_<%=al.getId()%>" id="dc_tot_<%=al.getId()%>" /></div>
                                                                         </div>
                                                                         <%}%>
                                                                         <div class="row">
@@ -630,17 +640,18 @@
                                                                                                       class="form-control decimal_custom kt-font-io" disabled="disabled" 
                                                                                                       type="text" id="dc_total" name="dc_total" /></div>
                                                                         </div>
-                                                                        <div class="row">
-                                                                            <div class="col-10 kt-align-right"><b>Totale docenza FASE A - PATTO</b></div>
-                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
-                                                                                                      class="form-control decimal_custom kt-font-io" disabled="disabled" 
-                                                                                                      type="text" id="dc_total_P" name="dc_total_P" /></div>
-                                                                        </div>
+                                                                        
                                                                         <div class="row">
                                                                             <div class="col-10 kt-align-right"><b>Totale docenza FASE A - GOL</b></div>
                                                                             <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
                                                                                                       class="form-control decimal_custom kt-font-io" disabled="disabled" 
                                                                                                       type="text" id="dc_total_G" name="dc_total_G" /></div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-10 kt-align-right"><b>Totale docenza FASE A - PATTO</b></div>
+                                                                            <div class="col-2"><input style="background-color: rgb(219, 230, 253)!important;font-weight: 600;" 
+                                                                                                      class="form-control decimal_custom kt-font-io" disabled="disabled" 
+                                                                                                      type="text" id="dc_total_P" name="dc_total_P" /></div>
                                                                         </div>
                                                                     </div> 
 

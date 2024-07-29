@@ -3533,54 +3533,63 @@ public class OperazioniSA extends HttpServlet {
             Allievi a = e.getEm().find(Allievi.class, Long.valueOf(getRequestValue(request, "id_allievo")));
             datimodello.setAllievo(a);
             datimodello.setProgetto_formativo(a.getProgetto());
-            datimodello.setGrado_completezza(getRequestValue(request, "grado_completezza"));
-            datimodello.setProbabilita(getRequestValue(request, "probabilita"));
 
-            datimodello.setForma_giuridica(e.getEm().find(Formagiuridica.class,
-                    parseIntR(getRequestValue(request, "forma_giuridica"))));
-            datimodello.setAteco(e.getEm().find(Ateco.class,
-                    getRequestValue(request, "ateco")));
+            String grado_completezza_BP = getRequestValue(request, "grado_completezza");
 
-            datimodello.setSede(getRequestValue(request, "sede").equals("SI"));
+            datimodello.setGrado_completezza(grado_completezza_BP);
 
-            datimodello.setComune_localizzazione(e.getEm().find(Comuni.class,
-                    Utility.parseLongR(getRequestValue(request, "comune"))));
+            if (grado_completezza_BP.equals("00")) {
+                datimodello.setBusinessplan_presente(false);
+                
+            } else {
+                datimodello.setProbabilita(getRequestValue(request, "probabilita"));
 
-            datimodello.setTotale_fabbisogno(parseDouble(getRequestValue(request, "totale_fabbisogno")));
+                datimodello.setForma_giuridica(e.getEm().find(Formagiuridica.class,
+                        parseIntR(getRequestValue(request, "forma_giuridica"))));
+                datimodello.setAteco(e.getEm().find(Ateco.class,
+                        getRequestValue(request, "ateco")));
 
-            datimodello.setMisura_individuata(getRequestValue(request, "misura_individuata").equals("SI"));
-            datimodello.setMisura_no_motivazione(getRequestValue(request, "misura_no_motivazione"));
-            datimodello.setMisura_si_nome((getRequestValue(request, "misura_si_nome")));
-            datimodello.setMisura_si_tipo(getRequestValue(request, "misura_si_tipo"));
-            datimodello.setMisura_si_motivazione(getRequestValue(request, "misura_si_motivazione"));
+                datimodello.setSede(getRequestValue(request, "sede").equals("SI"));
 
-            Part p = request.getPart("doc");
-            if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
-                try {
+                datimodello.setComune_localizzazione(e.getEm().find(Comuni.class,
+                        Utility.parseLongR(getRequestValue(request, "comune"))));
 
-                    String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
-                            .replace("@folder", a.getCodicefiscale());
-                    File dir = new File(path);
-                    createDir(path);
-                    String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
-                    path += "business_plan_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
-                    File bupl = new File(dir.getAbsolutePath() + File.separator + "business_plan_"
-                            + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
-                    p.write(bupl.getPath());
+                datimodello.setTotale_fabbisogno(parseDouble(getRequestValue(request, "totale_fabbisogno")));
 
-                    datimodello.setBusinessplan_presente(true);
-                    datimodello.setBusinessplan_path(path.replace("\\", "/"));
-                } catch (Exception ex1) {
+                datimodello.setMisura_individuata(getRequestValue(request, "misura_individuata").equals("SI"));
+                datimodello.setMisura_no_motivazione(getRequestValue(request, "misura_no_motivazione"));
+                datimodello.setMisura_si_nome((getRequestValue(request, "misura_si_nome")));
+                datimodello.setMisura_si_tipo(getRequestValue(request, "misura_si_tipo"));
+                datimodello.setMisura_si_motivazione(getRequestValue(request, "misura_si_motivazione"));
+
+                Part p = request.getPart("doc");
+                if (p != null && p.getSubmittedFileName() != null && p.getSubmittedFileName().length() > 0) {
+                    try {
+
+                        String path = e.getPath("pathDocSA_Allievi").replace("@rssa", Utility.correctName(us.getSoggettoAttuatore().getId() + ""))
+                                .replace("@folder", a.getCodicefiscale());
+                        File dir = new File(path);
+                        createDir(path);
+                        String ext = p.getSubmittedFileName().substring(p.getSubmittedFileName().lastIndexOf("."));
+                        path += "business_plan_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext;
+                        File bupl = new File(dir.getAbsolutePath() + File.separator + "business_plan_"
+                                + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "_" + a.getCodicefiscale() + ext);
+                        p.write(bupl.getPath());
+
+                        datimodello.setBusinessplan_presente(true);
+                        datimodello.setBusinessplan_path(path.replace("\\", "/"));
+                    } catch (Exception ex1) {
+                        ok = false;
+                        resp.addProperty("result", false);
+                        resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
+                        e.insertTracking("System", "ERROR BUSINESS PLAN: " + Utility.estraiEccezione(ex1));
+                    }
+
+                } else {
                     ok = false;
                     resp.addProperty("result", false);
                     resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
-                    e.insertTracking("System", "ERROR BUSINESS PLAN: " + Utility.estraiEccezione(ex1));
                 }
-
-            } else {
-                ok = false;
-                resp.addProperty("result", false);
-                resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
             }
 
             if (ok) {

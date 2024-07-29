@@ -84,36 +84,37 @@ var KTDatatablesDataSourceAjaxServer = function () {
                             if (row.controllable === 1) {
                                 option += '<a class="dropdown-item" href="javascript:void(0);" onclick="confirmNext(' + row.id + ',\'' + row.stato.id + '\')"> Manda avanti la pratica &nbsp;<i class="fa fa-angle-double-right" style="margin-top:-2px"></i></a>';
                             }
-
-                            if (row.stato.id === "P" || row.stato.id === "SOA" || row.stato.id === "SOB") {
-                                option += '<a class="dropdown-item fancyBoxReload" href="newStaff.jsp?id=' + row.id + '"><i class="flaticon-users-1"></i> Inserisci membri Staff</a>';
-                            }
-                            if ((row.stato.id === "P" || row.stato.id === "DCE" || row.stato.id === "SOA") && row.modello2_check === 0) {
-                                //modello 3 con invio a MC
-                                option += '<a class="dropdown-item fancyBoxFullReload" href="modello3.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 3 e Conferma</a>';
-                            } else if (row.stato.id === "ATA") {
-                                option += '<a class="dropdown-item fancyBoxFullReload" href="modello3.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 3</a>';
-                            }
-
-                            //TEST modello 4
-                            if (row.stato.id === "ATA" || row.stato.id === "SOB") {
-                                if (mapM4_start.has(row.id) && (today >= moment(new Date(mapM4_start.get(row.id))).format('YYYY-MM-DD'))) {
-                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
-                                } else {
-                                    option += '<a class="dropdown-item kt-font-danger" href="#" style="cursor:not-allowed!important" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Il caricamento del Modello 4 sarà disponibile una volta completata la fase A ('
-                                            + formattedDate(new Date(mapM4_start.get(row.id)))
-                                            + ')"><i class="fa fa-calendar-check kt-font-danger"></i> Carica Modello 4 e Conferma</a>';
+                            if (row.modello2_check === 0) {
+                                if (row.stato.id === "P" || row.stato.id === "SOA" || row.stato.id === "SOB") {
+                                    option += '<a class="dropdown-item fancyBoxReload" href="newStaff.jsp?id=' + row.id + '"><i class="flaticon-users-1"></i> Inserisci membri Staff</a>';
                                 }
-                            } else if (row.stato.id === "ATB") {
-                                option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 4</a>';
-                                if (demoversion === 'true') {
-                                    option += '<a class="dropdown-item kt-font-dark" href="javascript:void(0);" onclick="simulafaseB(' + row.id +
-                                            ')"> SIMULA lezioni Fase B &nbsp;<i class="fa fa-angle-double-right kt-font-dark" style="margin-top:-2px"></i></a>';
+                                if ((row.stato.id === "P" || row.stato.id === "DCE" || row.stato.id === "SOA") && row.modello2_check === 0) {
+                                    //modello 3 con invio a MC
+                                    option += '<a class="dropdown-item fancyBoxFullReload" href="modello3.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 3 e Conferma</a>';
+                                } else if (row.stato.id === "ATA") {
+                                    option += '<a class="dropdown-item fancyBoxFullReload" href="modello3.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 3</a>';
                                 }
-                            
-                            } else if (row.stato.id === "F") {
-                                option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza Calendario Modello 4</a>';
-                                option += '<a class="dropdown-item" href="concludiPrg.jsp?id=' + row.id + '"><i class="fa fa-angle-double-right"></i> Concludi Progetto</a>';
+
+                                //TEST modello 4
+                                if (row.stato.id === "ATA" || row.stato.id === "SOB") {
+                                    if (mapM4_start.has(row.id) && (today >= moment(new Date(mapM4_start.get(row.id))).format('YYYY-MM-DD'))) {
+                                        option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Carica Modello 4 e Conferma</a>';
+                                    } else {
+                                        option += '<a class="dropdown-item kt-font-danger" href="#" style="cursor:not-allowed!important" data-container="body" data-html="true" data-toggle="kt-tooltip" title="Il caricamento del Modello 4 sarà disponibile una volta completata la fase A ('
+                                                + formattedDate(new Date(mapM4_start.get(row.id)))
+                                                + ')"><i class="fa fa-calendar-check kt-font-danger"></i> Carica Modello 4 e Conferma</a>';
+                                    }
+                                } else if (row.stato.id === "ATB") {
+                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza/Modifica Calendario Modello 4</a>';
+                                    if (demoversion === 'true') {
+                                        option += '<a class="dropdown-item kt-font-dark" href="javascript:void(0);" onclick="simulafaseB(' + row.id +
+                                                ')"> SIMULA lezioni Fase B &nbsp;<i class="fa fa-angle-double-right kt-font-dark" style="margin-top:-2px"></i></a>';
+                                    }
+
+                                } else if (row.stato.id === "F") {
+                                    option += '<a class="dropdown-item fancyBoxReload" href="modello4.jsp?id=' + row.id + '"><i class="fa fa-calendar-check"></i> Visualizza Calendario Modello 4</a>';
+                                    option += '<a class="dropdown-item" href="concludiPrg.jsp?id=' + row.id + '"><i class="fa fa-angle-double-right"></i> Concludi Progetto</a>';
+                                }
                             }
                         }
 
@@ -140,7 +141,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
                         option += '</div></div>';
                         return option;
                     }
-                },{
+                }, {
                     targets: 2,
                     type: 'date-it',
                     render: function (data, type, row, meta) {

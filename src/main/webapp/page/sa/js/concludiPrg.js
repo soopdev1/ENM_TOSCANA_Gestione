@@ -94,7 +94,6 @@ $('.decimal_custom.ctrl').on('change', function () {
     if (this.value.startsWith("9.")) {
         this.value = "9.0";
     }
-    ;
     val = this.value;
     if (this.value === "") {
         val = 0;
@@ -305,41 +304,54 @@ $('a[id^=rendiconta_]').on('click', function () {
             }
         }).then((result) => {
             if (result.value) {
-
-                let grado_completezza = $('#gcbp_' + idal).val();
-                let probabilita = $('#prob_' + idal).val();
-                let forma_giuridica = $('#fg_' + idal).val();
-                let ateco = $('#ateco_' + idal).val();
-                let sede = $('input[type=radio][name=check_sede_' + idal + ']:checked').val();
-                let regione = $('#regione_' + idal).val();
-                let provincia = $('#provincia_' + idal).val();
-                let comune = $('#comune_' + idal).val();
-                let totale_fabbisogno = cleanCurrency($('#tff_' + idal).val());
-                let misura_individuata = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
-                let misura_no_motivazione = $('#no_mot_misura_' + idal).val();
-                let misura_si_nome = $('#den_misura_si_' + idal).val();
-                let misura_si_tipo = $('#tipo_misura_' + idal).val();
-                let misura_si_motivazione = $('#si_mot_misura_' + idal).val();
-
-                showLoad();
                 let fdata = new FormData();
 
-                fdata.append("id_allievo", idal);
-                fdata.append("grado_completezza", grado_completezza);
-                fdata.append("probabilita", probabilita);
-                fdata.append("forma_giuridica", forma_giuridica);
-                fdata.append("ateco", ateco);
-                fdata.append("sede", sede);
-                fdata.append("regione", regione);
-                fdata.append("provincia", provincia);
-                fdata.append("comune", comune);
-                fdata.append("totale_fabbisogno", totale_fabbisogno);
-                fdata.append("misura_individuata", misura_individuata);
-                fdata.append("misura_no_motivazione", misura_no_motivazione);
-                fdata.append("misura_si_nome", misura_si_nome);
-                fdata.append("misura_si_tipo", misura_si_tipo);
-                fdata.append("misura_si_motivazione", misura_si_motivazione);
-                fdata.append("doc", $('#doc_' + idal)[0].files[0]);
+                let grado_completezza = $('#gcbp_' + idal).val();
+
+                if (grado_completezza === "00") {
+                    showLoad();
+                    fdata.append("id_allievo", idal);
+                    fdata.append("grado_completezza", grado_completezza);
+                } else {
+                    showLoad();
+
+                    let probabilita = $('#prob_' + idal).val();
+                    let forma_giuridica = $('#fg_' + idal).val();
+                    let ateco = $('#ateco_' + idal).val();
+                    let sede = $('input[type=radio][name=check_sede_' + idal + ']:checked').val();
+                    let regione = $('#regione_' + idal).val();
+                    let provincia = $('#provincia_' + idal).val();
+                    let comune = $('#comune_' + idal).val();
+                    let totale_fabbisogno = cleanCurrency($('#tff_' + idal).val());
+                    let misura_individuata = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
+                    let misura_no_motivazione = $('#no_mot_misura_' + idal).val();
+                    let misura_si_nome = $('#den_misura_si_' + idal).val();
+                    let misura_si_tipo = $('#tipo_misura_' + idal).val();
+                    let misura_si_motivazione = $('#si_mot_misura_' + idal).val();
+
+                    fdata.append("id_allievo", idal);
+                    fdata.append("grado_completezza", grado_completezza);
+                    fdata.append("probabilita", probabilita);
+                    fdata.append("forma_giuridica", forma_giuridica);
+                    fdata.append("ateco", ateco);
+                    fdata.append("sede", sede);
+                    fdata.append("regione", regione);
+                    fdata.append("provincia", provincia);
+                    fdata.append("comune", comune);
+                    fdata.append("totale_fabbisogno", totale_fabbisogno);
+                    fdata.append("misura_individuata", misura_individuata);
+                    fdata.append("misura_no_motivazione", misura_no_motivazione);
+                    fdata.append("misura_si_nome", misura_si_nome);
+                    fdata.append("misura_si_tipo", misura_si_tipo);
+                    fdata.append("misura_si_motivazione", misura_si_motivazione);
+                    fdata.append("doc", $('#doc_' + idal)[0].files[0]);
+
+                }
+
+
+
+
+
                 $.ajax({
                     type: "POST",
                     url: context + '/OperazioniSA?type=salvamodello5',
@@ -653,12 +665,22 @@ $('button[id^=dichiarazione_]').click(function () {
 });
 
 
+function BPPRESENTE(idal) {
+    var BPPRESENTE = $('#gcbp_' + idal).val();
+
+    if (BPPRESENTE === "00") {
+        $('#BPPRESENTE_' + idal).toggle(false);
+    } else {
+        $('#BPPRESENTE_' + idal).toggle(true);
+    }
+}
+
 function misuraindividuata(idal) {
     var misura = $('input[type=radio][name=check_misura_' + idal + ']:checked').val();
     if (misura === "NO") {
         $('#MISURANO_' + idal).toggle(true);
         $('#MISURASI_' + idal).toggle(false);
-        
+
     } else {
         $('#MISURASI_' + idal).toggle(true);
         $('#MISURANO_' + idal).toggle(false);

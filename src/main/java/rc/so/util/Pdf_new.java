@@ -5,7 +5,6 @@
  */
 package rc.so.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Ints;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
@@ -48,9 +47,6 @@ import rc.so.domain.TipoDoc_Allievi;
 import rc.so.domain.TitoliStudio;
 import rc.so.entity.Item;
 import rc.so.entity.OreId;
-import static rc.so.util.Utility.checkPDF;
-import static rc.so.util.Utility.createDir;
-import static rc.so.util.Utility.estraiEccezione;
 import static rc.so.util.Utility.estraiSessodaCF;
 import static rc.so.util.Utility.getOnlyStrings;
 import static rc.so.util.Utility.get_eta;
@@ -117,6 +113,7 @@ import org.bouncycastle.util.Store;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import rc.so.domain.SediFormazione;
+import static rc.so.util.Utility.OM;
 import static rc.so.util.Utility.checkPDF;
 import static rc.so.util.Utility.createDir;
 import static rc.so.util.Utility.estraiEccezione;
@@ -697,16 +694,9 @@ public class Pdf_new {
             String[] datiSA = db.estrai_dati_permodello6(sa.getId());
             db.closeDB();
 
-            List<Allievi> allievi_totali = e.getAllieviProgettiFormativiAll(pf);
             List<Allievi> allievi_OK = e.getAllieviProgettiFormativi(pf);
             List<Docenti> docenti_tab = Utility.docenti_A(e, pf);
             int soglia = Utility.parseIntR(e.getPath("soglia.allegato7"));
-            String coeff_fa = e.getPath("coeff.allievo.fasea");
-            String coeff_fb = e.getPath("coeff.allievo.faseb");
-            String coeff_doc = e.getPath("coeff.docente.a");
-
-            int allieviOK = allievi_OK.size();
-            int allieviOKATT = Utility.allieviOKattestato(allievi_OK, soglia);
 
             File pdfOut = new File(startpath + username + "_"
                     + getOnlyStrings(sa.getRagionesociale()) + "_"
@@ -736,9 +726,12 @@ public class Pdf_new {
 
                 setFieldsValue(form, fields, "DATA", dataconsegna.toString(patternITA));
 
-                List<OreId> list_orecontrollatefaseA = Arrays.asList(new ObjectMapper().readValue(pf.getChecklist_finale().getTab_neet_fa(), OreId[].class));
-                List<OreId> list_orecontrollatefaseB = Arrays.asList(new ObjectMapper().readValue(pf.getChecklist_finale().getTab_neet_fb(), OreId[].class));
-
+                List<OreId> list_orecontrollatefaseA = Arrays.asList(OM.readValue(pf.getChecklist_finale().getTab_neet_fa(), OreId[].class));
+                List<OreId> list_orecontrollatefaseB = Arrays.asList(OM.readValue(pf.getChecklist_finale().getTab_neet_fb(), OreId[].class));
+                String ored = pf.getChecklist_finale().getTab_docenza_fa() == null ? "[]" : pf.getChecklist_finale().getTab_docenza_fa();
+                List<OreId> list_orecontrollateDocenti = Arrays.asList(OM.readValue(ored, OreId[].class));
+                
+                 
                 AtomicInteger indice1 = new AtomicInteger(1);
                 allievi_OK.forEach(al1 -> {
                     setFieldsValue(form, fields, "Cognome" + indice1.get(), al1.getCognome().toUpperCase());
@@ -768,8 +761,16 @@ public class Pdf_new {
                             d1.getNome().toUpperCase());
                     setFieldsValue(form, fields, "FASCIAD_A" + indice2.get(),
                             d1.getCodicefiscale().toUpperCase());
-                    setFieldsValue(form, fields, "TOTALED_B" + indice2.get(),
+                    
+                    OreId oredocente = list_orecontrollateDocenti.stream().filter(al2 -> al2.getId().equals(String.valueOf(d1.getId()))).findAny().orElse(null);
+                    if (oredocente == null) {
+                        setFieldsValue(form, fields, "TOTALED_B" + indice2.get(),
                             roundDoubleAndFormat(d1.getOrec_faseA()));
+                    } else {
+                        setFieldsValue(form, fields, "TOTALED_B" + indice2.get(),
+                                roundDoubleAndFormat(parseDouble(oredocente.getOre())));
+                    }
+                    
                     indice2.addAndGet(1);
                 });
 
@@ -843,8 +844,11 @@ public class Pdf_new {
                 setFieldsValue(form, fields, "TERMINATI", String.valueOf(allieviOK));
                 setFieldsValue(form, fields, "ATTESTATI", String.valueOf(allieviOKATT));
 
-                List<OreId> list_orecontrollatefaseA = Arrays.asList(new ObjectMapper().readValue(pf.getChecklist_finale().getTab_neet_fa(), OreId[].class));
-                List<OreId> list_orecontrollatefaseB = Arrays.asList(new ObjectMapper().readValue(pf.getChecklist_finale().getTab_neet_fb(), OreId[].class));
+                List<OreId> list_orecontrollatefaseA = Arrays.asList(OM.readValue(pf.getChecklist_finale().getTab_neet_fa(), OreId[].class));
+                List<OreId> list_orecontrollatefaseB = Arrays.asList(OM.readValue(pf.getChecklist_finale().getTab_neet_fb(), OreId[].class));
+                String ored = pf.getChecklist_finale().getTab_docenza_fa() == null ? "[]" : pf.getChecklist_finale().getTab_docenza_fa();
+                List<OreId> list_orecontrollateDocenti = Arrays.asList(OM.readValue(ored, OreId[].class));
+                
                 AtomicInteger indice1 = new AtomicInteger(1);
 
                 allievi_totali.forEach(al1 -> {
@@ -892,13 +896,25 @@ public class Pdf_new {
                 docenti_tab.forEach(d1 -> {
                     setFieldsValue(form, fields, "COGNOMERow" + indice2.get() + "_2", d1.getCognome().toUpperCase());
                     setFieldsValue(form, fields, "NOMERow" + indice2.get() + "_2", d1.getNome().toUpperCase());
-                    setFieldsValue(form, fields, "CONTROLLO ORE PRESENZE DOCENTE  FASE ARow" + indice2.get(),
-                            roundDoubleAndFormat(d1.getOrec_faseA(), true));
+                    
+                    OreId oredocente = list_orecontrollateDocenti.stream().filter(al2 -> al2.getId().equals(String.valueOf(d1.getId()))).findAny().orElse(null);
+                    double tota = d1.getOrec_faseA() * parseDouble(coeff_fb);
+                    
+                    if (oredocente == null) {
+                        setFieldsValue(form, fields, "CONTROLLO ORE PRESENZE DOCENTE  FASE ARow" + indice2.get(),
+                                roundDoubleAndFormat(d1.getOrec_faseA(), true));
+                    } else {
+                        setFieldsValue(form, fields, "CONTROLLO ORE PRESENZE DOCENTE  FASE ARow" + indice2.get(),
+                                roundDoubleAndFormat(parseDouble(oredocente.getOre()), true));
+                        tota = parseDouble(oredocente.getOre()) * parseDouble(coeff_fb);
+                    }
+                    
+                    
                     setFieldsValue(form, fields, "IMPORTO ORARIO RICONOSCIUTORow" + (indice2.get() + 1) + "_3",
                             roundDoubleAndFormat(parseDouble(coeff_doc), true));
                     setFieldsValue(form, fields, "IMPORTO ORARIO RICONOSCIUTORow" + (indice1.get() + 1) + "_2",
                             roundDoubleAndFormat(parseDouble(coeff_fb), true));
-                    double tota = d1.getOrec_faseA() * parseDouble(coeff_fb);
+                    
                     setFieldsValue(form, fields, "TOTALE FASE ARow" + indice2.get() + "_2",
                             roundDoubleAndFormat(tota, true));
                     indice2.addAndGet(1);

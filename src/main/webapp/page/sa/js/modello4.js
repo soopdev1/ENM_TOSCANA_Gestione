@@ -59,6 +59,9 @@ function setRangeDatesDay(giornoLezione, lezione, gruppo, daytoadd) {
         }
     }
     giornoLezione = giornoLezione === null ? rangeDate_min : giornoLezione;
+    if (giornoLezione > rangeDate_max) {
+        return [rangeDate_min, giornoLezione, giornoLezione];
+    }
     return [rangeDate_min, rangeDate_max, giornoLezione];
 }
 
@@ -365,7 +368,7 @@ function uploadLezione(idprogetto, idm, idl, grp, ud, sedefisica) {
     let days = setRangeDatesDay(null, idl, grp);
 
 //    if (ud.endsWith('4B') || ud.endsWith('5B')) {
-        days = setRangeDatesDay(null, idl, grp, 0);
+    days = setRangeDatesDay(null, idl, grp, 0);
 //    } else {
 //        days = setRangeDatesDay(null, idl, grp, 1);
 //    }
@@ -750,9 +753,9 @@ function buttonsControl(lezioni, calendario, gruppo) {
     }
     cssPage(nrolezioni, gruppo);
     maplezioniD = new Map();
-    maplezioniD = new Map(filterAndGroupByG(tempLezioni, gruppo).map(i => 
-    [i.id, moment(new Date(i.giorno)).format("DD-MM-YYYY") 
-                + " ( Modulo " + i.lezione_calendario.ud1 + ")"]));
+    maplezioniD = new Map(filterAndGroupByG(tempLezioni, gruppo).map(i =>
+        [i.id, moment(new Date(i.giorno)).format("DD-MM-YYYY")
+                    + " ( Modulo " + i.lezione_calendario.ud1 + ")"]));
     if (maplezioniD.size > 0) {
         lessonsEditable = true;
         $('#deleteByGroup_' + gruppo).removeAttr('disabled');
@@ -783,7 +786,7 @@ function loadLezioni() {
 
 function filterAndGroupByG(options, group) {
     return options.reduce(function (res, option) {
-        if (new Date(new Date(option.giorno).toDateString()) >= today 
+        if (new Date(new Date(option.giorno).toDateString()) >= today
                 && option.gruppo_faseB === parseInt(group) && res.filter(e => e.giorno === option.giorno).length === 0) {
             res.push(option);
         }
@@ -950,10 +953,6 @@ function showLezioneSingle(idlezione, l, grp, ud, sedefisica) {
             popup: 'animated bounceInUp'
         },
         onOpen: function () {
-            
-            
-            
-            
             $("#alertmsg_day").html("La modifica è disabilitata in quanto la data della lezione è antecedente ad oggi.");
             $("#warning_day").show();
             $("#tot_hh1").html('Totale ore di lezione da effettuare : <b>' + lez.lezione_calendario.ore + '</b>');

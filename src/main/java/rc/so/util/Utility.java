@@ -1068,11 +1068,10 @@ public class Utility {
 
     public static double parseDouble(String f) {
         try {
-            
-            if(f.contains(",")){
-                f = StringUtils.replace(f, ",", "\\.");
+            if (f.contains(",")) {
+                f = StringUtils.replace(f, ",", ".");
             }
-            
+
             BigDecimal bigDecimal = new BigDecimal(f);
             bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
             return bigDecimal.doubleValue();
@@ -1158,7 +1157,10 @@ public class Utility {
             if (d1 == -1.0) {
                 return -1;
             }
-            long tot = Math.round(d1) * 3600000;
+            BigDecimal bigDecimal = new BigDecimal(d1);
+            bigDecimal = bigDecimal.setScale(2, RoundingMode.HALF_EVEN);
+            double d_tot = bigDecimal.doubleValue() * 3600000.00;
+            long tot = Double.valueOf(d_tot).longValue();
             return tot;
         } catch (Exception e) {
 
@@ -1503,11 +1505,10 @@ public class Utility {
 
             Docenti docente = e.getEm().find(Docenti.class, Long.valueOf(String.valueOf(r1)));
             if (docente != null) {
-
                 AtomicLong totaleA = new AtomicLong(0L);
-
                 docentifaseA.stream().filter(d11 -> d11.getIdutente() == r1).forEach(a1 -> {
                     totaleA.addAndGet(a1.getTotaleorerendicontabili());
+
                 });
                 docente.setOrec_faseA(parseDouble(roundFloatAndFormat(totaleA.get(), true, false)));
                 resp.add(docente);
@@ -1518,4 +1519,13 @@ public class Utility {
         return resp;
     }
 
+    
+    public static final ObjectMapper OM = getOM();
+
+    public static ObjectMapper getOM() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
+        objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION, true);
+        return objectMapper;
+    }
 }
