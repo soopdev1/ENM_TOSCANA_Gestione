@@ -403,15 +403,17 @@ public class QueryMicro extends HttpServlet {
             Database db = new Database(false);
             List<Presenze_Lezioni_Allievi> presenze_fad = db.presenze_fad(a.getId());
             db.closeDB();
-
+            
             //MODELLO 3
             List<LezioneCalendario> lezioniCalendario = e.getLezioniByModello(3);
-//            List<LezioneCalendario> grouppedByLezione = Utility.grouppedByLezione(lezioniCalendario);
             ModelliPrg m3 = Utility.filterModello3(a.getProgetto().getModelli());
             List<Lezioni_Modelli> lezioni = m3.getLezioni();
             List<Date> fadgiàinserite = new ArrayList<>();
             for (LezioneCalendario lez : lezioniCalendario) {
                 Lezioni_Modelli temp = Utility.lezioneFiltered(lezioni, lez.getId());
+                if(temp == null){
+                    continue;
+                }
                 if (!temp.getTipolez().equals("F")) {
                     Presenze_Lezioni pl1 = e.getPresenzeLezione(temp.getId());
                     if (pl1 == null) {
@@ -456,6 +458,7 @@ public class QueryMicro extends HttpServlet {
                             pla.setDatalezione(pl1.getDatalezione());
                             pla.setTipolez("IN PRESENZA");
                             pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                            pla.setAllievo(a);
                             presenze_t.add(pla);
                         }
                     }
@@ -503,6 +506,7 @@ public class QueryMicro extends HttpServlet {
                                 pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
                                 pla.setTipolez("IN FAD");
                                 pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                pla.setAllievo(a);
                                 presenze_t.add(pla);
                             }
                         }
@@ -554,6 +558,7 @@ public class QueryMicro extends HttpServlet {
                             pla.setDatalezione(pl1.getDatalezione());
                             pla.setTipolez("IN PRESENZA");
                             pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                            pla.setAllievo(a);
                             presenze_t.add(pla);
                         }
                     }
@@ -604,6 +609,7 @@ public class QueryMicro extends HttpServlet {
                                 pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
                                 pla.setTipolez("IN FAD");
                                 pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                pla.setAllievo(a);
                                 presenze_t.add(pla);
                             }
                         }
