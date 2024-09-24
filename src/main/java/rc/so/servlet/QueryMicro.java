@@ -403,7 +403,7 @@ public class QueryMicro extends HttpServlet {
             Database db = new Database(false);
             List<Presenze_Lezioni_Allievi> presenze_fad = db.presenze_fad(a.getId());
             db.closeDB();
-            
+
             //MODELLO 3
             List<LezioneCalendario> lezioniCalendario = e.getLezioniByModello(3);
             ModelliPrg m3 = Utility.filterModello3(a.getProgetto().getModelli());
@@ -411,7 +411,7 @@ public class QueryMicro extends HttpServlet {
             List<Date> fadgiàinserite = new ArrayList<>();
             for (LezioneCalendario lez : lezioniCalendario) {
                 Lezioni_Modelli temp = Utility.lezioneFiltered(lezioni, lez.getId());
-                if(temp == null){
+                if (temp == null) {
                     continue;
                 }
                 if (!temp.getTipolez().equals("F")) {
@@ -430,16 +430,15 @@ public class QueryMicro extends HttpServlet {
                         presenze_t.add(NONINSERITA);
                     } else {
                         Presenze_Lezioni_Allievi pla = null;
-                        for(Presenze_Lezioni_Allievi l1 : presenze_pr){
+                        for (Presenze_Lezioni_Allievi l1 : presenze_pr) {
                             if (l1.getPresenzelezioni() != null && l1.getPresenzelezioni().getIdpresenzelezioni() != null) {
-                                if(l1.getPresenzelezioni().getIdpresenzelezioni().equals(pl1.getIdpresenzelezioni())){
+                                if (l1.getPresenzelezioni().getIdpresenzelezioni().equals(pl1.getIdpresenzelezioni())) {
                                     pla = l1;
                                     break;
                                 }
                             }
                         }
-                        
-                      
+
                         if (pla == null) {
                             Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
                             ASSENTE.setDatalezione(pl1.getDatalezione());
@@ -478,9 +477,9 @@ public class QueryMicro extends HttpServlet {
 
                             presenze_t.add(FUTURE);
                         } else {
+
                             Presenze_Lezioni_Allievi pla = presenze_fad.stream().filter(p1 -> p1.getDatalezione().equals(temp.getGiorno())).findAny().orElse(null);
                             if (pla == null) {
-
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
                                         -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
 
@@ -502,12 +501,38 @@ public class QueryMicro extends HttpServlet {
                                 ASSENTE.setAllievo(a);
                                 presenze_t.add(ASSENTE);
                             } else {
-                                pla.setIdpresenzelezioniallievi(temp.getId());
-                                pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
-                                pla.setTipolez("IN FAD");
-                                pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
-                                pla.setAllievo(a);
-                                presenze_t.add(pla);
+                                if (pla.getDurataconvalidata() > 0) {
+
+                                    pla.setIdpresenzelezioniallievi(temp.getId());
+                                    pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                    pla.setTipolez("IN FAD");
+                                    pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                    pla.setAllievo(a);
+                                    presenze_t.add(pla);
+                                } else {
+
+                                    Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
+                                            -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
+
+                                    Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
+                                    ASSENTE.setDatalezione(temp.getGiorno());
+                                    ASSENTE.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                    ASSENTE.setOrainizio(temp.getOrainizio());
+                                    ASSENTE.setOrafine(temp.getOrafine());
+                                    ASSENTE.setDurata(0L);
+                                    if (assenzagiainserita != null) {
+                                        ASSENTE.setDurataconvalidata(assenzagiainserita.getDurataconvalidata());
+                                        ASSENTE.setConvalidata(true);
+                                    } else {
+                                        ASSENTE.setDurataconvalidata(0L);
+                                        ASSENTE.setConvalidata(false);
+                                    }
+                                    ASSENTE.setTipolez("IN FAD");
+                                    ASSENTE.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                    ASSENTE.setAllievo(a);
+                                    presenze_t.add(ASSENTE);
+
+                                }
                             }
                         }
                         fadgiàinserite.add(temp.getGiorno());
@@ -585,7 +610,7 @@ public class QueryMicro extends HttpServlet {
 
                                 Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
                                         -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0)
-                                                .isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0)))
+                                        .isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0)))
                                         .findAny().orElse(null);
 
                                 Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();

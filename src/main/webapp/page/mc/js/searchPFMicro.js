@@ -326,7 +326,7 @@ var DatatablesAllievi = function () {
                     targets: 5,
                     render: function (data, type, row, meta) {
                         if (data) {
-                          //  console.log(row);
+//                            console.log(row);
                             if (row.durataconvalidata > 10) {
                                 var st1 = Number(row.durataconvalidata / 3600000).toLocaleString("it-IT", {minimumFractionDigits: 1}).replace(/[.,]0$/, "");
                                 return st1;
