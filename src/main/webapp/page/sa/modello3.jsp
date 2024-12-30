@@ -173,7 +173,7 @@
                                                 <div class="col-12">
                                                     <div class="alert alert-info" role="alert">
                                                         <div class="alert-text">
-                                                            <i class="fa fa-info-circle"></i> N.B. Prima di caricare il modello è necessario controllare attentamente che le informazioni riportate nel modello siano le medesime dei calendari (data, ora, docenti).
+                                                            <i class="fa fa-info-circle"></i> N.B. Si ricorda che le giornate formative possono essere programmate per un massimo di <b>5</b> ore complessive. Prima di caricare il modello è necessario controllare attentamente che le informazioni riportate nel modello siano le medesime dei calendari (data, ora, docenti).
                                                         </div>
                                                     </div>
                                                 </div>

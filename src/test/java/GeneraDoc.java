@@ -55,11 +55,11 @@ public class GeneraDoc {
 //        ModelliPrg m4 = Utility.filterModello4(prg.getModelli());
 //        File f1 = Pdf_new.MODELLO0(e, "30", al);
 //        System.out.println(f1.getPath());
-//        File f2 = Pdf_new.MODELLO2(e,
-//                            "1",
-//                            usernameSA, prg.getSoggetto(),
-//                            prg,
-//                            prg.getAllievi().stream().filter(a1-> a1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()) , new DateTime(), true);
+        File f2 = Pdf_new.MODELLO2(e,
+                            "1",
+                            usernameSA, prg.getSoggetto(),
+                            prg,
+                            prg.getAllievi().stream().filter(a1-> a1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()) , new DateTime(), true);
 //        
 //        System.out.println(f2.getPath());
         File f3 = Pdf_new.MODELLO3(e,
