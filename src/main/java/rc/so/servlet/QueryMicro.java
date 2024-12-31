@@ -631,11 +631,40 @@ public class QueryMicro extends HttpServlet {
                                 ASSENTE.setAllievo(a);
                                 presenze_t.add(ASSENTE);
                             } else {
-                                pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
-                                pla.setTipolez("IN FAD");
-                                pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
-                                pla.setAllievo(a);
-                                presenze_t.add(pla);
+                                
+                                if (pla.getDurataconvalidata() > 0) {
+
+                                    pla.setIdpresenzelezioniallievi(temp.getId());
+                                    pla.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                    pla.setTipolez("IN FAD");
+                                    pla.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                    pla.setAllievo(a);
+                                    presenze_t.add(pla);
+                                } else {
+
+                                    Presenze_Lezioni_Allievi assenzagiainserita = presenze_pr.stream().filter(p1
+                                            -> p1.getPresenzelezioni() == null && new DateTime(p1.getDatainserimento()).withMillisOfDay(0).isEqual(new DateTime(temp.getGiorno()).withMillisOfDay(0))).findAny().orElse(null);
+
+                                    Presenze_Lezioni_Allievi ASSENTE = new Presenze_Lezioni_Allievi();
+                                    ASSENTE.setDatalezione(temp.getGiorno());
+                                    ASSENTE.setModulo(temp.getLezione_calendario().getUnitadidattica().getCodice());
+                                    ASSENTE.setOrainizio(temp.getOrainizio());
+                                    ASSENTE.setOrafine(temp.getOrafine());
+                                    ASSENTE.setDurata(0L);
+                                    if (assenzagiainserita != null) {
+                                        ASSENTE.setDurataconvalidata(assenzagiainserita.getDurataconvalidata());
+                                        ASSENTE.setConvalidata(true);
+                                    } else {
+                                        ASSENTE.setDurataconvalidata(0L);
+                                        ASSENTE.setConvalidata(false);
+                                    }
+                                    ASSENTE.setTipolez("IN FAD");
+                                    ASSENTE.setFase(temp.getLezione_calendario().getUnitadidattica().getFase());
+                                    ASSENTE.setAllievo(a);
+                                    presenze_t.add(ASSENTE);
+
+                                }
+                                
                             }
                         }
                         fadgiàinserite.add(temp.getGiorno());
