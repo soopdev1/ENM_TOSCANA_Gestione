@@ -1157,7 +1157,7 @@
             up: 'la la-angle-up',
             down: 'la la-angle-down'
         },
-        maxHours: 21,
+        maxHours: 22,
         explicitMode: false
     };
 

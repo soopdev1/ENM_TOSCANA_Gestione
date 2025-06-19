@@ -879,6 +879,19 @@ public class QueryMicro extends HttpServlet {
         }
     }
 
+    protected void verificamatricola(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Entity e = new Entity();
+        ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.valueOf(Utility.getRequestValue(request, "idprogetto")));
+        e.close();
+        String matricola = "";
+        if (p != null && p.getMatricola()!= null) {
+            matricola = p.getMatricola().toUpperCase();
+        }
+        try (PrintWriter out = response.getWriter();) {
+            out.print(matricola);
+        }
+    }
+    
     protected void verificaassegnazione(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Entity e = new Entity();
         ProgettiFormativi p = e.getEm().find(ProgettiFormativi.class, Long.parseLong(Utility.getRequestValue(request, "idprogetto")));
@@ -1068,6 +1081,8 @@ public class QueryMicro extends HttpServlet {
             switch (type) {
                 case "getPresenzeAllievo" ->
                     getPresenzeAllievo(request, response);
+                case "verificamatricola" ->
+                    verificamatricola(request, response);
                 case "verificaassegnazione" ->
                     verificaassegnazione(request, response);
                 case "generatecip" ->

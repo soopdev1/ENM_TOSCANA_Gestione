@@ -56,7 +56,7 @@ function checkorariomax() {
                         $('#' + idoggetto).val(null).trigger('change');
                     }
                     var selectedind = 1;
-                    for (var i = 8; i < 21; i++) {
+                    for (var i = 8; i < 22; i++) {
                         var v1 = new Date('1/1/2000 ' + i + ':00:00');
                         var v2 = new Date('1/1/2000 ' + i + ':30:00');
                         var newOption1 = null;

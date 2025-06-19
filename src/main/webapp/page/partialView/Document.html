@@ -69,74 +69,7 @@
 
 <div id="doc_registro_individiale_ctrlore">
     <div class='input-group'>
-        <div class='col-lg-6 kt-font-io' style="text-align: left; padding-left: 0px; padding-top: 10px!important; padding-bottom: 10px!important;">@msg</div><div class='col-lg-6' style='padding-left: 0px; padding-right: 0px;'><input type='time' class='form-control obbligatory' id='orericonosciute' name='orericonosciute' value='@hh' min='00:00' max='@max' /></div>
-    </div>
-</div>
-
-<div id="doc_registro_aula" class="form-group" style="width: 100%;">
-    <div style="text-align: left; padding-top: 10px!important; padding-bottom: 10px!important;">
-        Giorno e ora lezione
-    </div>
-    <div class="input-group row">
-        <div class="col-lg-4">
-            <input type="text" class="form-control" value="@date" readonly/>
-        </div>
-        <div class="col-lg-4">
-            <input type="text" class="form-control" value="@start" readonly/>
-        </div>
-        <div class="col-lg-4">
-            <input type="text" class="form-control" value="@end" readonly/>
-        </div>
-    </div>
-    <div class="input-group row" style="text-align: left; padding-top: 10px!important; padding-bottom: 10px!important;">
-        <div class="col-lg-4">
-            Ore effettuate<input type="text" class="form-control hour-make" value="@ore" readonly/>
-        </div>
-        <div class="col-lg-4">
-            Ore riconosciute<input type="time" class="form-control obbligatory hour-recognized" name="ore_conv" value="@ore_conv" @readonly/>
-        </div>
-    </div>
-    <div style="text-align: left; padding-top: 10px!important; padding-bottom: 10px!important;">
-        Docente
-    </div>
-    <input type="text" class="form-control" value="@docente" readonly/>
-    <div style="text-align: left; padding-top: 10px!important; padding-bottom: 10px!important;">
-        Presenti:
-    </div>
-    <div class='row'>
-        <div class='col-4'>
-        </div>
-        <div class='col-2'>
-            <label>Ingresso</label>
-        </div>
-        <div class='col-2'>
-            <label>Uscita</label>
-        </div>
-        <div class='col-2'>
-            <label>Ore</label>
-        </div>
-        <div class='col-2'>
-            <label>Ore riconosciute</label>
-        </div>
-    </div>
-    @presenti
-</div>
-
-<div id='div_presenza' class='row'>
-    <div class='col-4'>
-        <input class='form-control' value='@nome' readonly>
-    </div>
-    <div class='col-2'>
-        <input class='form-control' value='@in' readonly/>
-    </div>
-    <div class='col-2'>
-        <input class='form-control' value='@out' readonly/>
-    </div>
-    <div class='col-2'>
-        <input class='form-control hour-make' value='@ore' readonly/>
-    </div>
-    <div class='col-2'>
-        <input type="time" min="0" name="ore_riconsciute_@id" class='form-control hour-recognized obbligatory' value='@ore_riconosciute' @readonly/>
+        <div class='col-lg-6 kt-font-io' style="text-align: left; padding-left: 0px; padding-top: 10px!important; padding-bottom: 10px!important;">@msg</div><div class='col-lg-6' style='padding-left: 0px; padding-right: 0px;'><input type='time' class='form-control obbligatory' id='orericonosciute' name='orericonosciute' value='05:00' min='00:00' max='@max' /></div>
     </div>
 </div>
 

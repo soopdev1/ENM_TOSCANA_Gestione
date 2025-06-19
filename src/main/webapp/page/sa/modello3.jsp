@@ -255,13 +255,6 @@
                                                 <%}%>
                                             </div>
 
-                                            <%if (Utility.demoversion) {%>
-                                            <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>   
-                                            <a href="<%=request.getContextPath()%>/OperazioniSA?type=simulacalendario&modello=3&idpr=<%=p.getId()%>&idmodello=<%=m3.getId()%>" class="btn btn-dark kt-font-bold"><i class="fa fa-user"></i> SIMULA INSERIMENTO CALENDARIO</a>
-                                            <div class="kt-separator kt-separator--border kt-separator--space-xs"></div>
-                                            <%}%>
-
-
                                             <%if (m3.getStato().equals("R")) {%>
                                             <%if (checkStaff < 2) {%>
                                             <br>

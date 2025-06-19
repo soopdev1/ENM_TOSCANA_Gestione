@@ -164,7 +164,7 @@ function changeRegistro(idallievo, iddocumento, idprogetto, totalems) {
                 $('#orario2_start').val(checktime($('#orario2_start').val(), $('#orario1_end').val(), $('#orario2_end').val()));
             });
             $('#orario2_end').change(function (e) {
-                $('#orario2_end').val(checktime($('#orario2_end').val(), $('#orario2_start').val(), '21:00'));
+                $('#orario2_end').val(checktime($('#orario2_end').val(), $('#orario2_start').val(), '22:00'));
             });
             $('#giorno').change(function (e) {
                 checkRegistroAlievoExist(idallievo, $(this).val(), iddocumento);

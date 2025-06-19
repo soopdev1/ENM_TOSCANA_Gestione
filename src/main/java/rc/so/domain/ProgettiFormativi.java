@@ -150,6 +150,11 @@ public class ProgettiFormativi implements Serializable {
     @Column(name = "svolgimento")
     private String svolgimento;
 
+    @Column(name = "matricola")
+    private String matricola;
+    
+    
+    
     //ALTRI
     @Transient
     String fadlink;
@@ -174,6 +179,14 @@ public class ProgettiFormativi implements Serializable {
     
     
     public ProgettiFormativi() {
+    }
+
+    public String getMatricola() {
+        return matricola;
+    }
+
+    public void setMatricola(String matricola) {
+        this.matricola = matricola;
     }
 
     public SediFormazione getSedefisica() {

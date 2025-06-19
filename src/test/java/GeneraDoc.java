@@ -32,7 +32,7 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "99";
+        String idpr = "118";
 //        String idall = "597";
         String usernameSA = "AMMINISTRAZIONE";
 
@@ -51,25 +51,25 @@ public class GeneraDoc {
 //        System.out.println(m1.getPath());
 //            Lezioni_Modelli lm = e.getEm().find(Lezioni_Modelli.class, 2L);
 //            File f1 = Pdf_new.REGISTROCARTACEO(e, "rcc", lm, new DateTime());
-        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
+//        ModelliPrg m3 = Utility.filterModello3(prg.getModelli());
 //        ModelliPrg m4 = Utility.filterModello4(prg.getModelli());
 //        File f1 = Pdf_new.MODELLO0(e, "30", al);
 //        System.out.println(f1.getPath());
-        File f2 = Pdf_new.MODELLO2(e,
-                            "1",
-                            usernameSA, prg.getSoggetto(),
-                            prg,
-                            prg.getAllievi().stream().filter(a1-> a1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()) , new DateTime(), true);
+//        File f2 = Pdf_new.MODELLO2(e,
+//                            "1",
+//                            usernameSA, prg.getSoggetto(),
+//                            prg,
+//                            prg.getAllievi().stream().filter(a1-> a1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()) , new DateTime(), true);
 //        
 //        System.out.println(f2.getPath());
-        File f3 = Pdf_new.MODELLO3(e,
-                            usernameSA,
-                            prg.getSoggetto(),
-                            prg,
-                            prg.getAllievi().stream().filter(p1 -> p1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()),
-                            prg.getDocenti(), m3.getLezioni(), prg.getStaff_modelli().stream().filter(m -> m.getAttivo() == 1).collect(Collectors.toList()),
-                            new DateTime(), true);        
-        System.out.println(f3.getPath());
+//        File f3 = Pdf_new.MODELLO3(e,
+//                            usernameSA,
+//                            prg.getSoggetto(),
+//                            prg,
+//                            prg.getAllievi().stream().filter(p1 -> p1.getStatopartecipazione().getId().equals("15")).collect(Collectors.toList()),
+//                            prg.getDocenti(), m3.getLezioni(), prg.getStaff_modelli().stream().filter(m -> m.getAttivo() == 1).collect(Collectors.toList()),
+//                            new DateTime(), true);        
+//        System.out.println(f3.getPath());
 
 //        Collections.sort(m4.getLezioni(), (emp1, emp2) -> emp1.getGiorno().compareTo(emp2.getGiorno()));
 //        File f4 = Pdf_new.MODELLO4(e, usernameSA, prg.getSoggetto(), prg, prg.getAllievi().stream().filter(p1
@@ -111,17 +111,17 @@ public class GeneraDoc {
 //            }
 //
 //        });
-//        ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
-//        if (m6 != null) {
-//            File f6 = Pdf_new.MODELLO6(                    
-//                    e,
-//                    usernameSA,
-//                    prg.getSoggetto(),
-//                    prg, m6, 
-//                    new DateTime(),
-//                    true);
-//            System.out.println(f6.getPath());
-//        }
+        ModelliPrg m6 = Utility.filterModello6(prg.getModelli());
+        if (m6 != null) {
+            File f6 = Pdf_new.MODELLO6(                    
+                    e,
+                    usernameSA,
+                    prg.getSoggetto(),
+                    prg, m6, 
+                    new DateTime(),
+                    true);
+            System.out.println(f6.getPath());
+        }
 //        Map<Long, Long> oreRendicontabili = Action.OreRendicontabiliAlunni((int) (long) prg.getId());
 //        File f7 = Pdf_new.MODELLO7(e, usernameSA, al, Utility.roundFloatAndFormat(oreRendicontabili.get(al.getId()), true),
 //                new DateTime(), true);

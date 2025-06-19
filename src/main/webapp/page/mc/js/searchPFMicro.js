@@ -65,6 +65,7 @@ var KTDatatablesDataSourceAjaxServer = function () {
                                 + '</button>'
                                 + '<div class="dropdown-menu dropdown-menu-left">';
                         if (typeuser === "2") {
+                            option += '<a class="dropdown-item" href="javascript:void(0);" onclick="matricola(' + row.id + ')"><i class="fa fa-stamp"></i> Matricola</a>';
                             option += '<a class="dropdown-item" href="javascript:void(0);" onclick="assegna(' + row.id + ')"><i class="fa fa-user"></i> Assegnazione</a>';
                             option += '<a class="dropdown-item" href="javascript:void(0);" onclick="uploadDocGenerico('
                                     + row.id + ')"><i class="fa fa-upload" style="margin-top:-2px"></i>Carica Altra Documentazione</a>';
@@ -1420,6 +1421,84 @@ function getAssegnazione(id) {
     return cip;
 }
 
+function getMatricola(id) {
+    var matricola = "";
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: context + '/QueryMicro?type=verificamatricola&idprogetto=' + id,
+        success: function (data) {
+            matricola = data;
+        },
+        error: function () {
+            matricola = "";
+        }
+    });
+    return matricola;
+}
+
+function matricola(id) {
+    var titolo = '<h2 class="kt-font-io-n"><b>Matricola Progetto Formativo</b></h2><br>';
+    var html = "<div class='form-group-marginless' id='swal_matricola'>"
+            + "<input class='form-control obbligatory' id='matricola' placeholder='Inserisci Matricola' maxlength='30' value = \""
+            + getMatricola(id) + "\" />"
+            + "</div>";
+    swal.fire({
+        title: titolo,
+        html: html,
+        animation: false,
+        showCancelButton: true,
+        confirmButtonText: '&nbsp;<i class="la la-check"></i>',
+        cancelButtonText: '&nbsp;<i class="la la-close"></i>',
+        cancelButtonClass: "btn btn-io-n",
+        confirmButtonClass: "btn btn-io",
+        customClass: {
+            popup: 'animated bounceInUp'
+        },
+        preConfirm: function () {
+            var err = false;
+            err = checkObblFieldsContent($('#swal_matricola')) ? true : err;
+            if (!err) {
+                return new Promise(function (resolve) {
+                    resolve({
+                        "matricola": $('#matricola').val()
+                    });
+                });
+            } else {
+                return false;
+            }
+        }
+    }).then((result) => {
+        if (result.value) {
+            assegnaMatricola(id, result.value);
+        } else {
+            swal.close();
+        }
+    });
+}
+
+function assegnaMatricola(id, result) {
+    showLoad();
+    $.ajax({
+        type: "POST",
+        url: context + '/OperazioniMicro?type=assegnaMatricola&id=' + id,
+        data: result,
+        success: function (data) {
+            closeSwal();
+            var json = JSON.parse(data);
+            if (json.result) {
+                reload();
+                swalSuccess("Assegnazione matricola", "Matricola assegnata al progetto formativo con successo");
+            } else {
+                swalError("Errore", json.message);
+            }
+        },
+        error: function () {
+            swalError("Errore", "Non è stato possibile effettuare l'operazione.");
+        }
+    });
+}
+
 function assegna(id) {
     var titolo = '<h2 class="kt-font-io-n"><b>Assegnazione Progetto Formativo</b></h2><br>';
     var html = "<div class='form-group-marginless' id='swal_assegnazione'>"
@@ -1478,7 +1557,7 @@ function assegnaPrg(id, result) {
             }
         },
         error: function () {
-            swalError("Errore", "Non è stato possibile validare il progetto formativo");
+            swalError("Errore", "Non è stato possibile effettuare l'operazione.");
         }
     });
 }

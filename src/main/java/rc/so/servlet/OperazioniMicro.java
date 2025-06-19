@@ -145,9 +145,9 @@ public class OperazioniMicro extends HttpServlet {
 
                 e.persist(pl1);
                 e.commit();
-                
+
                 insertTR("I", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), pl1.toString());
-                
+
                 Database db1 = new Database(false);
                 db1.ore_convalidateAllievi(String.valueOf(pl1.getAllievo().getId()));
                 db1.closeDB();
@@ -161,9 +161,9 @@ public class OperazioniMicro extends HttpServlet {
                 }
                 e.merge(pl1);
                 e.commit();
-                
+
                 insertTR("I", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), pl1.toString());
-                
+
                 Database db1 = new Database(false);
                 db1.ore_convalidateAllievi(String.valueOf(pl1.getAllievo().getId()));
                 db1.closeDB();
@@ -854,12 +854,12 @@ public class OperazioniMicro extends HttpServlet {
             try {
                 idS = a.getSoggetto().getId().toString();
             } catch (Exception ex2) {
-                idS  = RandomStringUtils.random(3);
+                idS = RandomStringUtils.random(3);
             }
-            
+
             e.begin();
             //creao il path
-            String path = e.getPath("pathDocSA_Allievi").replace("@rssa", 
+            String path = e.getPath("pathDocSA_Allievi").replace("@rssa",
                     idS).replace("@folder", Utility.correctName(a.getCodicefiscale()));
             File dir = new File(path);
             createDir(path);
@@ -969,7 +969,10 @@ public class OperazioniMicro extends HttpServlet {
 //        try {
 //            e.begin();
 //            //29-04-2020 MODIFICA - TOGLIERE IMPORTO CHECKLIST
-////            String prezzo = request.getParameter("kt_inputmask_7").substring(request.getParameter("kt_inputmask_7").lastIndexOf("_"));
+
+    
+
+    ////            String prezzo = request.getParameter("kt_inputmask_7").substring(request.getParameter("kt_inputmask_7").lastIndexOf("_"));
 //            ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class, Long.parseLong(request.getParameter("idprogetto")));
 ////            prg.setImporto(Double.valueOf(prezzo.replaceAll("[._]", "").replace(",", ".").trim()));
 ////            e.merge(prg);
@@ -1960,6 +1963,32 @@ public class OperazioniMicro extends HttpServlet {
 
     }
 
+    protected void assegnaMatricola(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+        JsonObject resp = new JsonObject();
+        Entity e = new Entity();
+        try {
+            String matricola = getRequestValue(request, "matricola").toUpperCase();
+            e.begin();
+            ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class, Long.valueOf(getRequestValue(request, "id")));
+            prg.setMatricola(matricola);
+            e.merge(prg);
+            e.commit();
+            resp.addProperty("result", true);
+        } catch (Exception ex) {
+            e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniMicro assegnaMatricola: " + ex.getMessage());
+            resp.addProperty("result", false);
+            resp.addProperty("message", "Errore: non &egrave; stato possibile assegnare il progettto.");
+        } finally {
+            e.close();
+        }
+
+        response.getWriter().write(resp.toString());
+        response.getWriter().flush();
+        response.getWriter().close();
+    }
+
     protected void assegnaPrg(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
@@ -2900,6 +2929,8 @@ public class OperazioniMicro extends HttpServlet {
                     caricanuovodocumento(request, response);
                 case "caricanuovodocumentoANPAL" ->
                     caricanuovodocumentoANPAL(request, response);
+                case "assegnaMatricola" ->
+                    assegnaMatricola(request, response);
                 case "assegnaPrg" ->
                     assegnaPrg(request, response);
                 case "setSIGMA" ->

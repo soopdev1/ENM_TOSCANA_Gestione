@@ -52,6 +52,9 @@ public class UnitaDidattiche implements Serializable {
     @Column(name = "definizione", columnDefinition = "TEXT")
     private String definizione;
     
+    @Column(name = "competenze", columnDefinition = "TEXT")
+    private String competenze;
+    
     @Transient
     private int countDocs;
     
@@ -124,6 +127,14 @@ public class UnitaDidattiche implements Serializable {
         this.countDocs = countDocs;
     }
 
+    public String getCompetenze() {
+        return competenze;
+    }
+
+    public void setCompetenze(String competenze) {
+        this.competenze = competenze;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 5;
@@ -153,8 +164,5 @@ public class UnitaDidattiche implements Serializable {
     public String toString() {
         return "UnitaDidattiche{" + "codice=" + codice + ", descrizione=" + descrizione + ", ordine=" + ordine + ", ore=" + ore + ", fase=" + fase + ", documenti_ud=" + documenti_ud + ", countDocs=" + countDocs + '}';
     }
-
- 
    
-
 }
