@@ -192,28 +192,64 @@ public class OperazioniMicro extends HttpServlet {
             Entity e = new Entity();
             String idallievo = getRequestValue(request, "idallievo");
             Allievi a = e.getEm().find(Allievi.class, Long.valueOf(idallievo));
+            Documenti_Allievi ATTESTATO = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(22L)||d1.getTipo().getId().equals(23L)).findFirst().orElse(null);
+            if(ATTESTATO!=null){
+                downloadFile = new File(ATTESTATO.getPath());
+            }
+//            List<String> filetomerge = new ArrayList<>();
+//            Documenti_Allievi att_OK = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(22L)).findFirst().orElse(null);
+//            Documenti_Allievi att_UD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(23L)).findFirst().orElse(null);
+//            Documenti_Allievi att_CD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(24L)).findFirst().orElse(null);
+//            if (att_OK != null) {
+//                filetomerge.add(att_OK.getPath());
+//            } else {
+//                if (att_UD != null) {
+//                    filetomerge.add(att_UD.getPath());
+//                }
+//            }
+//            if (att_CD != null) {
+//                filetomerge.add(att_CD.getPath());
+//            }
+//            downloadFile = Pdf_new.merge_PDF(filetomerge, pathtemp);
+        } catch (Exception ex) {
+            insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
+        }
 
-            String pathtemp = e.getPath("pathtemp");
-            createDir(pathtemp);
-
-            List<String> filetomerge = new ArrayList<>();
-
-            Documenti_Allievi att_OK = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(22L)).findFirst().orElse(null);
-            Documenti_Allievi att_UD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(23L)).findFirst().orElse(null);
-            Documenti_Allievi att_CD = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(24L)).findFirst().orElse(null);
-
-            if (att_OK != null) {
-                filetomerge.add(att_OK.getPath());
-            } else {
-                if (att_UD != null) {
-                    filetomerge.add(att_UD.getPath());
+        if (downloadFile != null && downloadFile.exists()) {
+            OutputStream outStream;
+            try (FileInputStream inStream = new FileInputStream(downloadFile)) {
+                String mimeType = probeContentType(downloadFile.toPath());
+                if (mimeType == null) {
+                    mimeType = "application/octet-stream";
+                }
+                response.setContentType(mimeType);
+                String headerKey = "Content-Disposition";
+                String headerValue = format("attachment; filename=\"%s\"", downloadFile.getName());
+                response.setHeader(headerKey, headerValue);
+                outStream = response.getOutputStream();
+                byte[] buffer = new byte[4096 * 4096];
+                int bytesRead;
+                while ((bytesRead = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, bytesRead);
                 }
             }
-            if (att_CD != null) {
-                filetomerge.add(att_CD.getPath());
+            outStream.close();
+        } else {
+            redirect(request, response, request.getContextPath() + "/404.jsp");
+        }
+    }
+    
+    protected void SCARICAATTESTATOENM(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        File downloadFile = null;
+        try {
+            Entity e = new Entity();
+            String idallievo = getRequestValue(request, "idallievo");
+            Allievi a = e.getEm().find(Allievi.class, Long.valueOf(idallievo));
+            Documenti_Allievi ATTESTATO = a.getDocumenti().stream().filter(d1 -> d1.getTipo().getId().equals(25L)).findFirst().orElse(null);
+            if(ATTESTATO!=null){
+                downloadFile = new File(ATTESTATO.getPath());
             }
-            downloadFile = Pdf_new.merge_PDF(filetomerge, pathtemp);
-
         } catch (Exception ex) {
             insertTR("E", String.valueOf(((User) request.getSession().getAttribute("user")).getId()), estraiEccezione(ex));
         }
@@ -2941,6 +2977,8 @@ public class OperazioniMicro extends HttpServlet {
                     SCARICAREGISTROCARTACEO(request, response);
                 case "SCARICAATTESTATI" ->
                     SCARICAATTESTATI(request, response);
+                case "SCARICAATTESTATOENM" ->
+                    SCARICAATTESTATOENM(request, response);
                 case "CONVALIDAPRESENZEALLIEVO" ->
                     CONVALIDAPRESENZEALLIEVO(request, response);
                 default -> {

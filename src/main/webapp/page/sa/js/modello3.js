@@ -23,7 +23,7 @@ let firstLesson = false;
 let isEditable = false;
 
 function setRangeDatesDay(giornoLezione, lezione, daytoadd) {
-    alert(giornoLezione);
+//    alert(giornoLezione);
 //    console.log("a1: "+(dataStart>today));
 //    console.log("a: "+dataStart);
 //    console.log("b: "+dataEnd);
@@ -70,6 +70,7 @@ function setRangeDatesDay(giornoLezione, lezione, daytoadd) {
         rangeDate_min=moment(today).add(1, 'd')._d;
 //        var hh = 11;
         var hh = moment().hour();
+//        alert(hh);
         if(hh>11){
             rangeDate_min=moment(rangeDate_min).add(1, 'd')._d;
         }

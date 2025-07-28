@@ -112,7 +112,7 @@
                                         <div class="kt-form__actions row col-md-12">
                                             <div class="form-group col-md-6">
                                                 <form action="<%=request.getContextPath()%>/OperazioniMicro" method="POST" target="_blank">
-                                                    <input type="hidden" name="type" value="SCARICAATTESTATI" />
+                                                    <input type="hidden" name="type" value="SCARICAATTESTATOENM" />
                                                     <input type="hidden" name="idallievo" value="<%=a.getId()%>" />
                                                     <button type="submit" class="btn btn-success" 
                                                             style="font-family: Poppins"><i class="fa fa-file-pdf"></i> SCARICA ATTESTATO DI FREQUENZA FIRMATO DA ENM</button>

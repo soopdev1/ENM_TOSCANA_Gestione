@@ -32,14 +32,13 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "118";
+        String idpr = "149";
 //        String idall = "597";
         String usernameSA = "AMMINISTRAZIONE";
 
         Entity e = new Entity();
         e.begin();
-        ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class,
-                Long.valueOf(idpr));
+        ProgettiFormativi prg = e.getEm().find(ProgettiFormativi.class, Long.valueOf(idpr));
 
 //        Allievi al = e.getEm().find(Allievi.class,
 //                Long.valueOf(idall));
@@ -129,7 +128,6 @@ public class GeneraDoc {
 //        String path = e.getPath("pathDocSA_Prg").replace("@rssa", prg.getSoggetto().getId().toString()).replace("@folder", prg.getId().toString());
 ////        File CHECKLIST = Pdf_new.CHECKLIST(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
 ////        System.out.println(CHECKLIST.getPath());
-//        
 //            File ev_pdf = Pdf_new.ESITOVALUTAZIONE(path, e, usernameSA, prg.getSoggetto(), prg, new DateTime(), true);
 //            System.out.println(ev_pdf.getPath());
         e.close();
