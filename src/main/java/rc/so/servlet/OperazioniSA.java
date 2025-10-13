@@ -3529,7 +3529,6 @@ public class OperazioniSA extends HttpServlet {
         try {
 
             MascheraM5 datimodello = new MascheraM5();
-
             Allievi a = e.getEm().find(Allievi.class, Long.valueOf(getRequestValue(request, "id_allievo")));
             datimodello.setAllievo(a);
             datimodello.setProgetto_formativo(a.getProgetto());
@@ -3600,7 +3599,7 @@ public class OperazioniSA extends HttpServlet {
                 e.rollBack();
             }
         } catch (Exception ex) {
-            e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA rendicontaAllievo: " + ex.getMessage());
+            e.insertTracking(String.valueOf(((User) request.getSession().getAttribute("user")).getId()), "OperazioniSA rendicontaAllievo: " + estraiEccezione(ex));
             resp.addProperty("result", false);
             resp.addProperty("message", "Errore: non &egrave; stato possibile salvare i dati dell'allievo.");
         } finally {

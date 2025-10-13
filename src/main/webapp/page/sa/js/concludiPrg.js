@@ -356,6 +356,7 @@ $('a[id^=rendiconta_]').on('click', function () {
                     type: "POST",
                     url: context + '/OperazioniSA?type=salvamodello5',
                     data: fdata,
+                    cache: false,
                     processData: false,
                     contentType: false,
                     success: function (data) {

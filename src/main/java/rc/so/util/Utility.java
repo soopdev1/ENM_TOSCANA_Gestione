@@ -101,6 +101,7 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -115,6 +116,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static org.apache.commons.fileupload.servlet.ServletFileUpload.isMultipartContent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.tika.metadata.Metadata;
@@ -459,12 +461,63 @@ public class Utility {
 
     }
 
+    public static Map<String, List<String>> getFormData(HttpServletRequest request) {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        Map<String, List<String>> collect = parameterMap.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> Arrays.asList(entry.getValue())));
+        return collect;
+    }
+
     public static String getRequestValue(HttpServletRequest request, String fieldname) {
-        String out = request.getParameter(fieldname);
-        if (out == null || out.trim().equals("null")) {
-            out = "";
+
+        boolean isMultipart = isMultipartContent(request);
+        String out = "";
+        if (isMultipart) {
+            try {
+                FileItemFactory factory = new DiskFileItemFactory();
+                ServletFileUpload upload = new ServletFileUpload(factory);
+                upload.setHeaderEncoding("UTF-8");
+                Map<String, List<String>> parameterMap = getFormData(request);
+                List<FileItem> items = upload.parseRequest(request);
+                if (items.isEmpty()) {                    
+                    insertTR("I", "S1", parameterMap.toString());
+                    try {
+                        List<String>  l1 =parameterMap.get(fieldname);
+                        for(String l2 : l1){
+                            out = l2.trim();
+                        }                        
+                    } catch (Exception e) {
+                        out =  "";
+                    }
+
+                    if (out == null || out.trim().equals("null")) {
+                        out = "";
+                    } else {
+                        out = out.trim();
+                    }
+                } else {
+                    for (FileItem item : items) {
+                        if (item.isFormField()) {
+                            if (item.getFieldName().equals(fieldname)) {
+                                out = item.getString();
+                                if (out == null || out.trim().equals("null")) {
+                                    out = "";
+                                } else {
+                                    out = out.trim();
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                insertTR("E", "SERVICE", estraiEccezione(ex));
+            }
         } else {
-            out = out.trim();
+            out = request.getParameter(fieldname);
+            if (out == null || out.trim().equals("null")) {
+                out = "";
+            } else {
+                out = out.trim();
+            }
         }
         return out;
     }
@@ -1519,7 +1572,6 @@ public class Utility {
         return resp;
     }
 
-    
     public static final ObjectMapper OM = getOM();
 
     public static ObjectMapper getOM() {
