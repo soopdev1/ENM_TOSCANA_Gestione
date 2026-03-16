@@ -1475,7 +1475,7 @@ public class Database {
         try {
             String sql1 = "SELECT p.accreditato,a.soggettosingolo,a.costituenda,a.costituita,a.rete,a.consorzio "
                     + "FROM enm_toscana_prod.bando_toscana_mcn p,enm_gestione_toscana_prod.soggetti_attuatori t, enm_toscana_prod.allegato_a a "
-                    + "WHERE p.protocollo=t.protocollo AND p.username=a.username AND t.idsoggetti_attuatori=1;";
+                    + "WHERE p.protocollo=t.protocollo AND p.username=a.username AND t.idsoggetti_attuatori="+idsoggetto;
             try (Statement st1 = this.c.createStatement(); ResultSet rs1 = st1.executeQuery(sql1)) {
                 if (rs1.next()) {
                     out[0] = rs1.getString(1).toUpperCase();

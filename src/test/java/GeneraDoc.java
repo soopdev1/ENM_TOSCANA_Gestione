@@ -32,9 +32,9 @@ public class GeneraDoc {
         java.util.logging.Logger.getLogger(
                 "org.apache").setLevel(java.util.logging.Level.SEVERE);
 
-        String idpr = "163";
+        String idpr = "178";
 //        String idall = "597";
-        String usernameSA = "AMMINISTRAZIONE";
+        String usernameSA = "DIREZIONE";
 
         Entity e = new Entity();
         e.begin();
