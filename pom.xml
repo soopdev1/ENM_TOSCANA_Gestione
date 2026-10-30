@@ -221,6 +221,9 @@
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
                     <release>17</release>
+                    <compilerArgs>
+                        <arg>-Xlint</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
